@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/logger" },
+    { "path": "./packages/shared-types" },
+    { "path": "./packages/shared-config" },
+    { "path": "./packages/shared-auth" },
+    { "path": "./services/auth-service" },
+    { "path": "./services/gateway" }
+  ]
+}

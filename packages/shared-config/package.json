@@ -1,0 +1,28 @@
+{
+  "name": "@platform/shared-config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "dev": "tsc -b --watch",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "zod": "^4.4.3",
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "@types/node": "^22.10.2"
+  }
+}

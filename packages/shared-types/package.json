@@ -1,0 +1,32 @@
+{
+  "name": "@platform/shared-types",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "dev": "tsc -b --watch",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "mongoose": "^9.9.1",
+    "@platform/logger": "workspace:*"
+  },
+  "peerDependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "@types/node": "^22.10.2",
+    "@types/express": "^5.0.0"
+  }
+}

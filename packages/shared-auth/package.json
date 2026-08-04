@@ -1,0 +1,27 @@
+{
+  "name": "@platform/shared-auth",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "dev": "tsc -b --watch",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "jose": "^6.2.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "catalog:"
+  }
+}

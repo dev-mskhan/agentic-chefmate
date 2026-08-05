@@ -1,29 +1,4 @@
 packages:
-  - packages/*
-  - apps/*
-  - services/*
-
-allowBuilds:
-  '@swc/core': true
-  esbuild: true
-  mongodb-memory-server: true
-  unrs-resolver: true
-
-# pnpm 10+ blocks postinstall/preinstall/install lifecycle scripts for every
-# dependency by default (a supply-chain security default, not a bug).
-# `allowBuilds: true/false` isn't a real pnpm-workspace.yaml field — the
-# actual field is `onlyBuiltDependencies`, an explicit allowlist of package
-# names permitted to run their install scripts. esbuild ships a postinstall
-# script that downloads its platform-specific binary, so it needs to be
-# listed here or `pnpm install` will silently leave esbuild non-functional.
-onlyBuiltDependencies:
-  - esbuild
-  - "@swc/core"
-  - "@swc/cli"
-  - mongodb-memory-server
-
-catalog:
-  typescript: ^7.0.2
-
-minimumReleaseAgeExclude:
-  - tsx@4.23.5
+  - "apps/*"
+  - "packages/*"
+  - "sevices/*"

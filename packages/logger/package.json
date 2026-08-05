@@ -1,0 +1,19 @@
+{
+  "name": "@chefmate/logger",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "pino": "^9.3.2",
+    "@chefmate/errors": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3",
+    "pino-pretty": "^11.2.2",
+    "@types/node": "^20.14.12"
+  }
+}

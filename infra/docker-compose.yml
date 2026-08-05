@@ -1,0 +1,84 @@
+version: '3.9'
+
+services:
+  # ─── MongoDB ────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: foodlancer-mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-foodlancer}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - foodlancer
+
+  # ─── Redis ─────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: foodlancer-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - foodlancer
+
+  # ─── Redpanda (Kafka-compatible) ───────────────────────────────────────────
+  redpanda:
+    image: redpandadata/redpanda:latest
+    container_name: foodlancer-redpanda
+    restart: unless-stopped
+    ports:
+      - '9092:9092'   # Kafka-compatible broker
+      - '9644:9644'   # Admin API
+      - '8081:8081'   # Schema Registry
+      - '8082:8082'   # HTTP Proxy
+    command:
+      - redpanda
+      - start
+      - --smp=1
+      - --memory=512M
+      - --overprovisioned
+      - --kafka-addr=PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr=PLAINTEXT://127.0.0.1:9092
+      - --pandaproxy-addr=0.0.0.0:8082
+      - --advertise-pandaproxy-addr=127.0.0.1:8082
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+    networks:
+      - foodlancer
+    healthcheck:
+      test: ['CMD-SHELL', 'rpk cluster health | grep -E "Healthy|true"']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ─── Redpanda Console (optional UI) ────────────────────────────────────────
+  redpanda-console:
+    image: redpandadata/console:latest
+    container_name: foodlancer-redpanda-console
+    restart: unless-stopped
+    ports:
+      - '8080:8080'
+    environment:
+      - KAFKA_BROKERS=redpanda:9092
+    depends_on:
+      - redpanda
+    networks:
+      - foodlancer
+
+volumes:
+  mongo_data:
+  redis_data:
+  redpanda_data:
+
+networks:
+  foodlancer:
+    driver: bridge

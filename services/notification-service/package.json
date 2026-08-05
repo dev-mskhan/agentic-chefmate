@@ -1,0 +1,29 @@
+{
+  "name": "@chefmate/notification-service",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4",
+    "bullmq": "^5.12.0",
+    "ioredis": "^5.4.1",
+    "@sendgrid/mail": "^8.1.3",
+    "firebase-admin": "^12.3.0",
+    "zod": "^3.23.8",
+    "pino": "^9.3.2",
+    "@chefmate/config": "workspace:*",
+    "@chefmate/errors": "workspace:*",
+    "@chefmate/logger": "workspace:*",
+    "@chefmate/event-contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3",
+    "@types/node": "^20.14.12",
+    "tsx": "^4.16.2",
+    "pino-pretty": "^11.2.2"
+  }
+}

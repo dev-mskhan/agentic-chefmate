@@ -1,0 +1,35 @@
+{
+  "name": "@chefmate/gateway",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "fastify": "^4.28.1",
+    "@fastify/http-proxy": "^9.4.0",
+    "@fastify/redis": "^6.1.1",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/cookie": "^9.3.1",
+    "ioredis": "^5.4.1",
+    "jose": "^5.6.3",
+    "js-yaml": "^4.1.0",
+    "fastify-plugin": "^4.5.1",
+    "undici": "^6.19.2",
+    "zod": "^3.23.8",
+    "pino": "^9.3.2",
+    "@chefmate/config": "workspace:*",
+    "@chefmate/errors": "workspace:*",
+    "@chefmate/logger": "workspace:*",
+    "@chefmate/auth-clients": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3",
+    "@types/node": "^20.14.12",
+    "@types/js-yaml": "^4.0.9",
+    "tsx": "^4.16.2",
+    "pino-pretty": "^11.2.2"
+  }
+}

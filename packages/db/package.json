@@ -1,0 +1,19 @@
+{
+  "name": "@chefmate/db",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "mongoose": "^8.5.3",
+    "@chefmate/errors": "workspace:*",
+    "@chefmate/config": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3",
+    "@types/node": "^20.14.12"
+  }
+}

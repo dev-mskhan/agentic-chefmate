@@ -1,6 +1,10 @@
+import { loadEnv } from '@chefmate/config'
+loadEnv(__dirname)
+
 import Fastify from 'fastify'
 import fastifyCookie from '@fastify/cookie'
-import { createLogger } from '@chefmate/logger'
+import fastifyCors from '@fastify/cors'
+import { createFastifyLogger, createLogger } from '@chefmate/logger'
 import { config } from './config'
 import { toHttpResponse, isDomainError } from '@chefmate/errors'
 import redisPlugin from './plugins/redis'
@@ -14,30 +18,33 @@ const logger = createLogger('gateway')
 
 async function buildApp() {
   const app = Fastify({
-    logger: config.NODE_ENV === 'production'
-      ? logger
-      : { level: config.LOG_LEVEL },
+    logger: createFastifyLogger('gateway'),
     trustProxy: true,
   })
 
-  // Cookies (needed for auth cookie extraction)
-  await app.register(fastifyCookie, { secret: config.COOKIE_SECRET })
+  const allowedOrigins = config.CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
 
-  // Infrastructure plugins
+  await app.register(fastifyCors, {
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true)
+      if (allowedOrigins.includes(origin)) return cb(null, true)
+      return cb(new Error(`Origin "${origin}" not allowed by CORS`), false)
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-trace-id'],
+    exposedHeaders: ['x-trace-id'],
+    maxAge: 86400,
+  })
+
+  await app.register(fastifyCookie, { secret: config.COOKIE_SECRET })
   await app.register(redisPlugin)
   await app.register(rateLimitPlugin)
   await app.register(tracingPlugin)
-
-  // Auth verify plugin (warms up JWKS cache)
   await app.register(authVerifyPlugin)
-
-  // Proxy plugin (must come after auth-verify plugin)
   await app.register(proxyPlugin)
-
-  // Health / readiness routes
   await app.register(gatewayRoutes)
 
-  // Global error handler
   app.setErrorHandler((error, _request, reply) => {
     if (isDomainError(error)) {
       return reply.code(error.statusCode).send(toHttpResponse(error))

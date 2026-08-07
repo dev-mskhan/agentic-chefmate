@@ -1,17 +1,17 @@
-version: '3.9'
-
 services:
   # ─── MongoDB ────────────────────────────────────────────────────────────────
   mongo:
     image: mongo:7
     container_name: foodlancer-mongo
     restart: unless-stopped
+    env_file:
+      - ../.env
     ports:
-      - '27017:27017'
+      - '27018:27017'
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
-      MONGO_INITDB_DATABASE: ${MONGO_DB:-foodlancer}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB}
     volumes:
       - mongo_data:/data/db
     networks:
@@ -31,25 +31,29 @@ services:
       - foodlancer
 
   # ─── Redpanda (Kafka-compatible) ───────────────────────────────────────────
+  # Two listeners:
+  #   PLAINTEXT (port 9092)  — advertised as localhost:9092  → for host machine (Node.js services)
+  #   INTERNAL  (port 29092) — advertised as redpanda:29092  → for Docker containers (Console, etc.)
   redpanda:
     image: redpandadata/redpanda:latest
     container_name: foodlancer-redpanda
     restart: unless-stopped
     ports:
-      - '9092:9092'   # Kafka-compatible broker
-      - '9644:9644'   # Admin API
-      - '8081:8081'   # Schema Registry
-      - '8082:8082'   # HTTP Proxy
+      - '9092:9092'    # host access (Node.js services on your machine)
+      - '29092:29092'  # internal Docker network access
+      - '9644:9644'    # Admin API
+      - '8081:8081'    # Schema Registry
+      - '8082:8082'    # HTTP Proxy
     command:
       - redpanda
       - start
       - --smp=1
       - --memory=512M
       - --overprovisioned
-      - --kafka-addr=PLAINTEXT://0.0.0.0:9092
-      - --advertise-kafka-addr=PLAINTEXT://127.0.0.1:9092
+      - --kafka-addr=PLAINTEXT://0.0.0.0:9092,INTERNAL://0.0.0.0:29092
+      - --advertise-kafka-addr=PLAINTEXT://localhost:9092,INTERNAL://redpanda:29092
       - --pandaproxy-addr=0.0.0.0:8082
-      - --advertise-pandaproxy-addr=127.0.0.1:8082
+      - --advertise-pandaproxy-addr=localhost:8082
     volumes:
       - redpanda_data:/var/lib/redpanda/data
     networks:
@@ -60,7 +64,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # ─── Redpanda Console (optional UI) ────────────────────────────────────────
+  # ─── Redpanda Console ────────────────────────────────────────────────────────
   redpanda-console:
     image: redpandadata/console:latest
     container_name: foodlancer-redpanda-console
@@ -68,9 +72,11 @@ services:
     ports:
       - '8080:8080'
     environment:
-      - KAFKA_BROKERS=redpanda:9092
+      # Use the INTERNAL listener — console runs inside Docker network
+      KAFKA_BROKERS: redpanda:29092
     depends_on:
-      - redpanda
+      redpanda:
+        condition: service_healthy
     networks:
       - foodlancer
 

@@ -43,7 +43,11 @@ export async function connectMongo(
   process.once('SIGINT', () => void shutdown('SIGINT'))
   process.once('SIGTERM', () => void shutdown('SIGTERM'))
 
-  await mongoose.connect(uri, options)
+  await mongoose.connect(uri, {
+    serverSelectionTimeoutMS: 5000,
+    connectTimeoutMS: 5000,
+    ...options,
+  })
 }
 
 /**

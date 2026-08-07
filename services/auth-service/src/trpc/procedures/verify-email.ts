@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { publicProcedure } from '../router'
+import { publicProcedure } from '../trpc'
 import { User } from '../../models/user.model'
 import { NotFoundError, UnauthorizedError } from '@chefmate/errors'
 

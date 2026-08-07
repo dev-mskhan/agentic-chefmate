@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { internalProcedure } from '../router'
+import { internalProcedure } from '../trpc'
 import { User } from '../../models/user.model'
 import { NotFoundError } from '@chefmate/errors'
 import { publishAuthEvent } from '../../services/event.service'

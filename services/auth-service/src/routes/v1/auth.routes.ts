@@ -12,7 +12,7 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
   // GET /api/v1/auth/.well-known/jwks.json
   // Returns the RS256 public key in JWK format for gateway to cache
   fastify.get('/.well-known/jwks.json', async (_request, reply) => {
-    const jwk = await getPublicKeyJwk(config.JWT_PUBLIC_KEY, config.JWT_KEY_ID)
+    const jwk = await getPublicKeyJwk(config.JWT_PUBLIC_KEY, config.JWT_KEY_ID!)
     return reply.send({ keys: [jwk] })
   })
 
@@ -36,7 +36,7 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
       const { accessToken, refreshToken, refreshTokenFamily } = await issueTokenPair(
         { userId: user._id.toString(), role: user.role, email: user.email },
         config.JWT_PRIVATE_KEY,
-        config.JWT_KEY_ID,
+        config.JWT_KEY_ID!,
       )
 
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)

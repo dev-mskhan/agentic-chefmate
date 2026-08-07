@@ -1,7 +1,10 @@
+import { loadEnv } from '@chefmate/config'
+loadEnv(__dirname)
+
 import Fastify from 'fastify'
 import fastifyCookie from '@fastify/cookie'
 import fastifyRateLimit from '@fastify/rate-limit'
-import { createLogger } from '@chefmate/logger'
+import { createFastifyLogger, createLogger } from '@chefmate/logger'
 import { config } from './config'
 import { initEventService, disconnectEventService } from './services/event.service'
 import mongoPlugin from './plugins/mongo'
@@ -15,13 +18,10 @@ const logger = createLogger('auth-service')
 
 async function buildApp() {
   const app = Fastify({
-    logger: config.NODE_ENV === 'production'
-      ? logger
-      : { level: config.LOG_LEVEL },
+    logger: createFastifyLogger('auth-service'),
     trustProxy: true,
   })
 
-  // Core plugins
   await app.register(fastifyCookie, { secret: config.COOKIE_SECRET })
   await app.register(fastifyRateLimit, {
     max: 100,
@@ -29,16 +29,13 @@ async function buildApp() {
     keyGenerator: (req) => req.ip,
   })
 
-  // Service plugins
   await app.register(mongoPlugin)
   await app.register(redisPlugin)
   await app.register(passportPlugin)
   await app.register(trpcPlugin)
 
-  // REST routes
   await app.register(authRoutes, { prefix: '/api/v1/auth' })
 
-  // Global error handler
   app.setErrorHandler((error, _request, reply) => {
     if (isDomainError(error)) {
       return reply.code(error.statusCode).send(toHttpResponse(error))
@@ -52,15 +49,13 @@ async function buildApp() {
 
 async function start() {
   try {
-    // Init Redpanda producer
-    await initEventService(config.REDPANDA_BROKER)
+    await initEventService(config.REDPANDA_BROKER!)
     logger.info('Redpanda producer connected')
 
     const app = await buildApp()
     await app.listen({ port: config.PORT, host: '0.0.0.0' })
     logger.info(`auth-service listening on port ${config.PORT}`)
 
-    // Graceful shutdown
     const shutdown = async (signal: string) => {
       logger.info(`${signal} received — shutting down`)
       await app.close()

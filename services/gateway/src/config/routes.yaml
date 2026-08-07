@@ -1,10 +1,10 @@
 routes:
   - prefix: /api/v1/auth
-    target: http://auth-service:3001
+    targetKey: AUTH_SERVICE_URL
     auth: false
 
   - prefix: /api/v1/users
-    target: http://user-service:3002
+    targetKey: USER_SERVICE_URL
     auth: true
     roles:
       - USER
@@ -12,7 +12,7 @@ routes:
       - ADMIN
 
   - prefix: /api/v1/chefs
-    target: http://chef-service:3003
+    targetKey: CHEF_SERVICE_URL
     auth: true
     roles:
       - USER
@@ -20,20 +20,20 @@ routes:
       - ADMIN
 
   - prefix: /api/v1/orders
-    target: http://order-service:3004
+    targetKey: ORDER_SERVICE_URL
     auth: true
     roles:
       - USER
       - CHEF
 
   - prefix: /api/v1/admin
-    target: http://admin-service:3005
+    targetKey: ADMIN_SERVICE_URL
     auth: true
     roles:
       - ADMIN
 
   - prefix: /api/v1/notifications
-    target: http://notification-service:3006
+    targetKey: NOTIFICATION_SERVICE_URL
     auth: true
     roles:
       - USER

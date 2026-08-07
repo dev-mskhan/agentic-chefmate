@@ -1,4 +1,4 @@
-import { protectedRefreshProcedure } from '../router'
+import { protectedRefreshProcedure } from '../trpc'
 import { RefreshToken } from '../../models/refresh-token.model'
 import {
   issueTokenPair,

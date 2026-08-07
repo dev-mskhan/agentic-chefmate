@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { protectedProcedure } from '../router'
+import { protectedProcedure } from '../trpc'
 import { RefreshToken } from '../../models/refresh-token.model'
 import { blacklistToken, hashToken } from '../../services/token.service'
 import { clearAuthCookies, getAccessToken, getRefreshToken } from '../../services/session.service'

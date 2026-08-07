@@ -5,3 +5,12 @@ dist/
 .turbo
 .kiro
 
+
+# RSA key files — never commit these
+*.pem
+*.key
+
+# Service-level env files
+services/**/.env
+apps/**/.env
+packages/**/.env

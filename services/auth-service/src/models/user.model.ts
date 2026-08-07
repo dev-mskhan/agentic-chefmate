@@ -21,7 +21,6 @@ const UserSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true,
     },
     passwordHash: { type: String },
     role: {
@@ -34,7 +33,5 @@ const UserSchema = new Schema<IUser>(
   },
   { timestamps: true },
 )
-
-UserSchema.index({ googleId: 1 }, { sparse: true })
 
 export const User: Model<IUser> = mongoose.model<IUser>('User', UserSchema)

@@ -1,76 +1,36 @@
 import pino from 'pino'
 
-// ─── PII Scrubber ─────────────────────────────────────────────────────────────
-
-/**
- * Sensitive fields to strip from all log output.
- * pino's built-in redaction replaces matched paths with "[Redacted]".
- */
-const SENSITIVE_FIELDS = [
-  'password',
-  'passwordHash',
-  'token',
-  'accessToken',
-  'refreshToken',
-  'authorization',
-]
-
-/**
- * piiScrubber provides:
- *  - A `req` serializer that strips sensitive fields from request bodies/headers
- *  - A `redactPaths` array for pino's built-in redaction engine
- */
 export const piiScrubber = {
-  /**
-   * Custom serializer for the `req` binding. Strips sensitive fields from
-   * body and headers before they reach the log transport.
-   */
   serializers: {
-    req(req: Record<string, unknown>): Record<string, unknown> {
-      const scrubbed = { ...req }
-
-      // Scrub top-level sensitive fields (e.g. body properties)
-      for (const field of SENSITIVE_FIELDS) {
-        if (field in scrubbed) {
-          scrubbed[field] = '[Redacted]'
-        }
+    req(req: {
+      method?: string
+      url?: string
+      hostname?: string
+      remoteAddress?: string
+      headers?: Record<string, unknown>
+    }): Record<string, unknown> {
+      // Whitelist only the fields useful for debugging — never spread the raw object
+      const out: Record<string, unknown> = {
+        method:        req.method,
+        url:           req.url,
+        hostname:      req.hostname,
+        remoteAddress: req.remoteAddress,
       }
 
-      // Scrub headers object
-      if (scrubbed['headers'] && typeof scrubbed['headers'] === 'object') {
-        const headers = { ...(scrubbed['headers'] as Record<string, unknown>) }
-        for (const field of SENSITIVE_FIELDS) {
-          if (field in headers) {
-            headers[field] = '[Redacted]'
-          }
-          // Also handle lowercase header variants
-          const lower = field.toLowerCase()
-          if (lower in headers) {
-            headers[lower] = '[Redacted]'
-          }
-        }
-        scrubbed['headers'] = headers
+      // Include a stripped-down headers object (drop cookie + auth)
+      if (req.headers && typeof req.headers === 'object') {
+        const { cookie, authorization, ...safeHeaders } = req.headers as Record<string, unknown>
+        out['headers'] = safeHeaders
       }
 
-      // Scrub body object if present
-      if (scrubbed['body'] && typeof scrubbed['body'] === 'object') {
-        const body = { ...(scrubbed['body'] as Record<string, unknown>) }
-        for (const field of SENSITIVE_FIELDS) {
-          if (field in body) {
-            body[field] = '[Redacted]'
-          }
-        }
-        scrubbed['body'] = body
-      }
+      return out
+    },
 
-      return scrubbed
+    res(res: { statusCode?: number }): Record<string, unknown> {
+      return { statusCode: res.statusCode }
     },
   },
 
-  /**
-   * Paths passed to pino's built-in `redact` option.
-   * These cover deeply nested occurrences across any logged object.
-   */
   redactPaths: [
     '*.password',
     '*.passwordHash',
@@ -82,15 +42,50 @@ export const piiScrubber = {
   ],
 }
 
-// ─── Logger Factory ───────────────────────────────────────────────────────────
+/**
+ * Returns Fastify-compatible logger options.
+ * In dev: uses pino-pretty transport for readable colourised output.
+ * In prod: plain JSON for log aggregators.
+ *
+ * Pass the return value directly to Fastify({ logger: createFastifyLogger('svc') })
+ */
+export function createFastifyLogger(service: string): pino.LoggerOptions | pino.Logger {
+  const isDev = process.env['NODE_ENV'] !== 'production'
+  const level = process.env['LOG_LEVEL'] ?? 'info'
+
+  const base: pino.LoggerOptions = {
+    name: service,
+    level,
+    timestamp: pino.stdTimeFunctions.isoTime,
+    redact: { paths: piiScrubber.redactPaths, censor: '[Redacted]' },
+    serializers: {
+      ...piiScrubber.serializers,
+    },
+  }
+
+  if (isDev) {
+    return pino(
+      base,
+      pino.transport({
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          translateTime: 'SYS:dd mmm yyyy HH:MM:ss',
+          ignore: 'pid,hostname',
+          messageFormat: '{name} | {msg}',
+          errorLikeObjectKeys: ['err', 'error'],
+          singleLine: false,
+        },
+      }),
+    ) as unknown as pino.LoggerOptions
+  }
+
+  return base
+}
 
 /**
- * Creates a Pino logger bound to a specific service name.
- *
- * - In development (NODE_ENV !== 'production'): pretty-prints via pino-pretty
- * - In production: emits plain JSON for structured log aggregators
- * - Applies PII redaction via piiScrubber
- * - Log level controlled by LOG_LEVEL env var (default: 'info')
+ * Standalone logger for non-HTTP use (startup messages, background jobs).
+ * Uses the same transport as createFastifyLogger.
  */
 export function createLogger(service: string): pino.Logger {
   const isDev = process.env['NODE_ENV'] !== 'production'
@@ -100,10 +95,7 @@ export function createLogger(service: string): pino.Logger {
     name: service,
     level,
     timestamp: pino.stdTimeFunctions.isoTime,
-    redact: {
-      paths: piiScrubber.redactPaths,
-      censor: '[Redacted]',
-    },
+    redact: { paths: piiScrubber.redactPaths, censor: '[Redacted]' },
     serializers: piiScrubber.serializers,
   }
 
@@ -114,8 +106,9 @@ export function createLogger(service: string): pino.Logger {
         target: 'pino-pretty',
         options: {
           colorize: true,
-          translateTime: 'SYS:standard',
+          translateTime: 'SYS:dd mmm yyyy HH:MM:ss',
           ignore: 'pid,hostname',
+          messageFormat: '{name} | {msg}',
         },
       }),
     )
@@ -124,16 +117,8 @@ export function createLogger(service: string): pino.Logger {
   return pino(options)
 }
 
-// ─── Trace ID Binding ─────────────────────────────────────────────────────────
-
-/**
- * Returns a child logger with `traceId` bound to every subsequent log line.
- * Use this to correlate all log entries for a single request or operation.
- */
 export function withTraceId(logger: pino.Logger, traceId: string): pino.Logger {
   return logger.child({ traceId })
 }
-
-// ─── Re-exported Types ────────────────────────────────────────────────────────
 
 export type { Logger } from 'pino'

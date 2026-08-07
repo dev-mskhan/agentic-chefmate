@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import * as argon2 from 'argon2'
-import { publicProcedure } from '../router'
+import { publicProcedure } from '../trpc'
 import { User } from '../../models/user.model'
 import { RefreshToken } from '../../models/refresh-token.model'
 import { issueTokenPair, hashToken } from '../../services/token.service'

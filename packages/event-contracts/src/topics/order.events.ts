@@ -29,6 +29,7 @@ export type OrderEvent =
   | {
       type: 'order.status_changed'
       orderId: string
+      userId: string
       oldStatus: OrderStatus
       newStatus: OrderStatus
       createdAt: string

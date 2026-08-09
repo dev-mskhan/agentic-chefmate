@@ -1,7 +1,7 @@
 import { Worker } from 'bullmq'
-import type { Redis } from 'ioredis'
 import { config } from '../config'
 import type { NotificationJob } from '../queues/notification.queue'
+import { getBullMQConnection } from '../queues/redis-connection'
 import { createLogger } from '@chefmate/logger'
 import { verifyEmailTemplate } from '../templates/email/verify-email'
 import { resetPasswordTemplate } from '../templates/email/reset-password'
@@ -31,7 +31,7 @@ function getSendGrid(): SendGridClient | null {
 
 /**
  * Render a template into { subject, html, text } given the job's data payload.
- * Returns null for templates that don't need an email (e.g. push-only).
+ * Returns null for unrecognised templates.
  */
 function renderTemplate(
   template: string,
@@ -54,22 +54,22 @@ function renderTemplate(
       return welcomeChefTemplate()
 
     case 'new-order-chef':
-      return newOrderChefTemplate(data as Parameters<typeof newOrderChefTemplate>[0])
+      return newOrderChefTemplate(data as unknown as Parameters<typeof newOrderChefTemplate>[0])
 
     case 'order-confirmed-user':
       return orderConfirmedUserTemplate(
-        data as Parameters<typeof orderConfirmedUserTemplate>[0],
+        data as unknown as Parameters<typeof orderConfirmedUserTemplate>[0],
       )
 
     case 'leave-review':
-      return leaveReviewTemplate(data as Parameters<typeof leaveReviewTemplate>[0])
+      return leaveReviewTemplate(data as unknown as Parameters<typeof leaveReviewTemplate>[0])
 
     default:
       return null
   }
 }
 
-export function startEmailWorker(redis: Redis): Worker<NotificationJob> {
+export function startEmailWorker(): Worker<NotificationJob> {
   return new Worker<NotificationJob>(
     'notifications',
     async (job) => {
@@ -77,26 +77,17 @@ export function startEmailWorker(redis: Redis): Worker<NotificationJob> {
 
       const sg = getSendGrid()
       if (!sg) {
-        logger.warn({ template: job.data.template }, 'SendGrid not configured — skipping email')
-        return
+        throw new Error('SendGrid not configured')
       }
 
-      // The job data carries the recipient email directly for auth events
-      // (verify-email, reset-password). For other templates the email is
-      // resolved from data or falls back to a user-service lookup (TODO).
-      const toEmail = (job.data.data['email'] as string | undefined)
+      const toEmail = job.data.data['email'] as string | undefined
       if (!toEmail) {
-        logger.warn(
-          { userId: job.data.userId, template: job.data.template },
-          'No email address in job data — skipping',
-        )
-        return
+        throw new Error(`No email in job data for template ${job.data.template}`)
       }
 
       const rendered = renderTemplate(job.data.template, job.data.data)
       if (!rendered) {
-        logger.warn({ template: job.data.template }, 'No renderer for template — skipping')
-        return
+        throw new Error(`No renderer for template: ${job.data.template}`)
       }
 
       logger.info(
@@ -108,6 +99,7 @@ export function startEmailWorker(redis: Redis): Worker<NotificationJob> {
         'Sending email',
       )
 
+      // sg.send throws on failure — let it propagate so BullMQ retries
       await sg.send({
         to: toEmail,
         from: {
@@ -120,7 +112,7 @@ export function startEmailWorker(redis: Redis): Worker<NotificationJob> {
       })
     },
     {
-      connection: redis,
+      connection: getBullMQConnection(),
       concurrency: 10,
     },
   )

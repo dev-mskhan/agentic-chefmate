@@ -1,5 +1,5 @@
 import { Queue } from 'bullmq'
-import type { Redis } from 'ioredis'
+import { getBullMQConnection } from './redis-connection'
 
 export type NotificationChannel = 'email' | 'push' | 'inapp'
 
@@ -13,10 +13,10 @@ export interface NotificationJob {
 
 let notificationQueue: Queue<NotificationJob> | null = null
 
-export function getNotificationQueue(redis: Redis): Queue<NotificationJob> {
+export function getNotificationQueue(): Queue<NotificationJob> {
   if (!notificationQueue) {
     notificationQueue = new Queue<NotificationJob>('notifications', {
-      connection: redis,
+      connection: getBullMQConnection(),
       defaultJobOptions: {
         attempts: 5,
         backoff: { type: 'exponential', delay: 1000 },

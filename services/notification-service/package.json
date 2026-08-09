@@ -8,22 +8,25 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "kafkajs": "^2.2.4",
+    "@chefmate/config": "workspace:*",
+    "@chefmate/db": "workspace:*",
+    "@chefmate/errors": "workspace:*",
+    "@chefmate/event-contracts": "workspace:*",
+    "@chefmate/logger": "workspace:*",
+    "@sendgrid/mail": "^8.1.3",
     "bullmq": "^5.12.0",
     "ioredis": "^5.4.1",
-    "@sendgrid/mail": "^8.1.3",
-    "firebase-admin": "^12.3.0",
-    "zod": "^3.23.8",
+    "kafkajs": "^2.2.4",
+    "mongoose": "^8.24.2",
     "pino": "^9.3.2",
-    "@chefmate/config": "workspace:*",
-    "@chefmate/errors": "workspace:*",
-    "@chefmate/logger": "workspace:*",
-    "@chefmate/event-contracts": "workspace:*"
+    "web-push": "^3.6.7",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "typescript": "^5.5.3",
     "@types/node": "^20.14.12",
+    "@types/web-push": "^3.6.4",
+    "pino-pretty": "^11.2.2",
     "tsx": "^4.16.2",
-    "pino-pretty": "^11.2.2"
+    "typescript": "^5.5.3"
   }
 }

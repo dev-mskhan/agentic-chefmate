@@ -1,5 +1,9 @@
+import { loadEnv } from '@chefmate/config'
+loadEnv(__dirname)
+
 import { Kafka } from 'kafkajs'
 import Redis from 'ioredis'
+import { connectMongo, disconnectMongo } from '@chefmate/db'
 import { createLogger } from '@chefmate/logger'
 import { config } from './config'
 import {
@@ -18,31 +22,50 @@ import { handleChatEvent } from './consumers/chat.consumer'
 import { startEmailWorker } from './workers/email.worker'
 import { startPushWorker } from './workers/push.worker'
 import { startInAppWorker } from './workers/inapp.worker'
+import { attachWorkerLifecycle } from './workers/lifecycle'
+import { initNotificationEventService, disconnectNotificationEventService } from './services/event.service'
+import { initWebPush } from './services/web-push.service'
 
 const logger = createLogger('notification-service')
 
 async function start() {
-  // Redis connections
-  const redis = new Redis(config.REDIS_URL, { maxRetriesPerRequest: null })
-  const pubRedis = new Redis(config.REDIS_URL, { maxRetriesPerRequest: null })
+  // ── MongoDB ──────────────────────────────────────────────────────────────
+  await connectMongo(config.MONGODB_URI)
+  logger.info('MongoDB connected')
 
-  // Notification queue
-  const queue = getNotificationQueue(redis)
+  // ── Web Push ─────────────────────────────────────────────────────────────
+  initWebPush()
 
-  // BullMQ workers
-  const emailWorker = startEmailWorker(redis)
-  const pushWorker = startPushWorker(redis)
-  const inappWorker = startInAppWorker(redis, pubRedis)
+  // ── Kafka producer (for notification.sent / notification.failed events) ──
+  await initNotificationEventService(config.REDPANDA_BROKER!)
+  logger.info('Notification event producer connected')
+
+  // ── BullMQ queue (no ioredis instance — plain connection config) ─────────
+  const queue = getNotificationQueue()
+
+  // ── BullMQ workers ────────────────────────────────────────────────────────
+  // pubClient is an ioredis instance used only for Redis pub/sub in the
+  // inapp worker. It is NOT passed to BullMQ Queue/Worker constructors.
+  const pubClient = new Redis(config.REDIS_URL!, { maxRetriesPerRequest: null })
+
+  const emailWorker = startEmailWorker()
+  const pushWorker  = startPushWorker()
+  const inappWorker = startInAppWorker(pubClient)
+
+  // Attach lifecycle listeners — publish notification.sent / notification.failed
+  attachWorkerLifecycle(emailWorker)
+  attachWorkerLifecycle(pushWorker)
+  attachWorkerLifecycle(inappWorker)
 
   logger.info('BullMQ workers started')
 
-  // Kafka consumers — one per topic/group for isolation
-  const kafka = new Kafka({ clientId: 'notification-service', brokers: [config.REDPANDA_BROKER] })
+  // ── Kafka consumers (one per topic/group for isolation) ──────────────────
+  const kafka = new Kafka({ clientId: 'notification-service', brokers: [config.REDPANDA_BROKER!] })
 
-  const authConsumer = createConsumer(kafka, 'notification-service-auth')
+  const authConsumer  = createConsumer(kafka, 'notification-service-auth')
   const orderConsumer = createConsumer(kafka, 'notification-service-order')
-  const chefConsumer = createConsumer(kafka, 'notification-service-chef')
-  const chatConsumer = createConsumer(kafka, 'notification-service-chat')
+  const chefConsumer  = createConsumer(kafka, 'notification-service-chef')
+  const chatConsumer  = createConsumer(kafka, 'notification-service-chat')
 
   await Promise.all([
     authConsumer.connect(),
@@ -56,8 +79,9 @@ async function start() {
   await chefConsumer.subscribe<ChefEvent>(CHEF_EVENTS_TOPIC, (e) => handleChefEvent(e, queue))
   await chatConsumer.subscribe<ChatEvent>(CHAT_EVENTS_TOPIC, (e) => handleChatEvent(e, queue))
 
-  logger.info(`notification-service started on port ${config.PORT}`)
+  logger.info(`notification-service started (port ${config.PORT})`)
 
+  // ── Graceful shutdown ─────────────────────────────────────────────────────
   const shutdown = async (signal: string) => {
     logger.info(`${signal} — shutting down notification-service`)
     await Promise.all([
@@ -68,9 +92,10 @@ async function start() {
       emailWorker.close(),
       pushWorker.close(),
       inappWorker.close(),
-      redis.quit(),
-      pubRedis.quit(),
+      pubClient.quit(),
+      disconnectNotificationEventService(),
     ])
+    await disconnectMongo()
     process.exit(0)
   }
 

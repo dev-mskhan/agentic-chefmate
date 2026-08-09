@@ -39,3 +39,7 @@ routes:
       - USER
       - CHEF
       - ADMIN
+
+  - prefix: /api/v1/media
+    targetKey: MEDIA_SERVICE_URL
+    auth: true

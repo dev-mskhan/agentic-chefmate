@@ -49,3 +49,41 @@ export type ChefEvent =
       createdAt: string
       version: '1'
     }
+  | {
+      type: 'chef.created'
+      chefId: string
+      userId: string
+      displayName: string
+      createdAt: string
+      version: '1'
+    }
+  | {
+      type: 'chef.updated'
+      chefId: string
+      changedFields: string[]
+      createdAt: string
+      version: '1'
+    }
+  | {
+      type: 'chef.status_changed'
+      chefId: string
+      oldStatus: string
+      newStatus: string
+      changedBy?: string
+      reason?: string
+      createdAt: string
+      version: '1'
+    }
+  | {
+      type: 'chef.service_area_updated'
+      chefId: string
+      createdAt: string
+      version: '1'
+    }
+  | {
+      type: 'chef.specialties_updated'
+      chefId: string
+      cuisineSpecialties: string[]
+      createdAt: string
+      version: '1'
+    }

@@ -26,6 +26,7 @@ const SERVICE_URL_MAP: Record<string, string> = {
   ORDER_SERVICE_URL:        config.ORDER_SERVICE_URL!,
   ADMIN_SERVICE_URL:        config.ADMIN_SERVICE_URL!,
   NOTIFICATION_SERVICE_URL: config.NOTIFICATION_SERVICE_URL!,
+  MEDIA_SERVICE_URL:        config.MEDIA_SERVICE_URL!,
 }
 
 export default fp(async function proxyPlugin(fastify: FastifyInstance) {

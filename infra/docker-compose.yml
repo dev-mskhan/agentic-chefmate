@@ -76,10 +76,27 @@ services:
     networks:
       - chefmate
 
+  # ─── MinIO (S3-compatible object storage) ───────────────────────────────────
+  minio:
+    image: minio/minio
+    container_name: chefmate-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    env_file:
+      - ../.env
+    ports:
+      - '9000:9000'   # S3 API
+      - '9001:9001'   # MinIO Console
+    volumes:
+      - minio_data:/data
+    networks:
+      - chefmate
+
 volumes:
   mongo_data:
   redis_data:
   redpanda_data:
+  minio_data:
 
 networks:
   chefmate:

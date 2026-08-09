@@ -1,12 +1,15 @@
 import { SignJWT, importPKCS8, importSPKI, jwtVerify, exportJWK } from 'jose'
 import crypto from 'crypto'
 import type { Redis } from 'ioredis'
+import { createSession, deleteSession, SESSION_TTL } from './redis-session.service'
 
 export interface TokenPair {
   accessToken: string
   refreshToken: string // raw opaque token (hex string)
   refreshTokenFamily: string
   accessTokenJti: string
+  /** Identifies the Redis session entry — auth:session:{sessionId} */
+  sessionId: string
 }
 
 export interface AccessTokenPayload {
@@ -18,8 +21,8 @@ export interface AccessTokenPayload {
   exp: number
 }
 
-const ACCESS_TOKEN_TTL = 15 * 60 // 15 minutes in seconds
-const REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60 // 7 days in seconds
+const ACCESS_TOKEN_TTL = 15 * 60  // 15 minutes in seconds
+const REFRESH_TOKEN_TTL = SESSION_TTL // keep in sync with Redis TTL
 
 export async function issueTokenPair(
   payload: { userId: string; role: string; email: string },
@@ -43,8 +46,37 @@ export async function issueTokenPair(
 
   const refreshToken = crypto.randomBytes(64).toString('hex')
   const refreshTokenFamily = crypto.randomUUID()
+  const sessionId = crypto.randomUUID()
 
-  return { accessToken, refreshToken, refreshTokenFamily, accessTokenJti: jti }
+  return { accessToken, refreshToken, refreshTokenFamily, accessTokenJti: jti, sessionId }
+}
+
+/**
+ * Persist a Redis session for a newly issued token pair.
+ * Call this immediately after issueTokenPair.
+ */
+export async function storeSession(
+  redis: Redis,
+  sessionId: string,
+  userId: string,
+  refreshTokenHash: string,
+  meta: { ip?: string; userAgent?: string; device?: string },
+): Promise<void> {
+  await createSession(redis, sessionId, {
+    userId,
+    refreshTokenHash,
+    ip: meta.ip,
+    userAgent: meta.userAgent,
+    device: meta.device,
+    expiresAt: Math.floor(Date.now() / 1000) + REFRESH_TOKEN_TTL,
+  })
+}
+
+/**
+ * Remove a Redis session when signing out or rotating tokens.
+ */
+export async function removeSession(redis: Redis, sessionId: string): Promise<void> {
+  await deleteSession(redis, sessionId)
 }
 
 export function hashToken(raw: string): string {

@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "test:api": "pnpm --filter @chefmate/api-tests exec playwright test",
+    "test:api:auth": "pnpm --filter @chefmate/api-tests exec playwright test tests/auth",
+    "test:api:gateway": "pnpm --filter @chefmate/api-tests exec playwright test tests/gateway",
+    "test:api:ci": "pnpm --filter @chefmate/api-tests exec playwright test --reporter=line",
+    "test:api:debug": "pnpm --filter @chefmate/api-tests exec playwright test --debug"
   },
   "keywords": [],
   "author": "",

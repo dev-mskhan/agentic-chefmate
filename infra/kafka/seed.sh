@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# seed.sh — creates all Redpanda topics required by Foodlancer
+# seed.sh — creates all Redpanda topics required by ChefMate
 # Run this after docker-compose up and Redpanda is healthy.
 #
 # Usage: bash infra/kafka/seed.sh
@@ -9,7 +9,7 @@ set -euo pipefail
 BROKER="${REDPANDA_BROKER:-localhost:9092}"
 RETENTION_MS=$((7 * 24 * 60 * 60 * 1000))   # 7 days in ms
 
-echo "Creating Foodlancer Redpanda topics on broker: $BROKER"
+echo "Creating ChefMate Redpanda topics on broker: $BROKER"
 
 create_topic() {
   local name=$1

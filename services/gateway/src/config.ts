@@ -12,7 +12,7 @@ const gatewayEnvSchema = baseEnvSchema.extend({
   NOTIFICATION_SERVICE_URL: z.string().url().default('http://localhost:3006'),
   COOKIE_SECRET: z.string().min(32).default('dev-cookie-secret-min-32-characters!!'),
   JWKS_CACHE_TTL_SECONDS: z.coerce.number().default(3600),
-  // Comma-separated list of allowed origins, e.g. "http://localhost:3000,https://app.foodlancer.com"
+  // Comma-separated list of allowed origins, e.g. "http://localhost:3000,https://app.chefmate.app"
   CORS_ORIGINS: z.string().default('http://localhost:3000,http://localhost:5173,http://localhost:19006'),
 })
 

@@ -5,6 +5,10 @@ import { signoutProcedure } from './procedures/signout'
 import { refreshProcedure } from './procedures/refresh'
 import { verifyEmailProcedure } from './procedures/verify-email'
 import { changeRoleProcedure } from './procedures/change-role'
+import { forgotPasswordProcedure } from './procedures/forgot-password'
+import { resetPasswordProcedure } from './procedures/reset-password'
+import { resendVerificationProcedure } from './procedures/resend-verification'
+import { getMeProcedure } from './procedures/get-me'
 
 export { router, publicProcedure, protectedProcedure, protectedRefreshProcedure, internalProcedure } from './trpc'
 
@@ -15,6 +19,10 @@ export const appRouter = router({
   refresh: refreshProcedure,
   verifyEmail: verifyEmailProcedure,
   changeRole: changeRoleProcedure,
+  forgotPassword: forgotPasswordProcedure,
+  resetPassword: resetPasswordProcedure,
+  resendVerification: resendVerificationProcedure,
+  me: getMeProcedure,
 })
 
 export type AppRouter = typeof appRouter

@@ -2,25 +2,21 @@ services:
   # ─── MongoDB ────────────────────────────────────────────────────────────────
   mongo:
     image: mongo:7
-    container_name: foodlancer-mongo
+    container_name: chefmate-mongo
     restart: unless-stopped
     env_file:
       - ../.env
     ports:
       - '27018:27017'
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_DB}
     volumes:
       - mongo_data:/data/db
     networks:
-      - foodlancer
+      - chefmate
 
   # ─── Redis ─────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: foodlancer-redis
+    container_name: chefmate-redis
     restart: unless-stopped
     ports:
       - '6379:6379'
@@ -28,7 +24,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - foodlancer
+      - chefmate
 
   # ─── Redpanda (Kafka-compatible) ───────────────────────────────────────────
   # Two listeners:
@@ -36,7 +32,7 @@ services:
   #   INTERNAL  (port 29092) — advertised as redpanda:29092  → for Docker containers (Console, etc.)
   redpanda:
     image: redpandadata/redpanda:latest
-    container_name: foodlancer-redpanda
+    container_name: chefmate-redpanda
     restart: unless-stopped
     ports:
       - '9092:9092'    # host access (Node.js services on your machine)
@@ -57,7 +53,7 @@ services:
     volumes:
       - redpanda_data:/var/lib/redpanda/data
     networks:
-      - foodlancer
+      - chefmate
     healthcheck:
       test: ['CMD-SHELL', 'rpk cluster health | grep -E "Healthy|true"']
       interval: 15s
@@ -67,7 +63,7 @@ services:
   # ─── Redpanda Console ────────────────────────────────────────────────────────
   redpanda-console:
     image: redpandadata/console:latest
-    container_name: foodlancer-redpanda-console
+    container_name: chefmate-redpanda-console
     restart: unless-stopped
     ports:
       - '8080:8080'
@@ -78,7 +74,7 @@ services:
       redpanda:
         condition: service_healthy
     networks:
-      - foodlancer
+      - chefmate
 
 volumes:
   mongo_data:
@@ -86,5 +82,5 @@ volumes:
   redpanda_data:
 
 networks:
-  foodlancer:
+  chefmate:
     driver: bridge

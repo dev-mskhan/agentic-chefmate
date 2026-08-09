@@ -51,7 +51,7 @@ export const refreshProcedure = protectedRefreshProcedure.mutation(async ({ ctx 
   const { accessToken, refreshToken, refreshTokenFamily } = await issueTokenPair(
     { userId: user._id.toString(), role: user.role, email: user.email },
     config.JWT_PRIVATE_KEY,
-    config.JWT_KEY_ID,
+    config.JWT_KEY_ID!,
   )
 
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)

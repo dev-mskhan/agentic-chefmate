@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { publicProcedure } from '../trpc'
 import { User } from '../../models/user.model'
+import { publishAuthEvent } from '../../services/event.service'
+import { consumeEmailVerificationToken } from '../../services/redis-session.service'
 import { NotFoundError, UnauthorizedError } from '@chefmate/errors'
 
 const verifyEmailInput = z.object({
@@ -11,9 +13,9 @@ export const verifyEmailProcedure = publicProcedure
   .input(verifyEmailInput)
   .mutation(async ({ input, ctx }) => {
     const { redis } = ctx
-    const redisKey = `auth:email_verify:${input.token}`
 
-    const userId = await redis.get(redisKey)
+    // Consume one-time token from Redis (auth:email-verification:{sha256(token)})
+    const userId = await consumeEmailVerificationToken(redis, input.token)
     if (!userId) {
       throw new UnauthorizedError('Invalid or expired verification token')
     }
@@ -28,8 +30,13 @@ export const verifyEmailProcedure = publicProcedure
       throw new NotFoundError('User not found')
     }
 
-    // Consume the token (one-time use)
-    await redis.del(redisKey)
+    await publishAuthEvent({
+      type: 'user.email_verified',
+      userId: user._id.toString(),
+      email: user.email,
+      createdAt: new Date().toISOString(),
+      version: '1',
+    })
 
     return { verified: true, email: user.email }
   })

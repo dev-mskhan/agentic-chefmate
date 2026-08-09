@@ -14,7 +14,24 @@ export async function handleAuthEvent(
         template: 'verify-email',
         userId: event.userId,
         notificationId: crypto.randomUUID(),
-        data: { email: event.email, provider: event.provider },
+        data: {
+          email: event.email,
+          provider: event.provider,
+          verifyUrl: event.verifyUrl,
+        },
+      })
+      break
+
+    case 'user.password_reset_requested':
+      await queue.add('send-notification', {
+        channel: 'email',
+        template: 'reset-password',
+        userId: event.userId,
+        notificationId: crypto.randomUUID(),
+        data: {
+          email: event.email,
+          resetUrl: event.resetUrl,
+        },
       })
       break
 

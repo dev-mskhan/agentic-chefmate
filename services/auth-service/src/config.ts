@@ -9,7 +9,7 @@ const authEnvSchema = baseEnvSchema.extend({
   REDIS_URL: z.string().url(),
   JWT_PRIVATE_KEY: z.string().min(1),
   JWT_PUBLIC_KEY: z.string().min(1),
-  JWT_KEY_ID: z.string().default('foodlancer-auth-v1'),
+  JWT_KEY_ID: z.string().default('chefmate-auth-v1'),
   GOOGLE_CLIENT_ID: z.string().min(1),
   GOOGLE_CLIENT_SECRET: z.string().min(1),
   GOOGLE_CALLBACK_URL: z.string().url().default(

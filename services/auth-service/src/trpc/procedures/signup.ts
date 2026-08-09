@@ -1,12 +1,12 @@
 import { z } from 'zod'
 import * as argon2 from 'argon2'
-import crypto from 'crypto'
 import { publicProcedure } from '../trpc'
 import { User } from '../../models/user.model'
 import { RefreshToken } from '../../models/refresh-token.model'
-import { issueTokenPair, hashToken } from '../../services/token.service'
+import { issueTokenPair, hashToken, storeSession } from '../../services/token.service'
 import { setAuthCookies } from '../../services/session.service'
 import { publishAuthEvent } from '../../services/event.service'
+import { createEmailVerificationToken } from '../../services/redis-session.service'
 import { ConflictError } from '@chefmate/errors'
 
 const signupInput = z.object({
@@ -24,7 +24,7 @@ export const signupProcedure = publicProcedure
   .input(signupInput)
   .mutation(async ({ input, ctx }) => {
     const { email, password } = input
-    const { redis, config } = ctx
+    const { redis, config, req } = ctx
 
     // Check for existing user
     const existing = await User.findOne({ email: email.toLowerCase() })
@@ -44,32 +44,46 @@ export const signupProcedure = publicProcedure
     })
 
     // Issue token pair
-    const { accessToken, refreshToken, refreshTokenFamily, accessTokenJti } =
+    const { accessToken, refreshToken, refreshTokenFamily, accessTokenJti, sessionId } =
       await issueTokenPair(
         { userId: user._id.toString(), role: user.role, email: user.email },
         config.JWT_PRIVATE_KEY,
         config.JWT_KEY_ID!,
       )
 
-    // Store refresh token hash in DB
+    const refreshTokenHash = hashToken(refreshToken)
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+
+    // Persist refresh token in MongoDB (source of truth for rotation/theft detection)
     await RefreshToken.create({
       userId: user._id,
-      tokenHash: hashToken(refreshToken),
+      tokenHash: refreshTokenHash,
       family: refreshTokenFamily,
       expiresAt,
+      sessionId,
     })
+
+    // Persist session in Redis (fast revocation lookup)
+    await storeSession(redis, sessionId, user._id.toString(), refreshTokenHash, {
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    })
+
+    // Generate email verification token and build the full link
+    const rawVerifyToken = await createEmailVerificationToken(redis, user._id.toString())
+    const verifyUrl = `${config.APP_URL}/verify-email?token=${rawVerifyToken}`
 
     // Set signed cookies
     setAuthCookies(ctx.res, accessToken, refreshToken)
 
-    // Publish event
+    // Publish event — notification-service picks this up and emails verifyUrl
     await publishAuthEvent({
       type: 'user.registered',
       userId: user._id.toString(),
       email: user.email,
       role: user.role,
       provider: 'local',
+      verifyUrl,
       createdAt: new Date().toISOString(),
       version: '1',
     })

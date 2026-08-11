@@ -10,6 +10,7 @@ const AUTH_URL    = process.env['AUTH_SERVICE_URL']  ?? 'http://localhost:3001'
 const GATEWAY_URL = process.env['GATEWAY_URL']       ?? 'http://localhost:3000'
 const USER_URL    = process.env['USER_SERVICE_URL']  ?? 'http://localhost:3002'
 const CHEF_URL    = process.env['CHEF_SERVICE_URL']  ?? 'http://localhost:3003'
+const MEDIA_URL   = process.env['MEDIA_SERVICE_URL'] ?? 'http://localhost:3004'
 
 export default defineConfig({
   testDir: './tests',
@@ -56,6 +57,11 @@ export default defineConfig({
         baseURL: CHEF_URL,
       },
       testMatch: 'tests/chef/**/*.spec.ts',
+    },
+    {
+      name: 'media-direct',
+      use: { baseURL: MEDIA_URL },
+      testMatch: 'tests/media/**/*.spec.ts',
     },
   ],
 })

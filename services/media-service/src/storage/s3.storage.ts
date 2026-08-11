@@ -6,6 +6,7 @@ import {
   HeadObjectCommand,
 } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { Readable } from 'stream'
 import type { ObjectStorage, UploadUrlResult, DownloadUrlResult } from './storage.interface'
 
 export interface S3StorageOptions {
@@ -112,5 +113,18 @@ export class S3Storage implements ObjectStorage {
       // Re-throw unexpected errors
       throw err
     }
+  }
+
+  async getBuffer(objectKey: string): Promise<Buffer> {
+    const command = new GetObjectCommand({ Bucket: this.bucket, Key: objectKey })
+    const response = await this.client.send(command)
+    if (!response.Body) throw new Error(`No body returned for object: ${objectKey}`)
+    const stream = response.Body as Readable
+    return new Promise<Buffer>((resolve, reject) => {
+      const chunks: Buffer[] = []
+      stream.on('data', (chunk: Buffer) => chunks.push(chunk))
+      stream.on('end', () => resolve(Buffer.concat(chunks)))
+      stream.on('error', reject)
+    })
   }
 }

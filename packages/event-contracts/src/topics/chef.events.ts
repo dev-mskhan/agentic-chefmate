@@ -87,3 +87,26 @@ export type ChefEvent =
       createdAt: string
       version: '1'
     }
+  | {
+      type: 'dish.created'
+      dishId: string
+      chefId: string
+      name: string
+      createdAt: string
+      version: '1'
+    }
+  | {
+      type: 'dish.updated'
+      dishId: string
+      chefId: string
+      changedFields: string[]
+      createdAt: string
+      version: '1'
+    }
+  | {
+      type: 'dish.archived'
+      dishId: string
+      chefId: string
+      createdAt: string
+      version: '1'
+    }

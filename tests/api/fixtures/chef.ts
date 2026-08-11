@@ -12,6 +12,7 @@
  */
 import type { APIRequestContext, APIResponse } from '@playwright/test'
 import { parseTRPC } from '../helpers/trpc'
+export { parseTRPC } from '../helpers/trpc'
 import { uniqueTestEmail, TEST_PASSWORD } from './auth'
 
 // ─── Constants ────────────────────────────────────────────────────────────────

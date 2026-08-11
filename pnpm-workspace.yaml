@@ -8,3 +8,4 @@ allowBuilds:
   esbuild: false
   msgpackr-extract: false
   protobufjs: false
+  sharp: set this to true or false

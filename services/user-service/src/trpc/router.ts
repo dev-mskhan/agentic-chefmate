@@ -25,6 +25,8 @@ import { addFavoriteChefProcedure } from './procedures/add-favorite-chef'
 import { removeFavoriteChefProcedure } from './procedures/remove-favorite-chef'
 import { addFavoriteDishProcedure } from './procedures/add-favorite-dish'
 import { removeFavoriteDishProcedure } from './procedures/remove-favorite-dish'
+import { addFavoritePlanProcedure } from './procedures/add-favorite-plan'
+import { removeFavoritePlanProcedure } from './procedures/remove-favorite-plan'
 
 // Notification preferences procedures
 import { getNotifPrefsProcedure } from './procedures/get-notif-prefs'
@@ -59,6 +61,8 @@ export const appRouter = router({
   removeFavoriteChef: removeFavoriteChefProcedure,
   addFavoriteDish:    addFavoriteDishProcedure,
   removeFavoriteDish: removeFavoriteDishProcedure,
+  addFavoritePlan:    addFavoritePlanProcedure,
+  removeFavoritePlan: removeFavoritePlanProcedure,
 
   // Notification preferences
   getNotifPrefs:    getNotifPrefsProcedure,

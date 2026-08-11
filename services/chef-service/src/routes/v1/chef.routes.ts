@@ -142,6 +142,116 @@ export async function chefRoutes(fastify: FastifyInstance): Promise<void> {
     return res.send(result)
   })
 
+  // ── Phase 5: Schedule /me routes ─────────────────────────────────────────
+
+  // PUT /api/v1/chefs/me/schedule → upsertChefSchedule
+  fastify.put('/me/schedule', async (req, res) => {
+    const caller = makeCaller(req, res)
+    const result = await caller.upsertChefSchedule(req.body as any)
+    return res.send(result)
+  })
+
+  // POST /api/v1/chefs/me/schedule/blackout → addBlackoutDate
+  fastify.post('/me/schedule/blackout', async (req, res) => {
+    const caller = makeCaller(req, res)
+    const result = await caller.addBlackoutDate(req.body as any)
+    return res.send(result)
+  })
+
+  // DELETE /api/v1/chefs/me/schedule/blackout/:date → removeBlackoutDate
+  fastify.delete('/me/schedule/blackout/:date', async (req, res) => {
+    const { date } = req.params as { date: string }
+    const caller = makeCaller(req, res)
+    const result = await caller.removeBlackoutDate({ date, ...(req.body as any) })
+    return res.send(result)
+  })
+
+  // POST /api/v1/chefs/me/schedule/one-off → addOneOffDate
+  fastify.post('/me/schedule/one-off', async (req, res) => {
+    const caller = makeCaller(req, res)
+    const result = await caller.addOneOffDate(req.body as any)
+    return res.send(result)
+  })
+
+  // DELETE /api/v1/chefs/me/schedule/one-off/:date → removeOneOffDate
+  fastify.delete('/me/schedule/one-off/:date', async (req, res) => {
+    const { date } = req.params as { date: string }
+    const caller = makeCaller(req, res)
+    const result = await caller.removeOneOffDate({ date })
+    return res.send(result)
+  })
+
+  // PATCH /api/v1/chefs/me/schedule/capacity → updateCapacity
+  fastify.patch('/me/schedule/capacity', async (req, res) => {
+    const caller = makeCaller(req, res)
+    const result = await caller.updateCapacity(req.body as any)
+    return res.send(result)
+  })
+
+  // PUT /api/v1/chefs/me/schedule/delivery-zones → updateDeliveryZones
+  fastify.put('/me/schedule/delivery-zones', async (req, res) => {
+    const caller = makeCaller(req, res)
+    const result = await caller.updateDeliveryZones(req.body as any)
+    return res.send(result)
+  })
+
+  // ── Phase 6: Plan /me routes ──────────────────────────────────────────────
+
+  // POST /api/v1/chefs/me/plans → createPlan
+  fastify.post('/me/plans', async (req, res) => {
+    const caller = makeCaller(req, res)
+    const result = await caller.createPlan(req.body as any)
+    return res.code(201).send(result)
+  })
+
+  // PATCH /api/v1/chefs/me/plans/:planId → updatePlan
+  fastify.patch('/me/plans/:planId', async (req, res) => {
+    const { planId } = req.params as { planId: string }
+    const caller = makeCaller(req, res)
+    const result = await caller.updatePlan({ planId, ...(req.body as any) })
+    return res.send(result)
+  })
+
+  // PUT /api/v1/chefs/me/plans/:planId/tiers → managePlanTiers
+  fastify.put('/me/plans/:planId/tiers', async (req, res) => {
+    const { planId } = req.params as { planId: string }
+    const caller = makeCaller(req, res)
+    const result = await caller.managePlanTiers({ planId, ...(req.body as any) })
+    return res.send(result)
+  })
+
+  // PUT /api/v1/chefs/me/plans/:planId/media → managePlanMedia
+  fastify.put('/me/plans/:planId/media', async (req, res) => {
+    const { planId } = req.params as { planId: string }
+    const caller = makeCaller(req, res)
+    const result = await caller.managePlanMedia({ planId, ...(req.body as any) })
+    return res.send(result)
+  })
+
+  // POST /api/v1/chefs/me/plans/:planId/activate → activatePlan
+  fastify.post('/me/plans/:planId/activate', async (req, res) => {
+    const { planId } = req.params as { planId: string }
+    const caller = makeCaller(req, res)
+    const result = await caller.activatePlan({ planId })
+    return res.send(result)
+  })
+
+  // POST /api/v1/chefs/me/plans/:planId/pause → pausePlan
+  fastify.post('/me/plans/:planId/pause', async (req, res) => {
+    const { planId } = req.params as { planId: string }
+    const caller = makeCaller(req, res)
+    const result = await caller.pausePlan({ planId })
+    return res.send(result)
+  })
+
+  // POST /api/v1/chefs/me/plans/:planId/archive → archivePlan
+  fastify.post('/me/plans/:planId/archive', async (req, res) => {
+    const { planId } = req.params as { planId: string }
+    const caller = makeCaller(req, res)
+    const result = await caller.archivePlan({ planId })
+    return res.send(result)
+  })
+
   // ── Chef creation ─────────────────────────────────────────────────────────
 
   // POST /api/v1/chefs → createChefProfile
@@ -152,6 +262,46 @@ export async function chefRoutes(fastify: FastifyInstance): Promise<void> {
   })
 
   // ── /:chefId routes — parameterized, registered AFTER /me ─────────────────
+
+  // GET /api/v1/chefs/:chefId/schedule → getChefSchedule
+  fastify.get('/:chefId/schedule', async (req, res) => {
+    const { chefId } = req.params as { chefId: string }
+    const caller = makeCaller(req, res)
+    const result = await caller.getChefSchedule({ chefId })
+    return res.send(result)
+  })
+
+  // GET /api/v1/chefs/:chefId/availability → checkChefAvailability (?date=YYYY-MM-DD)
+  fastify.get('/:chefId/availability', async (req, res) => {
+    const { chefId } = req.params as { chefId: string }
+    const query = req.query as Record<string, string>
+    const caller = makeCaller(req, res)
+    const result = await caller.checkChefAvailability({ chefId, date: query['date']! })
+    return res.send(result)
+  })
+
+  // GET /api/v1/chefs/:chefId/plans → listChefPlans
+  fastify.get('/:chefId/plans', async (req, res) => {
+    const { chefId } = req.params as { chefId: string }
+    const query = req.query as Record<string, string>
+    const caller = makeCaller(req, res)
+    const result = await caller.listChefPlans({
+      chefId,
+      status: query['status'] as any,
+      type:   query['type'] as any,
+      limit:  query['limit']  ? parseInt(query['limit'],  10) : undefined,
+      offset: query['offset'] ? parseInt(query['offset'], 10) : undefined,
+    })
+    return res.send(result)
+  })
+
+  // GET /api/v1/chefs/:chefId/plans/:planId → getPlan
+  fastify.get('/:chefId/plans/:planId', async (req, res) => {
+    const { planId } = req.params as { chefId: string; planId: string }
+    const caller = makeCaller(req, res)
+    const result = await caller.getPlan({ planId })
+    return res.send(result)
+  })
 
   // GET /api/v1/chefs/:chefId → getChefProfile
   fastify.get('/:chefId', async (req, res) => {

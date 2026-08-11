@@ -110,3 +110,33 @@ export type ChefEvent =
       createdAt: string
       version: '1'
     }
+  | {
+      type: 'chef.availability.updated'
+      chefId: string
+      createdAt: string
+      version: '1'
+    }
+  | {
+      type: 'plan.created'
+      planId: string
+      chefId: string
+      name: string
+      planType: string
+      createdAt: string
+      version: '1'
+    }
+  | {
+      type: 'plan.updated'
+      planId: string
+      chefId: string
+      changedFields: string[]
+      createdAt: string
+      version: '1'
+    }
+  | {
+      type: 'plan.activated'
+      planId: string
+      chefId: string
+      createdAt: string
+      version: '1'
+    }

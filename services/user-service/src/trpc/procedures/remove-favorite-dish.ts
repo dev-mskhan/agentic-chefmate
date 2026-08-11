@@ -8,31 +8,13 @@ export const removeFavoriteDishProcedure = protectedProcedure
   .mutation(async ({ ctx, input }) => {
     const { userId } = ctx.principal
 
-    // Verify the dish is in the list first
-    const existing = await UserProfile.findOne({
-      userId,
-      'favorites.dishIds': input.dishId,
-    })
-
-    if (!existing) {
-      const profile = await UserProfile.findOne({ userId })
-      if (!profile) {
-        throw new NotFoundError('User profile not found')
-      }
-      throw new NotFoundError('Dish not in favorites')
-    }
-
     const profile = await UserProfile.findOneAndUpdate(
       { userId },
       { $pull: { 'favorites.dishIds': input.dishId } },
       { new: true },
     )
-
-    if (!profile) {
-      throw new NotFoundError('User profile not found')
-    }
+    if (!profile) throw new NotFoundError('User profile not found')
 
     await ctx.cache.invalidateFavorites(userId)
-
-    return { chefIds: profile.favorites.chefIds, dishIds: profile.favorites.dishIds }
+    return { chefIds: profile.favorites.chefIds, dishIds: profile.favorites.dishIds, planIds: profile.favorites.planIds }
   })

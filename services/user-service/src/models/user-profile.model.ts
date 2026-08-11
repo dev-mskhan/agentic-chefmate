@@ -28,29 +28,73 @@ export type SpiceLevel = typeof SpiceLevelValues[number]
 export const AddressLabelValues = ['HOME', 'WORK', 'OTHER'] as const
 export type AddressLabel = typeof AddressLabelValues[number]
 
+/**
+ * Canonical cuisine categories — mirrors Chef Service Phase 4 constants.
+ * Kept here so User Service has no dependency on chef-service package.
+ * Must be kept in sync when Chef Service adds new cuisines.
+ */
+export const CuisineCategoryValues = [
+  'PAKISTANI', 'PUNJABI', 'SINDHI', 'BALOCHI', 'PASHTUN',
+  'KARAHI', 'BBQ', 'NORTH_INDIAN', 'SOUTH_INDIAN',
+  'MIDDLE_EASTERN', 'CHINESE', 'ITALIAN', 'CONTINENTAL',
+] as const
+export type CuisineCategory = typeof CuisineCategoryValues[number]
+
 // ─── Interfaces ───────────────────────────────────────────────────────────────
+
+/**
+ * GeoJSON Point for 2dsphere queries.
+ * coordinates: [longitude, latitude] — note longitude first (GeoJSON spec).
+ */
+export interface IGeoPoint {
+  type: 'Point'
+  coordinates: [number, number] // [lng, lat]
+}
 
 export interface IAddress {
   _id: Types.ObjectId
   label: AddressLabel
   addressLine: string
+  area?: string          // Locality / area (e.g. DHA Phase 5, Gulberg III)
   city: string
+  province?: string      // Pakistani province (e.g. Punjab, Sindh)
   postalCode?: string
-  coordinates?: { lat: number; lng: number }
+  location?: IGeoPoint   // GeoJSON — replaces old lat/lng coordinates
   deliveryInstructions?: string
   isDefault: boolean
 }
 
+export interface INotificationChannels {
+  push:   boolean
+  email:  boolean
+  sms:    boolean
+  inApp:  boolean
+}
+
+export interface INotificationCategories {
+  orderUpdates:         boolean
+  chefMessages:         boolean
+  promotions:           boolean
+  subscriptionUpdates:  boolean
+  paymentUpdates:       boolean
+}
+
+export interface IQuietHours {
+  enabled: boolean
+  start:   string   // HH:MM
+  end:     string   // HH:MM
+}
+
 export interface INotificationPreferences {
-  orderUpdates: boolean
-  promotions: boolean
-  chefMessages: boolean
-  email: boolean
+  channels:   INotificationChannels
+  categories: INotificationCategories
+  quietHours: IQuietHours
 }
 
 export interface IFavorites {
-  chefIds: string[]
-  dishIds: string[]
+  chefIds:  string[]
+  dishIds:  string[]
+  planIds:  string[]  // Added: meal plan favorites
 }
 
 export interface IUserProfile extends Document {
@@ -65,7 +109,7 @@ export interface IUserProfile extends Document {
   allergies: Allergy[]
   dislikedIngredients: DislikedIngredient[]
   spiceLevel: SpiceLevel
-  favoriteCuisines: string[]
+  favoriteCuisines: CuisineCategory[]
   notificationPreferences: INotificationPreferences
   favorites: IFavorites
   createdAt: Date
@@ -74,19 +118,57 @@ export interface IUserProfile extends Document {
 
 // ─── Sub-schemas ──────────────────────────────────────────────────────────────
 
+const geoPointSchema = new Schema<IGeoPoint>(
+  {
+    type:        { type: String, enum: ['Point'], required: true, default: 'Point' },
+    coordinates: { type: [Number], required: true }, // [lng, lat]
+  },
+  { _id: false },
+)
+
 const addressSchema = new Schema<IAddress>(
   {
     label:                { type: String, enum: AddressLabelValues, required: true },
     addressLine:          { type: String, required: true },
+    area:                 { type: String, maxlength: 100 },
     city:                 { type: String, required: true },
+    province:             { type: String, maxlength: 60 },
     postalCode:           { type: String },
-    coordinates:          {
-      type: new Schema({ lat: { type: Number }, lng: { type: Number } }, { _id: false }),
-    },
+    location:             { type: geoPointSchema },   // GeoJSON Point
     deliveryInstructions: { type: String, maxlength: 300 },
     isDefault:            { type: Boolean, default: false },
   },
   { _id: true },
+)
+
+const notifChannelsSchema = new Schema<INotificationChannels>(
+  {
+    push:  { type: Boolean, default: true  },
+    email: { type: Boolean, default: true  },
+    sms:   { type: Boolean, default: false },
+    inApp: { type: Boolean, default: true  },
+  },
+  { _id: false },
+)
+
+const notifCategoriesSchema = new Schema<INotificationCategories>(
+  {
+    orderUpdates:        { type: Boolean, default: true  },
+    chefMessages:        { type: Boolean, default: true  },
+    promotions:          { type: Boolean, default: false },
+    subscriptionUpdates: { type: Boolean, default: true  },
+    paymentUpdates:      { type: Boolean, default: true  },
+  },
+  { _id: false },
+)
+
+const quietHoursSchema = new Schema<IQuietHours>(
+  {
+    enabled: { type: Boolean, default: false },
+    start:   { type: String, default: '22:00' },
+    end:     { type: String, default: '08:00' },
+  },
+  { _id: false },
 )
 
 // ─── Root schema ──────────────────────────────────────────────────────────────
@@ -108,38 +190,51 @@ const userProfileSchema = new Schema<IUserProfile>(
       ],
     },
     dietaryPreferences: {
-      type: [String],
-      enum: DietaryPreferenceValues,
+      type:    [String],
+      enum:    DietaryPreferenceValues,
       default: ['HALAL'],
     },
     allergies: {
-      type: [String],
-      enum: AllergyValues,
+      type:    [String],
+      enum:    AllergyValues,
       default: [],
     },
     dislikedIngredients: {
-      type: [String],
-      enum: DislikedIngredientValues,
+      type:    [String],
+      enum:    DislikedIngredientValues,
       default: [],
     },
     spiceLevel: {
-      type: String,
-      enum: SpiceLevelValues,
+      type:    String,
+      enum:    SpiceLevelValues,
       default: 'MEDIUM',
     },
-    favoriteCuisines: { type: [String], default: [] },
+    favoriteCuisines: {
+      type:    [String],
+      enum:    CuisineCategoryValues,   // now validated against canonical taxonomy
+      default: [],
+    },
     notificationPreferences: {
-      orderUpdates:  { type: Boolean, default: true },
-      promotions:    { type: Boolean, default: false },
-      chefMessages:  { type: Boolean, default: true },
-      email:         { type: Boolean, default: true },
+      type: new Schema(
+        {
+          channels:   { type: notifChannelsSchema,    default: () => ({}) },
+          categories: { type: notifCategoriesSchema,  default: () => ({}) },
+          quietHours: { type: quietHoursSchema,       default: () => ({}) },
+        },
+        { _id: false },
+      ),
+      default: () => ({}),
     },
     favorites: {
       chefIds: { type: [String], default: [] },
       dishIds: { type: [String], default: [] },
+      planIds: { type: [String], default: [] },   // NEW
     },
   },
   { timestamps: true },
 )
+
+// Sparse 2dsphere index for geo queries on addresses
+userProfileSchema.index({ 'addresses.location': '2dsphere' }, { sparse: true })
 
 export const UserProfile = model<IUserProfile>('UserProfile', userProfileSchema)

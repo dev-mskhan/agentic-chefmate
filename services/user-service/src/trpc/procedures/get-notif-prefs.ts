@@ -6,14 +6,7 @@ export const getNotifPrefsProcedure = protectedProcedure.query(async ({ ctx }) =
   const { userId } = ctx.principal
 
   const profile = await UserProfile.findOne({ userId })
-  if (!profile) {
-    throw new NotFoundError('User profile not found')
-  }
+  if (!profile) throw new NotFoundError('User profile not found')
 
-  return {
-    orderUpdates: profile.notificationPreferences.orderUpdates,
-    promotions:   profile.notificationPreferences.promotions,
-    chefMessages: profile.notificationPreferences.chefMessages,
-    email:        profile.notificationPreferences.email,
-  }
+  return profile.notificationPreferences
 })

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { NotFoundError } from '@chefmate/errors'
 import { protectedProcedure } from '../trpc'
-import { UserProfile, DietaryPreferenceValues, AllergyValues, DislikedIngredientValues, SpiceLevelValues } from '../../models/user-profile.model'
+import { UserProfile, DietaryPreferenceValues, AllergyValues, DislikedIngredientValues, SpiceLevelValues, CuisineCategoryValues } from '../../models/user-profile.model'
 import { publishUserEvent } from '../../services/event.service'
 
 export const updatePreferencesProcedure = protectedProcedure
@@ -11,7 +11,7 @@ export const updatePreferencesProcedure = protectedProcedure
       allergies:           z.array(z.enum(AllergyValues)).optional(),
       dislikedIngredients: z.array(z.enum(DislikedIngredientValues)).optional(),
       spiceLevel:          z.enum(SpiceLevelValues).optional(),
-      favoriteCuisines:    z.array(z.string()).optional(),
+      favoriteCuisines:    z.array(z.enum(CuisineCategoryValues)).optional(),
     }),
   )
   .mutation(async ({ ctx, input }) => {

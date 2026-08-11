@@ -33,6 +33,7 @@ export interface AddressCache {
 export interface FavoritesCache {
   chefIds: string[]
   dishIds: string[]
+  planIds: string[]
 }
 
 // ─── TTL constants ────────────────────────────────────────────────────────────

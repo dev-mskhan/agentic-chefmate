@@ -13,12 +13,8 @@ export const addFavoriteDishProcedure = protectedProcedure
       { $addToSet: { 'favorites.dishIds': input.dishId } },
       { new: true },
     )
-
-    if (!profile) {
-      throw new NotFoundError('User profile not found')
-    }
+    if (!profile) throw new NotFoundError('User profile not found')
 
     await ctx.cache.invalidateFavorites(userId)
-
-    return { chefIds: profile.favorites.chefIds, dishIds: profile.favorites.dishIds }
+    return { chefIds: profile.favorites.chefIds, dishIds: profile.favorites.dishIds, planIds: profile.favorites.planIds }
   })

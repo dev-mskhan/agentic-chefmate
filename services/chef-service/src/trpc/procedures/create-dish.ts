@@ -2,9 +2,14 @@ import { z } from 'zod'
 import { NotFoundError, ValidationError } from '@chefmate/errors'
 import { chefProcedure } from '../trpc'
 import { ChefProfile } from '../../models/chef-profile.model'
-import { Dish, DietaryTagValues, AllergenValues, OccasionTagValues, ALLOWED_CURRENCIES, WEEK_DAYS } from '../../models/dish.model'
+import { Dish, ALLOWED_CURRENCIES, WEEK_DAYS } from '../../models/dish.model'
 import { publishChefEvent } from '../../services/event.service'
-import { CUISINE_CATEGORIES } from '../../constants/cuisine-categories'
+import {
+  CuisineCategoryValues,
+  DietaryTagValues,
+  AllergenValues,
+  OccasionTagValues,
+} from '../../constants'
 
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/
 
@@ -30,7 +35,7 @@ const createDishInput = z.object({
   portionInfo:   z.string().max(200).optional(),
   dietaryTags:   z.array(z.enum(DietaryTagValues)).optional(),
   allergens:     z.array(z.enum(AllergenValues)).optional(),
-  cuisine:       z.string().optional(),
+  cuisine:       z.enum(CuisineCategoryValues).optional(),
   category:      z.string().max(60).optional(),
   occasionTags:  z.array(z.enum(OccasionTagValues)).optional(),
   mediaIds:      z.array(z.string().min(1)).max(10).optional(),
@@ -50,11 +55,6 @@ export const createDishProcedure = chefProcedure
     // Validate price decimal places (max 2)
     if (!isValidPriceDecimal(input.price)) {
       throw new ValidationError('Price must have at most 2 decimal places')
-    }
-
-    // Validate cuisine if provided
-    if (input.cuisine && !(CUISINE_CATEGORIES as readonly string[]).includes(input.cuisine)) {
-      throw new ValidationError(`Invalid cuisine category: ${input.cuisine}`)
     }
 
     // Deduplicate tag arrays

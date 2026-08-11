@@ -1,24 +1,19 @@
 import mongoose, { Schema, Document } from 'mongoose'
 
-// ─── Enums ────────────────────────────────────────────────────────────────────
+// ─── Tag/category constants — imported from the constants barrel (Phase 4) ────
+// DietaryTag, Allergen, OccasionTag are the single source of truth in constants/.
+import {
+  DietaryTagValues,
+  AllergenValues,
+  OccasionTagValues,
+} from '../constants'
 
-export const DietaryTagValues = [
-  'HALAL', 'VEGETARIAN', 'VEGAN', 'EGGETARIAN',
-  'GLUTEN_FREE', 'DAIRY_FREE', 'LOW_CARB', 'KETO', 'HIGH_PROTEIN',
-] as const
-export type DietaryTag = typeof DietaryTagValues[number]
-
-export const AllergenValues = [
-  'PEANUTS', 'TREE_NUTS', 'MILK_DAIRY', 'EGGS',
-  'WHEAT_GLUTEN', 'FISH', 'SHELLFISH', 'SOY', 'SESAME',
-] as const
-export type Allergen = typeof AllergenValues[number]
-
-export const OccasionTagValues = [
-  'WEEKNIGHT', 'DATE_NIGHT', 'MEAL_PREP', 'FAMILY',
-  'PARTY', 'OFFICE_LUNCH', 'IFTAR', 'SEHRI',
-] as const
+export type DietaryTag  = typeof DietaryTagValues[number]
+export type Allergen    = typeof AllergenValues[number]
 export type OccasionTag = typeof OccasionTagValues[number]
+
+// Re-export so existing Phase 3 imports from dish.model still compile
+export { DietaryTagValues, AllergenValues, OccasionTagValues }
 
 export const DishStatusValues = ['DRAFT', 'ACTIVE', 'INACTIVE', 'ARCHIVED'] as const
 export type DishStatus = typeof DishStatusValues[number]

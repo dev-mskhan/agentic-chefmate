@@ -1,10 +1,10 @@
 import { z } from 'zod'
 import { NotFoundError, ForbiddenError, ValidationError } from '@chefmate/errors'
 import { protectedProcedure } from '../trpc'
-import { Dish, DietaryTagValues, AllergenValues, OccasionTagValues, ALLOWED_CURRENCIES } from '../../models/dish.model'
+import { Dish, ALLOWED_CURRENCIES } from '../../models/dish.model'
 import { ChefProfile } from '../../models/chef-profile.model'
 import { publishChefEvent } from '../../services/event.service'
-import { CUISINE_CATEGORIES } from '../../constants/cuisine-categories'
+import { CuisineCategoryValues } from '../../constants'
 import { isValidPriceDecimal } from './create-dish'
 
 const ingredientInputSchema = z.object({
@@ -21,7 +21,7 @@ const updateDishInput = z.object({
   price:       z.number().positive().max(999999).optional(),
   currency:    z.enum(ALLOWED_CURRENCIES).optional(),
   portionInfo: z.string().max(200).optional(),
-  cuisine:     z.string().optional(),
+  cuisine:     z.enum(CuisineCategoryValues).optional(),
   category:    z.string().max(60).optional(),
 })
 
@@ -47,11 +47,6 @@ export const updateDishProcedure = protectedProcedure
     // Validate price decimal places
     if (input.price !== undefined && !isValidPriceDecimal(input.price)) {
       throw new ValidationError('Price must have at most 2 decimal places')
-    }
-
-    // Validate cuisine if provided
-    if (input.cuisine && !(CUISINE_CATEGORIES as readonly string[]).includes(input.cuisine)) {
-      throw new ValidationError(`Invalid cuisine category: ${input.cuisine}`)
     }
 
     const updateFields: Record<string, unknown> = {}

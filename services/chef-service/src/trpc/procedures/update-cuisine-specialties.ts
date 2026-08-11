@@ -1,26 +1,18 @@
 import { z } from 'zod'
-import { NotFoundError, ForbiddenError, ValidationError } from '@chefmate/errors'
+import { NotFoundError, ForbiddenError } from '@chefmate/errors'
 import { protectedProcedure } from '../trpc'
 import { ChefProfile } from '../../models/chef-profile.model'
 import { publishChefEvent } from '../../services/event.service'
-import { CUISINE_CATEGORIES } from '../../constants/cuisine-categories'
+import { CuisineCategoryValues } from '../../constants'
 
 const updateCuisineSpecialtiesInput = z.object({
-  cuisineSpecialties: z.array(z.string()),
+  cuisineSpecialties: z.array(z.enum(CuisineCategoryValues)),
 })
 
 export const updateCuisineSpecialtiesProcedure = protectedProcedure
   .input(updateCuisineSpecialtiesInput)
   .mutation(async ({ ctx, input }) => {
     const { userId, role } = ctx.principal
-
-    // Validate all entries against allowed values
-    const invalidCuisines = input.cuisineSpecialties.filter(
-      (c) => !(CUISINE_CATEGORIES as readonly string[]).includes(c),
-    )
-    if (invalidCuisines.length > 0) {
-      throw new ValidationError(`Invalid cuisine categories: ${invalidCuisines.join(', ')}`)
-    }
 
     // Check for duplicates
     const unique = new Set(input.cuisineSpecialties)

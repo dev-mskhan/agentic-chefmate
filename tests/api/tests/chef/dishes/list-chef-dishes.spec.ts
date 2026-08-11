@@ -100,3 +100,98 @@ test.describe('tRPC listChefDishes', () => {
     expect(listBody.data!.dishes).toHaveLength(0)
   })
 })
+
+test.describe('tRPC listChefDishes — cuisine and dietaryTags filters (Phase 4)', () => {
+  test('filter by cuisine returns only matching dishes', async ({ request }) => {
+    const headers = await createChefAuthHeaders(request, AUTH_URL, 'filter-cuisine')
+    const profileRes = await chefTrpcMutation(request, 'createChefProfile', { displayName: 'Chef Cuisine Filter' }, headers)
+    const profileBody = await parseTRPC<{ _id: string }>(profileRes)
+    assertTRPCSuccess(profileBody)
+    const chefId = (profileBody.data as any)._id as string
+
+    // Create dishes with different cuisines
+    await chefTrpcMutation(request, 'createDish', { name: 'Karahi Gosht', price: 900, cuisine: 'KARAHI' }, headers)
+    await chefTrpcMutation(request, 'createDish', { name: 'Biryani',     price: 800, cuisine: 'PAKISTANI' }, headers)
+    await chefTrpcMutation(request, 'createDish', { name: 'Pasta',       price: 600, cuisine: 'ITALIAN' }, headers)
+
+    // Filter by KARAHI — should return only the Karahi dish
+    const res = await chefTrpcQuery(request, 'listChefDishes', {
+      chefId,
+      cuisines: ['KARAHI'],
+    }, headers)
+    const body = await parseTRPC<{ dishes: any[]; total: number }>(res)
+
+    assertTRPCSuccess(body)
+    expect(body.data!.dishes.every((d: any) => d.cuisine === 'KARAHI')).toBe(true)
+    expect(body.data!.total).toBeGreaterThanOrEqual(1)
+  })
+
+  test('filter by multiple cuisines returns dishes from any of them (OR semantics)', async ({ request }) => {
+    const headers = await createChefAuthHeaders(request, AUTH_URL, 'filter-multi-cuisine')
+    const profileRes = await chefTrpcMutation(request, 'createChefProfile', { displayName: 'Chef Multi Cuisine' }, headers)
+    const profileBody = await parseTRPC<{ _id: string }>(profileRes)
+    assertTRPCSuccess(profileBody)
+    const chefId = (profileBody.data as any)._id as string
+
+    await chefTrpcMutation(request, 'createDish', { name: 'BBQ Chicken',  price: 700, cuisine: 'BBQ' }, headers)
+    await chefTrpcMutation(request, 'createDish', { name: 'Pulao',        price: 500, cuisine: 'PUNJABI' }, headers)
+    await chefTrpcMutation(request, 'createDish', { name: 'Fried Rice',   price: 400, cuisine: 'CHINESE' }, headers)
+
+    const res = await chefTrpcQuery(request, 'listChefDishes', {
+      chefId,
+      cuisines: ['BBQ', 'PUNJABI'],
+    }, headers)
+    const body = await parseTRPC<{ dishes: any[]; total: number }>(res)
+
+    assertTRPCSuccess(body)
+    // All returned dishes must be BBQ or PUNJABI
+    expect(body.data!.dishes.every((d: any) => ['BBQ', 'PUNJABI'].includes(d.cuisine))).toBe(true)
+  })
+
+  test('filter by dietaryTags uses AND semantics — dish must have all requested tags', async ({ request }) => {
+    const headers = await createChefAuthHeaders(request, AUTH_URL, 'filter-dietary')
+    const profileRes = await chefTrpcMutation(request, 'createChefProfile', { displayName: 'Chef Dietary Filter' }, headers)
+    const profileBody = await parseTRPC<{ _id: string }>(profileRes)
+    assertTRPCSuccess(profileBody)
+    const chefId = (profileBody.data as any)._id as string
+
+    // Dish A: HALAL + VEGAN
+    await chefTrpcMutation(request, 'createDish', {
+      name: 'Halal Vegan Dish', price: 350, dietaryTags: ['HALAL', 'VEGAN'],
+    }, headers)
+    // Dish B: HALAL only
+    await chefTrpcMutation(request, 'createDish', {
+      name: 'Halal Only Dish', price: 400, dietaryTags: ['HALAL'],
+    }, headers)
+
+    // Filter by both HALAL and VEGAN — should return only Dish A
+    const res = await chefTrpcQuery(request, 'listChefDishes', {
+      chefId,
+      dietaryTags: ['HALAL', 'VEGAN'],
+    }, headers)
+    const body = await parseTRPC<{ dishes: any[]; total: number }>(res)
+
+    assertTRPCSuccess(body)
+    // Every returned dish must have BOTH tags
+    expect(
+      body.data!.dishes.every(
+        (d: any) => d.dietaryTags.includes('HALAL') && d.dietaryTags.includes('VEGAN'),
+      ),
+    ).toBe(true)
+  })
+
+  test('returns 400 for invalid cuisine value in cuisines filter', async ({ request }) => {
+    const headers = await createChefAuthHeaders(request, AUTH_URL, 'filter-bad-cuisine')
+    const profileRes = await chefTrpcMutation(request, 'createChefProfile', { displayName: 'Chef Bad Filter' }, headers)
+    const profileBody = await parseTRPC<{ _id: string }>(profileRes)
+    assertTRPCSuccess(profileBody)
+    const chefId = (profileBody.data as any)._id as string
+
+    const res = await chefTrpcQuery(request, 'listChefDishes', {
+      chefId,
+      cuisines: ['INVALID_CUISINE'],
+    }, headers)
+    const body = await parseTRPC(res)
+    assertTRPCError(body, 400)
+  })
+})

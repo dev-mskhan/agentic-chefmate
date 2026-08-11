@@ -2,6 +2,12 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { appRouter } from '../../trpc/router'
 import { createContext } from '../../trpc/context'
 import { toHttpResponse, isDomainError } from '@chefmate/errors'
+import {
+  CuisineCategoryValues, CUISINE_LABELS,
+  OccasionTagValues, OCCASION_LABELS,
+  DietaryTagValues, DIETARY_LABELS,
+  AllergenValues, ALLERGEN_LABELS,
+} from '../../constants'
 
 /**
  * Helper that creates a tRPC caller from the Fastify request/reply context.
@@ -11,7 +17,29 @@ function makeCaller(req: FastifyRequest, res: FastifyReply) {
 }
 
 export async function chefRoutes(fastify: FastifyInstance): Promise<void> {
-  // ── /me routes — must be registered BEFORE /:chefId to avoid 'me' being treated as param ──
+  // ── Phase 4: /meta routes — NO auth, registered FIRST to avoid 'meta' as :chefId ──
+
+  // GET /api/v1/chefs/meta/cuisines → listCuisineCategories (public)
+  fastify.get('/meta/cuisines', async (_req, res) => {
+    return res.send({ values: CuisineCategoryValues, labels: CUISINE_LABELS })
+  })
+
+  // GET /api/v1/chefs/meta/occasion-tags → listOccasionTags (public)
+  fastify.get('/meta/occasion-tags', async (_req, res) => {
+    return res.send({ values: OccasionTagValues, labels: OCCASION_LABELS })
+  })
+
+  // GET /api/v1/chefs/meta/dietary-tags → listDietaryTags (public)
+  fastify.get('/meta/dietary-tags', async (_req, res) => {
+    return res.send({ values: DietaryTagValues, labels: DIETARY_LABELS })
+  })
+
+  // GET /api/v1/chefs/meta/allergens → listAllergens (public)
+  fastify.get('/meta/allergens', async (_req, res) => {
+    return res.send({ values: AllergenValues, labels: ALLERGEN_LABELS })
+  })
+
+  // ── /me routes — registered BEFORE /:chefId ────────────────────────────────
 
   // GET /api/v1/chefs/me → getMyChefProfile
   fastify.get('/me', async (req, res) => {
@@ -154,14 +182,20 @@ export async function chefRoutes(fastify: FastifyInstance): Promise<void> {
   // GET /api/v1/chefs/:chefId/dishes → listChefDishes
   fastify.get('/:chefId/dishes', async (req, res) => {
     const { chefId } = req.params as { chefId: string }
-    const query = req.query as Record<string, string>
+    const query = req.query as Record<string, string | string[]>
     const caller = makeCaller(req, res)
     const result = await caller.listChefDishes({
       chefId,
-      status:  query['status'] as any,
-      cuisine: query['cuisine'],
-      limit:   query['limit']  ? parseInt(query['limit'],  10) : undefined,
-      offset:  query['offset'] ? parseInt(query['offset'], 10) : undefined,
+      status:      query['status'] as any,
+      cuisine:     query['cuisine'] as string | undefined,
+      cuisines:    query['cuisines']
+        ? (Array.isArray(query['cuisines']) ? query['cuisines'] : [query['cuisines']]) as any
+        : undefined,
+      dietaryTags: query['dietaryTags']
+        ? (Array.isArray(query['dietaryTags']) ? query['dietaryTags'] : [query['dietaryTags']]) as any
+        : undefined,
+      limit:   query['limit']  ? parseInt(query['limit'] as string, 10)  : undefined,
+      offset:  query['offset'] ? parseInt(query['offset'] as string, 10) : undefined,
     })
     return res.send(result)
   })

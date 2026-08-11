@@ -22,8 +22,14 @@ import { manageIngredientsProcedure } from './procedures/manage-ingredients'
 import { managePricingProcedure }    from './procedures/manage-pricing'
 import { manageAvailabilityProcedure } from './procedures/manage-availability'
 
+// ── Phase 4: Metadata procedures (public, no auth) ───────────────────────────
+import { listCuisineCategoriesProcedure } from './procedures/list-cuisine-categories'
+import { listOccasionTagsProcedure }      from './procedures/list-occasion-tags'
+import { listDietaryTagsProcedure }       from './procedures/list-dietary-tags'
+import { listAllergensProcedure }         from './procedures/list-allergens'
+
 export const appRouter = router({
-  // ── Chef profile procedures (Phase 1 / 2) ───────────────────────────────────
+  // ── Chef profile procedures (Phase 1) ────────────────────────────────────────
   getChefProfile:           getChefProfileProcedure,
   getMyChefProfile:         getMyChefProfileProcedure,
   createChefProfile:        createChefProfileProcedure,
@@ -33,7 +39,7 @@ export const appRouter = router({
   getChefStatus:            getChefStatusProcedure,
   updateChefStatus:         updateChefStatusProcedure,
 
-  // ── Dish procedures (Phase 3) ───────────────────────────────────────────────
+  // ── Dish procedures (Phase 3) ─────────────────────────────────────────────────
   createDish:          createDishProcedure,
   getDish:             getDishProcedure,
   listChefDishes:      listChefDishesProcedure,
@@ -45,6 +51,12 @@ export const appRouter = router({
   manageIngredients:   manageIngredientsProcedure,
   managePricing:       managePricingProcedure,
   manageAvailability:  manageAvailabilityProcedure,
+
+  // ── Metadata procedures (Phase 4) — public, no auth ─────────────────────────
+  listCuisineCategories: listCuisineCategoriesProcedure,
+  listOccasionTags:      listOccasionTagsProcedure,
+  listDietaryTags:       listDietaryTagsProcedure,
+  listAllergens:         listAllergensProcedure,
 })
 
 export type AppRouter = typeof appRouter

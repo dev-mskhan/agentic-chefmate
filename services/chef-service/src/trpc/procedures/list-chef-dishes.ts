@@ -2,19 +2,22 @@ import { z } from 'zod'
 import { protectedProcedure } from '../trpc'
 import { Dish, DishStatusValues } from '../../models/dish.model'
 import { ChefProfile } from '../../models/chef-profile.model'
+import { CuisineCategoryValues, DietaryTagValues } from '../../constants'
 
 const LIST_TTL = 180 // 3 minutes
 
 export const listChefDishesProcedure = protectedProcedure
   .input(z.object({
-    chefId:  z.string(),
-    status:  z.enum(DishStatusValues).optional(),
-    cuisine: z.string().optional(),
-    limit:   z.number().int().min(1).max(100).default(20),
-    offset:  z.number().int().min(0).default(0),
+    chefId:      z.string(),
+    status:      z.enum(DishStatusValues).optional(),
+    cuisine:     z.string().optional(),
+    cuisines:    z.array(z.enum(CuisineCategoryValues)).optional(),
+    dietaryTags: z.array(z.enum(DietaryTagValues)).optional(),
+    limit:       z.number().int().min(1).max(100).default(20),
+    offset:      z.number().int().min(0).default(0),
   }))
   .query(async ({ ctx, input }) => {
-    const { chefId, cuisine, limit, offset } = input
+    const { chefId, cuisine, cuisines, dietaryTags, limit, offset } = input
     const { userId, role } = ctx.principal
 
     // Determine if caller is the owning chef
@@ -62,6 +65,14 @@ export const listChefDishesProcedure = protectedProcedure
     }
     if (cuisine) {
       filter['cuisine'] = cuisine
+    }
+    // Multi-cuisine filter (OR semantics via $in)
+    if (cuisines && cuisines.length > 0) {
+      filter['cuisine'] = { $in: cuisines }
+    }
+    // Dietary tags filter (AND semantics via $all — dish must have ALL requested tags)
+    if (dietaryTags && dietaryTags.length > 0) {
+      filter['dietaryTags'] = { $all: dietaryTags }
     }
 
     const [dishes, total] = await Promise.all([

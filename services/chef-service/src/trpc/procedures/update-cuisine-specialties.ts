@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { NotFoundError, ForbiddenError } from '@chefmate/errors'
+import { NotFoundError, ForbiddenError, ValidationError } from '@chefmate/errors'
 import { protectedProcedure } from '../trpc'
 import { ChefProfile } from '../../models/chef-profile.model'
 import { publishChefEvent } from '../../services/event.service'

@@ -142,7 +142,7 @@ describe('pausePlan allowPause guard', () => {
 
 describe('listChefPlans customer visibility filter', () => {
   it('USER role should only see ACTIVE plans (filter applied)', () => {
-    const role = 'USER'
+    const role: string = 'USER'
     const isAdmin = role === 'ADMIN'
     const isOwner = false
     const statusFilter = (!isAdmin && !isOwner) ? 'ACTIVE' : undefined
@@ -150,7 +150,7 @@ describe('listChefPlans customer visibility filter', () => {
   })
 
   it('CHEF owner sees all statuses (no forced filter)', () => {
-    const role = 'CHEF'
+    const role: string = 'CHEF'
     const isOwner = true
     const isAdmin = false
     const statusFilter = (!isAdmin && !isOwner) ? 'ACTIVE' : undefined

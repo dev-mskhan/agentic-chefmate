@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import * as argon2 from 'argon2'
 import { publicProcedure } from '../trpc'
-import { User } from '../../models/user.model'
+import { User, IUser } from '../../models/user.model'
 import { RefreshToken } from '../../models/refresh-token.model'
 import { issueTokenPair, hashToken, storeSession } from '../../services/token.service'
 import { setAuthCookies } from '../../services/session.service'
@@ -25,26 +25,32 @@ export const signupProcedure = publicProcedure
   .mutation(async ({ input, ctx }) => {
     const { email, password } = input
     const { redis, config, req } = ctx
+    const normalizedEmail = email.toLowerCase()
 
-    // Check for existing user
-    const existing = await User.findOne({ email: email.toLowerCase() })
-    if (existing) {
-      throw new ConflictError('Email already registered')
+    let user = await User.findOne({ email: normalizedEmail })
+    let isNewUser = false
+
+    if (user) {
+      if (user.passwordHash) {
+        throw new ConflictError('Email already registered')
+      }
+      // User registered via Google previously — set password on existing account
+      const passwordHash = await argon2.hash(password, { type: argon2.argon2id })
+      user.passwordHash = passwordHash
+      await user.save()
+    } else {
+      isNewUser = true
+      const passwordHash = await argon2.hash(password, { type: argon2.argon2id })
+      user = await User.create({
+        email: normalizedEmail,
+        passwordHash,
+        role: 'USER',
+        emailVerified: false,
+      })
     }
 
-    // Hash password
-    const passwordHash = await argon2.hash(password, { type: argon2.argon2id })
-
-    // Create user
-    const user = await User.create({
-      email: email.toLowerCase(),
-      passwordHash,
-      role: 'USER',
-      emailVerified: false,
-    })
-
     // Issue token pair
-    const { accessToken, refreshToken, refreshTokenFamily, accessTokenJti, sessionId } =
+    const { accessToken, refreshToken, refreshTokenFamily, sessionId } =
       await issueTokenPair(
         { userId: user._id.toString(), role: user.role, email: user.email },
         config.JWT_PRIVATE_KEY,
@@ -54,7 +60,6 @@ export const signupProcedure = publicProcedure
     const refreshTokenHash = hashToken(refreshToken)
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
-    // Persist refresh token in MongoDB (source of truth for rotation/theft detection)
     await RefreshToken.create({
       userId: user._id,
       tokenHash: refreshTokenHash,
@@ -63,30 +68,39 @@ export const signupProcedure = publicProcedure
       sessionId,
     })
 
-    // Persist session in Redis (fast revocation lookup)
     await storeSession(redis, sessionId, user._id.toString(), refreshTokenHash, {
       ip: req.ip,
       userAgent: req.headers['user-agent'],
     })
 
-    // Generate email verification token and build the full link
-    const rawVerifyToken = await createEmailVerificationToken(redis, user._id.toString())
-    const verifyUrl = `${config.APP_URL}/verify-email?token=${rawVerifyToken}`
-
-    // Set signed cookies
     setAuthCookies(ctx.res, accessToken, refreshToken)
 
-    // Publish event — notification-service picks this up and emails verifyUrl
-    await publishAuthEvent({
-      type: 'user.registered',
-      userId: user._id.toString(),
-      email: user.email,
-      role: user.role,
-      provider: 'local',
-      verifyUrl,
-      createdAt: new Date().toISOString(),
-      version: '1',
-    })
+    if (isNewUser) {
+      const rawVerifyToken = await createEmailVerificationToken(redis, user._id.toString())
+      const verifyUrl = `${config.APP_URL}/verify-email?token=${rawVerifyToken}`
+
+      await publishAuthEvent({
+        type: 'user.registered',
+        userId: user._id.toString(),
+        email: user.email,
+        role: user.role,
+        provider: 'local',
+        verifyUrl,
+        createdAt: new Date().toISOString(),
+        version: '1',
+      })
+    } else {
+      await publishAuthEvent({
+        type: 'user.logged_in',
+        userId: user._id.toString(),
+        email: user.email,
+        role: user.role,
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        createdAt: new Date().toISOString(),
+        version: '1',
+      })
+    }
 
     return {
       userId: user._id.toString(),

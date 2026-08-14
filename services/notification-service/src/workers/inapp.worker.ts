@@ -8,94 +8,105 @@ import type { NotificationType } from '../models/notification.model'
 
 const logger = createLogger('notification-inapp-worker')
 
-/** Map BullMQ template names to stored NotificationType values */
-function templateToNotificationType(template: string): NotificationType {
-  const map: Record<string, NotificationType> = {
-    'new-order':             'ORDER_ACCEPTED',
-    'new-order-chef':        'ORDER_ACCEPTED',
-    'status-update':         'ORDER_READY',
-    'order-cancelled':       'ORDER_CANCELLED',
-    'leave-review':          'ORDER_DELIVERED',
-    'chef-approved':         'CHEF_APPROVED',
-    'account-suspended':     'CHEF_SUSPENDED',
-    'chef-approval-pending': 'CHEF_APPROVED',
-    'unread-message':        'CHAT_MESSAGE',
-    'welcome-chef':          'WELCOME_CHEF',
-  }
-  return map[template] ?? 'CHAT_MESSAGE'
+// ── Template registry ─────────────────────────────────────────────────────────
+// Centralised map instead of giant switch statements in each function.
+// Adding a new template = add one entry here, no worker logic changes.
+
+interface InAppTemplate {
+  type: NotificationType
+  title: string | ((data: Record<string, unknown>) => string)
+  message: (data: Record<string, unknown>) => string
 }
 
-/** Build a human-readable title from the template name */
-function buildTitle(template: string, data: Record<string, unknown>): string {
-  switch (template) {
-    case 'new-order':
-    case 'new-order-chef':
-      return 'New Order Received'
-    case 'status-update':
-      return `Order ${(data['newStatus'] as string | undefined) ?? 'Updated'}`
-    case 'order-cancelled':
-      return 'Order Cancelled'
-    case 'leave-review':
-      return 'How was your meal?'
-    case 'chef-approved':
-      return 'Your chef application has been approved!'
-    case 'account-suspended':
-      return 'Account Suspended'
-    case 'chef-approval-pending':
-      return 'Chef Approval Required'
-    case 'unread-message':
-      return 'New Message'
-    case 'welcome-chef':
-      return 'Welcome to ChefMate!'
-    default:
-      return 'Notification'
+const INAPP_TEMPLATES: Record<string, InAppTemplate> = {
+  'new-order': {
+    type:    'ORDER_ACCEPTED',
+    title:   'New Order Received',
+    message: (d) => `You have a new order #${String(d['orderId'] ?? '')}`,
+  },
+  'new-order-chef': {
+    type:    'ORDER_ACCEPTED',
+    title:   'New Order Received',
+    message: (d) => `You have a new order #${String(d['orderId'] ?? '')}`,
+  },
+  'status-update': {
+    type:    'ORDER_READY',
+    title:   (d) => `Order ${String(d['newStatus'] ?? 'Updated')}`,
+    message: (d) => `Your order status changed to ${String(d['newStatus'] ?? '')}`,
+  },
+  'order-cancelled': {
+    type:    'ORDER_CANCELLED',
+    title:   'Order Cancelled',
+    message: (d) => `Order #${String(d['orderId'] ?? '')} has been cancelled`,
+  },
+  'leave-review': {
+    type:    'ORDER_DELIVERED',
+    title:   'How was your meal?',
+    message: () => 'Please leave a review for your recent order',
+  },
+  'chef-approved': {
+    type:    'CHEF_APPROVED',
+    title:   'Your chef application has been approved!',
+    message: () => 'Congratulations! You can now start receiving orders.',
+  },
+  'account-suspended': {
+    type:    'CHEF_SUSPENDED',
+    title:   'Account Suspended',
+    message: (d) =>
+      `Your account has been suspended${d['reason'] ? `: ${String(d['reason'])}` : ''}`,
+  },
+  'chef-approval-pending': {
+    type:    'CHEF_APPROVED',
+    title:   'Chef Approval Required',
+    message: (d) => `Chef ${String(d['chefId'] ?? '')} is awaiting approval`,
+  },
+  'unread-message': {
+    type:    'CHAT_MESSAGE',
+    title:   'New Message',
+    message: () => 'You have an unread message',
+  },
+  'welcome-chef': {
+    type:    'WELCOME_CHEF',
+    title:   'Welcome to ChefMate!',
+    message: () => 'Your chef profile is set up. Start accepting orders!',
+  },
+}
+
+function resolveTemplate(
+  templateKey: string,
+  data: Record<string, unknown>,
+): { type: NotificationType; title: string; message: string } {
+  const tmpl = INAPP_TEMPLATES[templateKey]
+  if (!tmpl) {
+    // Graceful fallback — don't hard-fail on unknown templates
+    return {
+      type:    'CHAT_MESSAGE',
+      title:   'Notification',
+      message: 'You have a new notification',
+    }
+  }
+  return {
+    type:    tmpl.type,
+    title:   typeof tmpl.title === 'function' ? tmpl.title(data) : tmpl.title,
+    message: tmpl.message(data),
   }
 }
 
-/** Build a short message body from the template name and data */
-function buildMessage(template: string, data: Record<string, unknown>): string {
-  switch (template) {
-    case 'new-order':
-    case 'new-order-chef':
-      return `You have a new order #${(data['orderId'] as string | undefined) ?? ''}`
-    case 'status-update':
-      return `Your order status changed to ${(data['newStatus'] as string | undefined) ?? ''}`
-    case 'order-cancelled':
-      return `Order #${(data['orderId'] as string | undefined) ?? ''} has been cancelled`
-    case 'leave-review':
-      return `Please leave a review for your recent order`
-    case 'chef-approved':
-      return 'Congratulations! You can now start receiving orders.'
-    case 'account-suspended':
-      return `Your account has been suspended${data['reason'] ? `: ${data['reason'] as string}` : ''}`
-    case 'chef-approval-pending':
-      return `Chef ${(data['chefId'] as string | undefined) ?? ''} is awaiting approval`
-    case 'unread-message':
-      return 'You have an unread message'
-    case 'welcome-chef':
-      return 'Your chef profile is set up. Start accepting orders!'
-    default:
-      return 'You have a new notification'
-  }
-}
+// ── Worker ────────────────────────────────────────────────────────────────────
 
 export function startInAppWorker(pubClient: Redis): Worker<NotificationJob> {
   return new Worker<NotificationJob>(
-    'notifications',
+    'notifications-inapp',
     async (job) => {
-      if (job.data.channel !== 'inapp') return
-
       const { userId, template, data, notificationId } = job.data
 
-      const title = buildTitle(template, data)
-      const message = buildMessage(template, data)
-      const type = templateToNotificationType(template)
+      const { type, title, message } = resolveTemplate(template, data)
 
       // Persist to MongoDB so reconnecting users can fetch missed notifications
       const saved = await persistNotification(userId, type, title, message, data)
 
-      // Publish enriched payload to Redis pub/sub for real-time delivery
-      // Channel: notif:user:{userId} (the chat-service / gateway subscribes and forwards)
+      // Publish to Redis pub/sub for real-time delivery
+      // Channel: notif:user:{userId} — subscribed by the gateway/chat-service
       const channel = `notif:user:${userId}`
       const payload = JSON.stringify({
         notificationId,
@@ -111,7 +122,7 @@ export function startInAppWorker(pubClient: Redis): Worker<NotificationJob> {
       logger.info({ channel, template, notificationId }, 'In-app notification published')
     },
     {
-      connection: getBullMQConnection(),
+      connection:  getBullMQConnection(),
       concurrency: 50,
     },
   )

@@ -1,18 +1,35 @@
-import { createConfig, baseEnvSchema } from '@chefmate/config'
+import { createConfig, baseEnvSchema, loadEnv } from '@chefmate/config'
 import { z } from 'zod'
 
+loadEnv(__dirname)
+
 const notifEnvSchema = baseEnvSchema.extend({
-  PORT: z.coerce.number().default(3006),
-  MONGODB_URI: z.string().url(),
-  REDIS_URL: z.string().url().default('redis://localhost:6379'),
-  REDPANDA_BROKER: z.string().default('localhost:9092'),
-  SENDGRID_API_KEY: z.string().min(1).optional(),
-  SENDGRID_FROM_EMAIL: z.string().email().default('noreply@chefmate.app'),
-  SENDGRID_FROM_NAME: z.string().default('ChefMate'),
-  VAPID_PUBLIC_KEY: z.string().optional(),
+  PORT:             z.coerce.number().default(3006),
+  MONGODB_URI:      z.string().url(),
+  REDIS_URL:        z.string().url().default('redis://localhost:6379'),
+  REDPANDA_BROKER:  z.string().default('localhost:9092'),
+
+  // ── Gmail SMTP ──────────────────────────────────────────────────────────────
+  SMTP_HOST:        z.string().default('smtp.gmail.com'),
+  SMTP_PORT:        z.coerce.number().default(465),
+  SMTP_SECURE:      z.coerce.boolean().default(true),
+  SMTP_USER:        z.string().min(1),
+  SMTP_PASS:        z.string().min(1),
+  SMTP_FROM_EMAIL:  z.string().email(),
+  SMTP_FROM_NAME:   z.string().default('ChefMate'),
+
+  // ── Web Push ─────────────────────────────────────────────────────────────────
+  VAPID_PUBLIC_KEY:  z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),
-  VAPID_SUBJECT: z.string().email().default('admin@chefmate.app'),
+  VAPID_SUBJECT:     z.string().email().default('admin@chefmate.app'),
+
   APP_URL: z.string().url().default('http://localhost:3000'),
+
+  // ── Alerting ──────────────────────────────────────────────────────────────────
+  /** Slack Incoming Webhook URL. If absent, Slack alerts are silently skipped. */
+  SLACK_WEBHOOK_URL:     z.string().url().optional(),
+  /** PagerDuty Events API v2 routing key. If absent, PD alerts are skipped. */
+  PAGERDUTY_ROUTING_KEY: z.string().optional(),
 })
 
 export type NotifConfig = z.infer<typeof notifEnvSchema>

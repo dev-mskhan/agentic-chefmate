@@ -1,8 +1,11 @@
 import { Worker } from 'bullmq'
+import nodemailer from 'nodemailer'
 import { config } from '../config'
 import type { NotificationJob } from '../queues/notification.queue'
 import { getBullMQConnection } from '../queues/redis-connection'
 import { createLogger } from '@chefmate/logger'
+import { PermanentNotificationError } from '../utils/errors'
+import { withCircuitBreaker } from '../utils/circuit-breaker'
 import { verifyEmailTemplate } from '../templates/email/verify-email'
 import { resetPasswordTemplate } from '../templates/email/reset-password'
 import { welcomeChefTemplate } from '../templates/email/welcome-chef'
@@ -12,27 +15,27 @@ import { leaveReviewTemplate } from '../templates/email/leave-review'
 
 const logger = createLogger('notification-email-worker')
 
-interface SendGridClient {
-  send(msg: object): Promise<void>
+// ── Nodemailer transporter (Gmail SMTP via App Password) ──────────────────────
+
+let transporter: nodemailer.Transporter | null = null
+
+function getTransporter(): nodemailer.Transporter {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host:   config.SMTP_HOST,
+      port:   config.SMTP_PORT,
+      secure: config.SMTP_SECURE,
+      auth: {
+        user: config.SMTP_USER,
+        pass: config.SMTP_PASS,
+      },
+    })
+  }
+  return transporter
 }
 
-// Lazily initialise SendGrid to avoid crashing if key not set in dev
-function getSendGrid(): SendGridClient | null {
-  if (!config.SENDGRID_API_KEY) {
-    return null
-  }
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const sgMail = require('@sendgrid/mail') as SendGridClient & {
-    setApiKey(key: string): void
-  }
-  sgMail.setApiKey(config.SENDGRID_API_KEY)
-  return sgMail
-}
+// ── Template renderer ─────────────────────────────────────────────────────────
 
-/**
- * Render a template into { subject, html, text } given the job's data payload.
- * Returns null for unrecognised templates.
- */
 function renderTemplate(
   template: string,
   data: Record<string, unknown>,
@@ -40,13 +43,13 @@ function renderTemplate(
   switch (template) {
     case 'verify-email':
       return verifyEmailTemplate({
-        email: data['email'] as string,
+        email:     data['email'] as string,
         verifyUrl: data['verifyUrl'] as string,
       })
 
     case 'reset-password':
       return resetPasswordTemplate({
-        email: data['email'] as string,
+        email:    data['email'] as string,
         resetUrl: data['resetUrl'] as string,
       })
 
@@ -69,51 +72,55 @@ function renderTemplate(
   }
 }
 
+// ── Worker ────────────────────────────────────────────────────────────────────
+
 export function startEmailWorker(): Worker<NotificationJob> {
   return new Worker<NotificationJob>(
-    'notifications',
+    'notifications-email',
     async (job) => {
-      if (job.data.channel !== 'email') return
+      const { template, data, notificationId, userId } = job.data
 
-      const sg = getSendGrid()
-      if (!sg) {
-        throw new Error('SendGrid not configured')
-      }
-
-      const toEmail = job.data.data['email'] as string | undefined
+      // ── Validate recipient ─────────────────────────────────────────────────
+      // The email address must be present in job data. If it's missing, this
+      // is a permanent data error — retrying will never produce the email.
+      const toEmail = data['email'] as string | undefined
       if (!toEmail) {
-        throw new Error(`No email in job data for template ${job.data.template}`)
+        throw new PermanentNotificationError(
+          `No email address in job data for template '${template}' (userId: ${userId}). ` +
+          `Ensure the consumer passes data.email when enqueuing email jobs.`,
+        )
       }
 
-      const rendered = renderTemplate(job.data.template, job.data.data)
+      // ── Render template ────────────────────────────────────────────────────
+      const rendered = renderTemplate(template, data)
       if (!rendered) {
-        throw new Error(`No renderer for template: ${job.data.template}`)
+        // Unknown template — permanent error, retrying won't help
+        throw new PermanentNotificationError(`No renderer found for email template: '${template}'`)
       }
 
       logger.info(
-        {
-          to: toEmail,
-          template: job.data.template,
-          notificationId: job.data.notificationId,
-        },
-        'Sending email',
+        { to: toEmail, template, notificationId },
+        'Sending email via Gmail SMTP',
       )
 
-      // sg.send throws on failure — let it propagate so BullMQ retries
-      await sg.send({
-        to: toEmail,
-        from: {
-          email: config.SENDGRID_FROM_EMAIL,
-          name: config.SENDGRID_FROM_NAME,
-        },
-        subject: rendered.subject,
-        html: rendered.html,
-        text: rendered.text,
-      })
+      // ── Send (wrapped in circuit breaker) ─────────────────────────────────
+      // If SMTP is down, the circuit opens after 5 consecutive failures.
+      // Subsequent jobs fail immediately instead of waiting for SMTP timeout,
+      // preserving their retry budget for when SMTP recovers.
+      await withCircuitBreaker('smtp', () =>
+        getTransporter().sendMail({
+          from:    `"${config.SMTP_FROM_NAME}" <${config.SMTP_FROM_EMAIL}>`,
+          to:      toEmail,
+          subject: rendered.subject,
+          html:    rendered.html,
+          text:    rendered.text,
+        }),
+      )
     },
     {
-      connection: getBullMQConnection(),
-      concurrency: 10,
+      connection:  getBullMQConnection(),
+      concurrency: 5,
     },
   )
 }
+

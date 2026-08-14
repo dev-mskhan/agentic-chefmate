@@ -1,12 +1,12 @@
-import type { Queue } from 'bullmq'
 import type { OrderEvent } from '@chefmate/event-contracts'
-import type { NotificationJob } from '../queues/notification.queue'
 import { deriveNotificationId } from '../utils/idempotency'
+import { getEmailQueue, getPushQueue, getInAppQueue } from '../queues/notification.queue'
 
-export async function handleOrderEvent(
-  event: OrderEvent,
-  queue: Queue<NotificationJob>,
-): Promise<void> {
+export async function handleOrderEvent(event: OrderEvent): Promise<void> {
+  const emailQueue = getEmailQueue()
+  const pushQueue  = getPushQueue()
+  const inappQueue = getInAppQueue()
+
   switch (event.type) {
     case 'order.created': {
       // Chef: email + push + inapp
@@ -16,7 +16,7 @@ export async function handleOrderEvent(
       // User: email
       const userEmailId = deriveNotificationId('order.created', event.orderId, 'user', 'email')
 
-      await queue.add(
+      await emailQueue.add(
         'send-notification',
         {
           channel: 'email',
@@ -28,7 +28,7 @@ export async function handleOrderEvent(
         { jobId: chefEmailId },
       )
 
-      await queue.add(
+      await pushQueue.add(
         'send-notification',
         {
           channel: 'push',
@@ -40,7 +40,7 @@ export async function handleOrderEvent(
         { jobId: chefPushId },
       )
 
-      await queue.add(
+      await inappQueue.add(
         'send-notification',
         {
           channel: 'inapp',
@@ -52,7 +52,7 @@ export async function handleOrderEvent(
         { jobId: chefInappId },
       )
 
-      await queue.add(
+      await emailQueue.add(
         'send-notification',
         {
           channel: 'email',
@@ -67,11 +67,10 @@ export async function handleOrderEvent(
     }
 
     case 'order.status_changed': {
-      // FIX 6: use event.userId (field added to contract) instead of event.orderId
       const pushId  = deriveNotificationId('order.status_changed', event.orderId, 'push')
       const inappId = deriveNotificationId('order.status_changed', event.orderId, 'inapp')
 
-      await queue.add(
+      await pushQueue.add(
         'send-notification',
         {
           channel: 'push',
@@ -83,7 +82,7 @@ export async function handleOrderEvent(
         { jobId: pushId },
       )
 
-      await queue.add(
+      await inappQueue.add(
         'send-notification',
         {
           channel: 'inapp',
@@ -101,7 +100,7 @@ export async function handleOrderEvent(
       const pushId  = deriveNotificationId('order.completed', event.orderId, 'push')
       const emailId = deriveNotificationId('order.completed', event.orderId, 'email')
 
-      await queue.add(
+      await pushQueue.add(
         'send-notification',
         {
           channel: 'push',
@@ -113,7 +112,7 @@ export async function handleOrderEvent(
         { jobId: pushId },
       )
 
-      await queue.add(
+      await emailQueue.add(
         'send-notification',
         {
           channel: 'email',
@@ -135,7 +134,7 @@ export async function handleOrderEvent(
       const chefEmailId = deriveNotificationId('order.cancelled', event.orderId, 'chef', 'email')
       const chefInappId = deriveNotificationId('order.cancelled', event.orderId, 'chef', 'inapp')
 
-      await queue.add(
+      await emailQueue.add(
         'send-notification',
         {
           channel: 'email',
@@ -147,7 +146,7 @@ export async function handleOrderEvent(
         { jobId: userEmailId },
       )
 
-      await queue.add(
+      await inappQueue.add(
         'send-notification',
         {
           channel: 'inapp',
@@ -159,7 +158,7 @@ export async function handleOrderEvent(
         { jobId: userInappId },
       )
 
-      await queue.add(
+      await emailQueue.add(
         'send-notification',
         {
           channel: 'email',
@@ -171,7 +170,7 @@ export async function handleOrderEvent(
         { jobId: chefEmailId },
       )
 
-      await queue.add(
+      await inappQueue.add(
         'send-notification',
         {
           channel: 'inapp',
@@ -186,15 +185,17 @@ export async function handleOrderEvent(
     }
 
     case 'refund.issued': {
-      // refund.issued does not carry userId — keep orderId as placeholder;
-      // the email worker resolves the recipient via an order-service lookup (TODO)
+      // TODO: event.userId is not yet in the refund.issued contract.
+      // Until the contract is updated, this job will be skipped by the
+      // email worker's canNotify / resolveRecipient guard (fails gracefully).
+      // Track: https://github.com/your-org/chefmate/issues/XXX
       const emailId = deriveNotificationId('refund.issued', event.orderId, 'email')
-      await queue.add(
+      await emailQueue.add(
         'send-notification',
         {
           channel: 'email',
           template: 'refund-issued',
-          userId: event.orderId, // resolved by worker
+          userId: event.orderId, // ⚠️ placeholder — fix event contract to include userId
           notificationId: emailId,
           data: { orderId: event.orderId, amount: event.amount },
         },

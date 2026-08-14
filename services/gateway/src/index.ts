@@ -22,7 +22,7 @@ async function buildApp() {
     trustProxy: true,
   })
 
-  const allowedOrigins = config.CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
+  const allowedOrigins = config.CORS_ORIGINS!.split(',').map((o) => o.trim()).filter(Boolean)
 
   await app.register(fastifyCors, {
     origin: (origin, cb) => {
@@ -50,7 +50,7 @@ async function buildApp() {
       return reply.code(error.statusCode).send(toHttpResponse(error))
     }
     app.log.error({ err: error }, 'Unhandled gateway error')
-    return reply.code(502).send({ error: { code: 'BAD_GATEWAY', message: 'Gateway error' } })
+    return reply.code(502).send({ statusCode: 502, message: 'Gateway error' })
   })
 
   return app

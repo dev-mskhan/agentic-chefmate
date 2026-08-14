@@ -2,22 +2,28 @@ import { expect } from '@playwright/test'
 import type { APIResponse } from '@playwright/test'
 import type { TRPCFlatResponse } from './trpc'
 
-/** Assert a tRPC response is a success with the expected HTTP status. */
+/**
+ * Assert a tRPC response is a success.
+ * Checks status === expectedHttpStatus and that data is present.
+ */
 export function assertTRPCSuccess<T>(
   body: TRPCFlatResponse<T>,
   httpStatus = 200,
-): asserts body is TRPCFlatResponse<T> & { success: true; data: T } {
-  expect(body.success, `Expected success=true, got: ${JSON.stringify(body)}`).toBe(true)
-  expect(body.statusCode).toBe(httpStatus)
+): asserts body is TRPCFlatResponse<T> & { status: number; data: T } {
+  expect(body.status, `Expected status=${httpStatus}, got: ${JSON.stringify(body)}`).toBe(httpStatus)
+  expect(body.message, `Success response should not have a message: ${JSON.stringify(body)}`).toBeUndefined()
 }
 
-/** Assert a tRPC response is a failure with the expected status code. */
+/**
+ * Assert a tRPC response is a failure with the expected status code.
+ */
 export function assertTRPCError(
   body: TRPCFlatResponse,
   expectedStatus: number,
 ): void {
-  expect(body.success, `Expected success=false, got: ${JSON.stringify(body)}`).toBe(false)
-  expect(body.statusCode).toBe(expectedStatus)
+  expect(body.status, `Expected status=${expectedStatus}, got: ${JSON.stringify(body)}`).toBe(expectedStatus)
+  expect(body.message, `Error response should have a message: ${JSON.stringify(body)}`).toBeDefined()
+  expect(body.data, `Error response should not have a data field: ${JSON.stringify(body)}`).toBeUndefined()
 }
 
 /** Assert a REST response has the given status and return its JSON body. */
@@ -35,8 +41,6 @@ export async function assertStatus<T = unknown>(
 
 /**
  * Assert a Set-Cookie header is present and return the cookie string.
- * Playwright's cookie jar handles these automatically, but this is
- * useful to verify cookies are actually being set.
  */
 export function assertCookieSet(response: APIResponse, cookieName: string): string {
   const setCookieHeader = response.headers()['set-cookie'] ?? ''

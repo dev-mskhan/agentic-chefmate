@@ -5,7 +5,7 @@ packages:
   - "tests/*"
 allowBuilds:
   argon2: false
-  esbuild: false
+  esbuild: true
   msgpackr-extract: false
   protobufjs: false
-  sharp: set this to true or false
+  sharp: true

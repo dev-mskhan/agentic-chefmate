@@ -2,15 +2,14 @@
  * tRPC HTTP helpers for Playwright API testing.
  *
  * ChefMate uses @trpc/server with fastify-trpc-plugin.
- * All tRPC procedures are served under /api/v1/auth/trpc/<procedure>.
  *
  * tRPC HTTP routing:
- *   - Queries  → GET  /api/v1/auth/trpc/<procedure>?input=<json-encoded-input>
- *   - Mutations → POST /api/v1/auth/trpc/<procedure>  body: <input>
+ *   - Queries   → GET  /<prefix>/<procedure>?input=<json-encoded-input>
+ *   - Mutations → POST /<prefix>/<procedure>  body: <input>
  *
- * ChefMate adds an onSend hook that flattens the tRPC envelope:
- *   Success: { success: true,  statusCode: 200, message: "Success", data: <payload> }
- *   Error:   { success: false, statusCode: 4xx, message: "...",     errors?: [...] }
+ * ChefMate's onSend hook transforms tRPC responses to:
+ *   Success: { status: 200, data: <payload> }
+ *   Error:   { status: 4xx, message: "...", errors?: [...] }
  */
 import type { APIRequestContext, APIResponse } from '@playwright/test'
 
@@ -47,14 +46,15 @@ export async function trpcQuery(
 }
 
 /**
- * Parse and return the flattened response body.
- * ChefMate's onSend hook always returns this shape for tRPC routes.
+ * The standard ChefMate tRPC HTTP response envelope.
+ *
+ * Success: { status: 200, data: T }
+ * Error:   { status: 4xx|5xx, message: string, errors?: [...] }
  */
 export interface TRPCFlatResponse<T = unknown> {
-  success: boolean
-  statusCode: number
-  message: string
+  status: number
   data?: T
+  message?: string
   errors?: Array<{ path: string; message: string }>
 }
 

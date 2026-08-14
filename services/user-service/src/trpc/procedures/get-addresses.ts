@@ -21,7 +21,7 @@ export const getAddressesProcedure = protectedProcedure.query(async ({ ctx }) =>
     addressLine:          a.addressLine,
     city:                 a.city,
     postalCode:           a.postalCode,
-    coordinates:          a.coordinates,
+    location:             a.location,
     deliveryInstructions: a.deliveryInstructions,
     isDefault:            a.isDefault,
   }))

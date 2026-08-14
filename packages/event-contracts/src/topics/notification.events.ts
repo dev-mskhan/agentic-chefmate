@@ -20,6 +20,14 @@ export type NotificationEvent =
       channel: NotificationChannel
       template: string
       error: string
+      /** True when retrying will never succeed (4xx, missing data, bad config). */
+      isPermanent: boolean
+      /** How many BullMQ attempts were made before this event was published. */
+      attemptsMade: number
+      /** The total attempts budget configured on the queue. */
+      maxAttempts: number
+      /** Full job payload — preserved so the DLQ can re-enqueue without data loss. */
+      jobData: Record<string, unknown>
       createdAt: string
       version: '1'
     }

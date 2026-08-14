@@ -6,34 +6,48 @@ export interface GoogleProfile {
   displayName?: string
 }
 
+export interface UpsertGoogleUserResult {
+  user: IUser
+  isNewUser: boolean
+}
+
 /**
- * Upserts a user from a Google OAuth profile.
- * - If a user with the same googleId exists: return them
- * - If a user with the same email exists: link the googleId to their account
- * - Otherwise: create a new user
+ * Industry-standard Google OAuth Account Linking:
+ * 1. If user with same googleId exists -> Return user (isNewUser: false)
+ * 2. If user with same email exists -> Link googleId & verify email (isNewUser: false)
+ * 3. If user does not exist -> Create new user with googleId & verified email (isNewUser: true)
  */
-export async function upsertGoogleUser(profile: GoogleProfile): Promise<IUser> {
+export async function upsertGoogleUser(profile: GoogleProfile): Promise<UpsertGoogleUserResult> {
   const googleId = profile.id
-  const email = profile.emails?.[0]?.value?.toLowerCase()
+  const email = profile.emails?.[0]?.value?.toLowerCase().trim()
 
   if (!email) {
     throw new Error('Google profile missing email')
   }
 
-  // Check if already linked by googleId
+  // 1. Check if already linked by googleId
   let user = await User.findOne({ googleId })
-  if (user) return user
-
-  // Check if email already exists (link accounts)
-  user = await User.findOne({ email })
   if (user) {
-    user.googleId = googleId
-    user.emailVerified = true
-    await user.save()
-    return user
+    return { user, isNewUser: false }
   }
 
-  // Create new user
+  // 2. Check if email already exists (link accounts atomically)
+  user = await User.findOneAndUpdate(
+    { email },
+    {
+      $set: {
+        googleId,
+        emailVerified: true,
+      },
+    },
+    { new: true },
+  )
+
+  if (user) {
+    return { user, isNewUser: false }
+  }
+
+  // 3. Create new user
   user = await User.create({
     email,
     googleId,
@@ -41,5 +55,5 @@ export async function upsertGoogleUser(profile: GoogleProfile): Promise<IUser> {
     role: 'USER',
   })
 
-  return user
+  return { user, isNewUser: true }
 }

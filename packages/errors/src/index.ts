@@ -1,124 +1,110 @@
 /**
- * Base application error class.
- * All domain errors extend this class so callers can distinguish operational
- * errors (expected, safe to surface to clients) from programmer errors.
+ * Base API error class matching the exact requested format.
  */
-export class AppError extends Error {
-  readonly statusCode: number
-  readonly code: string
-  readonly isOperational: boolean
-  readonly details?: unknown
+export class ApiError extends Error {
+  statusCode: number
+  data?: unknown
 
-  constructor(
-    message: string,
-    statusCode: number,
-    code: string,
-    isOperational = true,
-    details?: unknown,
-  ) {
+  constructor(statusCode: number, message: string, data?: unknown) {
     super(message)
+    this.statusCode = statusCode
+    this.data = data
+
     // Restore prototype chain broken by extending built-ins in ES5 targets
     Object.setPrototypeOf(this, new.target.prototype)
     this.name = new.target.name
-    this.statusCode = statusCode
-    this.code = code
-    this.isOperational = isOperational
-    this.details = details
+
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, new.target)
     }
   }
 }
 
+export default ApiError
+
 // ─── 4xx Client Errors ────────────────────────────────────────────────────────
+// Subclasses are preserved so existing code doesn't break, but they all
+// extend the new ApiError and format their super() calls to match it.
 
-export class ValidationError extends AppError {
-  constructor(message = 'Validation failed', details?: unknown) {
-    super(message, 400, 'VALIDATION_ERROR', true, details)
+export class ValidationError extends ApiError {
+  constructor(message = 'Validation failed', data?: unknown) {
+    super(400, message, data)
   }
 }
 
-export class UnauthorizedError extends AppError {
-  constructor(message = 'Unauthorized', details?: unknown) {
-    super(message, 401, 'UNAUTHORIZED', true, details)
+export class UnauthorizedError extends ApiError {
+  constructor(message = 'Unauthorized', data?: unknown) {
+    super(401, message, data)
   }
 }
 
-export class ForbiddenError extends AppError {
-  constructor(message = 'Forbidden', details?: unknown) {
-    super(message, 403, 'FORBIDDEN', true, details)
+export class ForbiddenError extends ApiError {
+  constructor(message = 'Forbidden', data?: unknown) {
+    super(403, message, data)
   }
 }
 
-export class NotFoundError extends AppError {
-  constructor(message = 'Not found', details?: unknown) {
-    super(message, 404, 'NOT_FOUND', true, details)
+export class NotFoundError extends ApiError {
+  constructor(message = 'Not found', data?: unknown) {
+    super(404, message, data)
   }
 }
 
-export class ConflictError extends AppError {
-  constructor(message = 'Conflict', details?: unknown) {
-    super(message, 409, 'CONFLICT', true, details)
+export class ConflictError extends ApiError {
+  constructor(message = 'Conflict', data?: unknown) {
+    super(409, message, data)
   }
 }
 
-export class RateLimitError extends AppError {
-  constructor(message = 'Too many requests', details?: unknown) {
-    super(message, 429, 'RATE_LIMIT_EXCEEDED', true, details)
+export class RateLimitError extends ApiError {
+  constructor(message = 'Too many requests', data?: unknown) {
+    super(429, message, data)
   }
 }
 
 // ─── 5xx Server Errors ────────────────────────────────────────────────────────
 
-export class InternalError extends AppError {
-  constructor(message = 'Internal server error', details?: unknown) {
-    // isOperational=false — these are programmer errors, not expected domain errors
-    super(message, 500, 'INTERNAL_ERROR', false, details)
+export class InternalError extends ApiError {
+  constructor(message = 'Internal server error', data?: unknown) {
+    super(500, message, data)
   }
 }
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
 /**
- * Type guard — narrows an unknown thrown value to AppError.
+ * Type guard — narrows an unknown thrown value to ApiError.
  */
-export function isDomainError(err: unknown): err is AppError {
-  return err instanceof AppError
+export function isDomainError(err: unknown): err is ApiError {
+  return err instanceof ApiError
 }
 
 export interface HttpErrorResponse {
-  error: {
-    code: string
-    message: string
-    details?: unknown
-  }
+  statusCode: number
+  message: string
+  data?: unknown
 }
 
 /**
- * Converts any thrown value into a JSON-serialisable HTTP error response.
- * Stack traces are stripped in production to avoid leaking internals.
+ * Converts any thrown value into the new standard JSON-serialisable HTTP error response.
  */
 export function toHttpResponse(err: unknown): HttpErrorResponse {
   if (isDomainError(err)) {
     return {
-      error: {
-        code: err.code,
-        message: err.message,
-        ...(err.details !== undefined ? { details: err.details } : {}),
-      },
+      statusCode: err.statusCode,
+      message: err.message,
+      ...(err.data !== undefined ? { data: err.data } : {}),
     }
   }
 
   // Unknown / programmer error — hide details in production
   const isProd = process.env['NODE_ENV'] === 'production'
   return {
-    error: {
-      code: 'INTERNAL_ERROR',
-      message: isProd
-        ? 'An unexpected error occurred'
-        : err instanceof Error
-          ? err.message
-          : String(err),
-    },
+    statusCode: 500,
+    message: isProd
+      ? 'An unexpected error occurred'
+      : err instanceof Error
+        ? err.message
+        : String(err),
   }
 }

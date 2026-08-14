@@ -2,17 +2,18 @@ import type { Queue } from 'bullmq'
 import type { AuthEvent } from '@chefmate/event-contracts'
 import type { NotificationJob } from '../queues/notification.queue'
 import { deriveNotificationId } from '../utils/idempotency'
+import { getEmailQueue, getInAppQueue } from '../queues/notification.queue'
 
-export async function handleAuthEvent(
-  event: AuthEvent,
-  queue: Queue<NotificationJob>,
-): Promise<void> {
+export async function handleAuthEvent(event: AuthEvent): Promise<void> {
+  const emailQueue = getEmailQueue()
+  const inappQueue = getInAppQueue()
+
   switch (event.type) {
     case 'user.registered': {
       // Only local provider has a verifyUrl — google providers are already verified
       if (event.provider !== 'local') break
       const notificationId = deriveNotificationId('user.registered', event.userId)
-      await queue.add(
+      await emailQueue.add(
         'send-notification',
         {
           channel: 'email',
@@ -31,8 +32,16 @@ export async function handleAuthEvent(
     }
 
     case 'user.password_reset_requested': {
-      const notificationId = deriveNotificationId('user.password_reset_requested', event.userId)
-      await queue.add(
+      // Include createdAt so each reset request gets a unique jobId.
+      // Without this, a second request from the same user would be silently
+      // dropped by BullMQ's deduplication since the completed job from the
+      // first request is still in Redis.
+      const notificationId = deriveNotificationId(
+        'user.password_reset_requested',
+        event.userId,
+        event.createdAt,
+      )
+      await emailQueue.add(
         'send-notification',
         {
           channel: 'email',
@@ -51,24 +60,24 @@ export async function handleAuthEvent(
 
     case 'user.role_changed': {
       if (event.newRole === 'CHEF') {
+        const email = event.email
+
         const emailId = deriveNotificationId('user.role_changed', event.userId, 'email')
         const inappId = deriveNotificationId('user.role_changed', event.userId, 'inapp')
 
-        // Email notification
-        await queue.add(
+        await emailQueue.add(
           'send-notification',
           {
             channel: 'email',
             template: 'welcome-chef',
             userId: event.userId,
             notificationId: emailId,
-            data: {},
+            data: { email },
           },
           { jobId: emailId },
         )
 
-        // In-app notification (persisted to MongoDB for history)
-        await queue.add(
+        await inappQueue.add(
           'send-notification',
           {
             channel: 'inapp',

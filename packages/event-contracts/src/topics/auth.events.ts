@@ -65,6 +65,7 @@ export type AuthEvent =
   | {
       type: 'user.role_changed'
       userId: string
+      email: string
       oldRole: Role
       newRole: Role
       createdAt: string

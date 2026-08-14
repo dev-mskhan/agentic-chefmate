@@ -10,7 +10,7 @@ import {
   createChefAuthHeaders,
   fakeUserAuthHeaders,
 } from '../../../fixtures/chef'
-import { assertTRPCSuccess } from '../../../helpers/assertions'
+import { assertTRPCSuccess, assertTRPCError } from '../../../helpers/assertions'
 
 const AUTH_URL = process.env['AUTH_SERVICE_URL'] ?? 'http://localhost:3001'
 
@@ -87,6 +87,6 @@ test.describe('tRPC checkChefAvailability', () => {
       date: futureDateStr(7),
     })
     const body = await parseTRPC(res)
-    expect(body.success).toBe(false)
+    assertTRPCError(body, 401)
   })
 })

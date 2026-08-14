@@ -1,12 +1,12 @@
-import type { Queue } from 'bullmq'
 import type { ChefEvent } from '@chefmate/event-contracts'
-import type { NotificationJob } from '../queues/notification.queue'
 import { deriveNotificationId } from '../utils/idempotency'
+import { getEmailQueue, getPushQueue, getInAppQueue } from '../queues/notification.queue'
 
-export async function handleChefEvent(
-  event: ChefEvent,
-  queue: Queue<NotificationJob>,
-): Promise<void> {
+export async function handleChefEvent(event: ChefEvent): Promise<void> {
+  const emailQueue = getEmailQueue()
+  const pushQueue  = getPushQueue()
+  const inappQueue = getInAppQueue()
+
   switch (event.type) {
     case 'chef.approved': {
       // email + push + inapp (chef)
@@ -14,39 +14,21 @@ export async function handleChefEvent(
       const pushId  = deriveNotificationId('chef.approved', event.chefId, 'push')
       const inappId = deriveNotificationId('chef.approved', event.chefId, 'inapp')
 
-      await queue.add(
+      await emailQueue.add(
         'send-notification',
-        {
-          channel: 'email',
-          template: 'chef-approved',
-          userId: event.chefId,
-          notificationId: emailId,
-          data: {},
-        },
+        { channel: 'email', template: 'chef-approved', userId: event.chefId, notificationId: emailId, data: {} },
         { jobId: emailId },
       )
 
-      await queue.add(
+      await pushQueue.add(
         'send-notification',
-        {
-          channel: 'push',
-          template: 'chef-approved',
-          userId: event.chefId,
-          notificationId: pushId,
-          data: {},
-        },
+        { channel: 'push', template: 'chef-approved', userId: event.chefId, notificationId: pushId, data: {} },
         { jobId: pushId },
       )
 
-      await queue.add(
+      await inappQueue.add(
         'send-notification',
-        {
-          channel: 'inapp',
-          template: 'chef-approved',
-          userId: event.chefId,
-          notificationId: inappId,
-          data: {},
-        },
+        { channel: 'inapp', template: 'chef-approved', userId: event.chefId, notificationId: inappId, data: {} },
         { jobId: inappId },
       )
       break
@@ -57,7 +39,7 @@ export async function handleChefEvent(
       const emailId = deriveNotificationId('chef.suspended', event.chefId, 'email')
       const inappId = deriveNotificationId('chef.suspended', event.chefId, 'inapp')
 
-      await queue.add(
+      await emailQueue.add(
         'send-notification',
         {
           channel: 'email',
@@ -69,7 +51,7 @@ export async function handleChefEvent(
         { jobId: emailId },
       )
 
-      await queue.add(
+      await inappQueue.add(
         'send-notification',
         {
           channel: 'inapp',
@@ -86,7 +68,7 @@ export async function handleChefEvent(
     case 'chef.approval_pending': {
       // inapp only — notify admins
       const inappId = deriveNotificationId('chef.approval_pending', event.chefId, 'inapp')
-      await queue.add(
+      await inappQueue.add(
         'send-notification',
         {
           channel: 'inapp',

@@ -12,7 +12,7 @@ export async function gatewayRoutes(fastify: FastifyInstance): Promise<void> {
       await (fastify as any).redis.ping()
       return reply.send({ status: 'ready', redis: 'ok' })
     } catch {
-      return reply.code(503).send({ status: 'not ready', redis: 'error' })
+      return reply.code(503).send({ statusCode: 503, message: 'Service not ready', data: { redis: 'error' } })
     }
   })
 }

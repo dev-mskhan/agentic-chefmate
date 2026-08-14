@@ -25,6 +25,7 @@ export const changeRoleProcedure = internalProcedure
     await publishAuthEvent({
       type: 'user.role_changed',
       userId: user._id.toString(),
+      email: user.email,
       oldRole,
       newRole: input.newRole,
       createdAt: new Date().toISOString(),

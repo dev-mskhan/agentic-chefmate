@@ -27,6 +27,7 @@ async function buildApp() {
 
   await app.register(userRoutes, { prefix: '/api/v1/users' })
 
+
   app.setErrorHandler((error, _request, reply) => {
     if (isDomainError(error)) {
       return reply.code(error.statusCode).send(toHttpResponse(error))

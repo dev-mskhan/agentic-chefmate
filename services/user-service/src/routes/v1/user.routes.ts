@@ -10,8 +10,12 @@ import type { FastifyInstance } from 'fastify'
  * (e.g., health check, metrics, OAuth-style flows).
  */
 export async function userRoutes(fastify: FastifyInstance): Promise<void> {
-  // Health check
-  fastify.get('/health', async (_request, reply) => {
-    return reply.send({ status: 'ok', service: 'user-service' })
+  // Health check (supports GET and OPTIONS preflight)
+  fastify.route({
+    method: ['GET', 'OPTIONS'],
+    url: '/health',
+    handler: async (_request, reply) => {
+      return reply.code(200).send({ statusCode: 200, message: 'Success', data: { status: 'ok', service: 'user-service' } })
+    },
   })
 }

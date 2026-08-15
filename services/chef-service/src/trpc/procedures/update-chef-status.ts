@@ -16,7 +16,7 @@ const updateChefStatusInput = z.object({
  * This is a service-to-service call using the internal tRPC route.
  */
 async function promoteUserToChef(authServiceUrl: string, userId: string): Promise<void> {
-  const url = `${authServiceUrl}/trpc/changeRole`
+  const url = `${authServiceUrl}/api/v1/auth/trpc/changeRole`
   const body = JSON.stringify({ userId, newRole: 'CHEF' })
 
   const res = await fetch(url, {

@@ -4,6 +4,7 @@ dist/
 .env*
 .turbo
 .kiro
+.antigravity
 
 
 # RSA key files — never commit these
@@ -14,3 +15,4 @@ dist/
 services/**/.env
 apps/**/.env
 packages/**/.env
+test-results/

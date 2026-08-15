@@ -1,4 +1,4 @@
-import { initTRPC } from '@trpc/server'
+import { initTRPC, TRPCError } from '@trpc/server'
 import { ZodError } from 'zod'
 import { UnauthorizedError } from '@chefmate/errors'
 import type { UserContext } from './context'
@@ -37,7 +37,11 @@ export const publicProcedure = t.procedure
  */
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
   if (!ctx.principal) {
-    throw new UnauthorizedError('Missing identity headers')
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'Missing identity headers',
+      cause: new UnauthorizedError('Missing identity headers'),
+    })
   }
   return next({
     ctx: {

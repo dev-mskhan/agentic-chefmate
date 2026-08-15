@@ -41,11 +41,11 @@ async function buildApp() {
   await app.register(chefRoutes, { prefix: '/api/v1/chefs' })
 
   app.setErrorHandler((error, _request, reply) => {
-    if (isDomainError(error)) {
-      return reply.code(error.statusCode).send(toHttpResponse(error))
+    const httpResp = toHttpResponse(error)
+    if (httpResp.statusCode >= 500) {
+      app.log.error({ err: error }, 'Unhandled server error')
     }
-    app.log.error({ err: error }, 'Unhandled error')
-    return reply.code(500).send(toHttpResponse(error))
+    return reply.code(httpResp.statusCode).send(httpResp)
   })
 
   return app

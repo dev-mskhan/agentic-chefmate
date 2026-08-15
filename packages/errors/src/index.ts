@@ -76,7 +76,9 @@ export class InternalError extends ApiError {
  * Type guard — narrows an unknown thrown value to ApiError.
  */
 export function isDomainError(err: unknown): err is ApiError {
-  return err instanceof ApiError
+  if (err instanceof ApiError) return true
+  if (err && typeof err === 'object' && 'cause' in err && (err as any).cause instanceof ApiError) return true
+  return false
 }
 
 export interface HttpErrorResponse {
@@ -89,11 +91,13 @@ export interface HttpErrorResponse {
  * Converts any thrown value into the new standard JSON-serialisable HTTP error response.
  */
 export function toHttpResponse(err: unknown): HttpErrorResponse {
-  if (isDomainError(err)) {
+  const targetErr = err instanceof ApiError ? err : (err && typeof err === 'object' && 'cause' in err && (err as any).cause instanceof ApiError) ? (err as any).cause : null
+
+  if (targetErr) {
     return {
-      statusCode: err.statusCode,
-      message: err.message,
-      ...(err.data !== undefined ? { data: err.data } : {}),
+      statusCode: targetErr.statusCode,
+      message: targetErr.message,
+      ...(targetErr.data !== undefined ? { data: targetErr.data } : {}),
     }
   }
 

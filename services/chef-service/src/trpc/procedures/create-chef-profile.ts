@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ConflictError, ValidationError } from '@chefmate/errors'
-import { chefProcedure } from '../trpc'
+import { protectedProcedure } from '../trpc'
 import { ChefProfile } from '../../models/chef-profile.model'
 import { publishChefEvent } from '../../services/event.service'
 import { CUISINE_CATEGORIES } from '../../constants/cuisine-categories'
@@ -23,7 +23,7 @@ const createChefProfileInput = z.object({
   serviceArea:        serviceAreaInput.optional(),
 })
 
-export const createChefProfileProcedure = chefProcedure
+export const createChefProfileProcedure = protectedProcedure
   .input(createChefProfileInput)
   .mutation(async ({ ctx, input }) => {
     const { userId } = ctx.principal

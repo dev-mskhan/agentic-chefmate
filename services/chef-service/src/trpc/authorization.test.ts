@@ -128,3 +128,32 @@ describe('cross-chef mutation blocking', () => {
     expect(() => checkOwnership(principalUserId, profileUserId, role)).not.toThrow()
   })
 })
+
+describe('protectedProcedure — chef application (any authenticated user)', () => {
+  const testRouterProtected = t.router({
+    applyAsChef: protectedProcedure.query(() => 'application submitted'),
+  })
+
+  it('allows USER role to submit a chef application', async () => {
+    const caller = testRouterProtected.createCaller({ principal: makePrincipal('USER') })
+    const result = await caller.applyAsChef()
+    expect(result).toBe('application submitted')
+  })
+
+  it('allows CHEF role to call protected procedure', async () => {
+    const caller = testRouterProtected.createCaller({ principal: makePrincipal('CHEF') })
+    const result = await caller.applyAsChef()
+    expect(result).toBe('application submitted')
+  })
+
+  it('allows ADMIN role to call protected procedure', async () => {
+    const caller = testRouterProtected.createCaller({ principal: makePrincipal('ADMIN') })
+    const result = await caller.applyAsChef()
+    expect(result).toBe('application submitted')
+  })
+
+  it('throws UnauthorizedError when principal is null', async () => {
+    const caller = testRouterProtected.createCaller({ principal: null })
+    await expect(caller.applyAsChef()).rejects.toMatchObject({ message: 'Missing identity headers' })
+  })
+})

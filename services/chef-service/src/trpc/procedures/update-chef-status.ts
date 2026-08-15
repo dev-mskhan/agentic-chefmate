@@ -11,6 +11,26 @@ const updateChefStatusInput = z.object({
   reason:             z.string().optional(),
 })
 
+/**
+ * Calls the auth-service internal changeRole endpoint to promote a user to CHEF.
+ * This is a service-to-service call using the internal tRPC route.
+ */
+async function promoteUserToChef(authServiceUrl: string, userId: string): Promise<void> {
+  const url = `${authServiceUrl}/trpc/changeRole`
+  const body = JSON.stringify({ userId, newRole: 'CHEF' })
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body,
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`Failed to promote user ${userId} to CHEF: ${res.status} ${text}`)
+  }
+}
+
 export const updateChefStatusProcedure = adminProcedure
   .input(updateChefStatusInput)
   .mutation(async ({ ctx, input }) => {
@@ -43,6 +63,21 @@ export const updateChefStatusProcedure = adminProcedure
 
     // Invalidate cache
     await ctx.cache.invalidateProfile(chefId)
+
+    // ── Role promotion ────────────────────────────────────────────────────────
+    // When admin fully approves (verificationStatus → ACTIVE AND accountState → ACTIVE),
+    // promote the user's role in auth-service from USER → CHEF.
+    // Note: both fields must be set to ACTIVE in the same call to trigger promotion.
+    const isApproval =
+      input.verificationStatus === 'ACTIVE' &&
+      updated.verificationStatus === 'ACTIVE' &&
+      input.accountState === 'ACTIVE' &&
+      updated.accountState === 'ACTIVE'
+
+    if (isApproval) {
+      const authServiceUrl = ctx.config.AUTH_SERVICE_URL
+      await promoteUserToChef(authServiceUrl, profile.userId)
+    }
 
     // Build a combined status string for the event
     const oldStatus = input.verificationStatus !== undefined

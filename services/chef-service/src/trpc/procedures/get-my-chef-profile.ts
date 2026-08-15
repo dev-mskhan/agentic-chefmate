@@ -1,8 +1,8 @@
 import { NotFoundError } from '@chefmate/errors'
-import { chefProcedure } from '../trpc'
+import { protectedProcedure } from '../trpc'
 import { ChefProfile } from '../../models/chef-profile.model'
 
-export const getMyChefProfileProcedure = chefProcedure
+export const getMyChefProfileProcedure = protectedProcedure
   .query(async ({ ctx }) => {
     const { userId } = ctx.principal
 

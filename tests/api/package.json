@@ -1,0 +1,20 @@
+{
+  "name": "@chefmate/api-tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:chef": "playwright test tests/chef",
+    "test:chef:meta": "playwright test tests/chef/metadata.spec.ts",
+    "test:users": "playwright test tests/users",
+    "test:auth": "playwright test tests/auth",
+    "test:gateway": "playwright test tests/gateway",
+    "test:debug": "playwright test --debug"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.46.0",
+    "dotenv": "^16.4.5",
+    "typescript": "^5.5.3",
+    "@types/node": "^20.14.12"
+  }
+}

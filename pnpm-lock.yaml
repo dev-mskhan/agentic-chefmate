@@ -206,6 +206,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@playwright/test':
+        specifier: ^1.62.1
+        version: 1.62.1
     devDependencies:
       '@types/node':
         specifier: ^20.14.12

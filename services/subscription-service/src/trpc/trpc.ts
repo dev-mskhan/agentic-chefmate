@@ -1,4 +1,4 @@
-import { initTRPC } from '@trpc/server'
+import { initTRPC, TRPCError } from '@trpc/server'
 import { ZodError } from 'zod'
 import { UnauthorizedError, ForbiddenError } from '@chefmate/errors'
 import type { SubscriptionContext } from './context'
@@ -24,11 +24,23 @@ export const router          = t.router
 export const publicProcedure = t.procedure
 
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.principal) throw new UnauthorizedError('Missing identity headers')
+  if (!ctx.principal) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'Missing identity headers',
+      cause: new UnauthorizedError('Missing identity headers'),
+    })
+  }
   return next({ ctx: { ...ctx, principal: ctx.principal as Principal } })
 })
 
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.principal.role !== 'ADMIN') throw new ForbiddenError('Admin role required')
+  if (ctx.principal.role !== 'ADMIN') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Admin role required',
+      cause: new ForbiddenError('Admin role required'),
+    })
+  }
   return next({ ctx })
 })

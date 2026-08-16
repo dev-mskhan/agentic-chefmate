@@ -78,6 +78,32 @@ export async function handleSubscriptionEvent(event: SubscriptionEvent): Promise
       }, { jobId: inappId })
       break
     }
+    case 'subscription.billing_due': {
+      // Remind user that billing is upcoming for their subscription period
+      const emailId = deriveNotificationId('subscription.billing_due', event.subscriptionId, event.periodStart, 'email')
+      const inappId = deriveNotificationId('subscription.billing_due', event.subscriptionId, event.periodStart, 'inapp')
+      await emailQueue.add('send-notification', {
+        channel: 'email', template: 'subscription-billing-due', userId: event.customerId,
+        notificationId: emailId,
+        data: { subscriptionId: event.subscriptionId, amountCents: event.amountCents, currency: event.currency, periodStart: event.periodStart, periodEnd: event.periodEnd },
+      }, { jobId: emailId })
+      await inappQueue.add('send-notification', {
+        channel: 'inapp', template: 'subscription-billing-due', userId: event.customerId,
+        notificationId: inappId,
+        data: { subscriptionId: event.subscriptionId, amountCents: event.amountCents, periodStart: event.periodStart },
+      }, { jobId: inappId })
+      break
+    }
+    case 'subscription.swapped': {
+      // Notify user that their dish has been swapped for the next period
+      const inappId = deriveNotificationId('subscription.swapped', event.subscriptionId, event.effectivePeriod, 'inapp')
+      await inappQueue.add('send-notification', {
+        channel: 'inapp', template: 'subscription-dish-swapped', userId: event.customerId,
+        notificationId: inappId,
+        data: { subscriptionId: event.subscriptionId, newDishId: event.newDishId, oldDishId: event.oldDishId, effectivePeriod: event.effectivePeriod },
+      }, { jobId: inappId })
+      break
+    }
     default:
       break
   }

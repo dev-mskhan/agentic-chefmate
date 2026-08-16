@@ -9,7 +9,7 @@ export const listChefOrdersProcedure = chefProcedure
     deliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
     limit:        z.number().int().min(1).max(100).default(20),
     offset:       z.number().int().min(0).default(0),
-  }))
+  }).optional().default({}))
   .query(async ({ ctx, input }) => {
     const chefId = await resolveChefIdFromUserId(ctx.principal.userId, ctx.principal.email)
 

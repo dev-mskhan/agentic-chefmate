@@ -68,25 +68,21 @@ export async function fetchAddressSnapshot(
 
   // The @chefmate/trpc flattenTRPCResponse middleware rewrites the tRPC wire
   // format to { statusCode, data, message }, so body.data is the address array.
-  const body = await res.json() as {
-    statusCode?: number
-    data?: Array<{
-      _id:                  string
-      label:                string
-      addressLine:          string
-      area?:                string
-      city:                 string
-      province?:            string
-      postalCode?:          string
-      location?:            { type: 'Point'; coordinates: [number, number] }
-      deliveryInstructions?: string
-      isDefault:            boolean
-    }>
-    message?: string
-  }
+  const body = await res.json() as any
 
-  const addresses = body.data ?? []
-  const addr = addresses.find((a) => a._id === addressId)
+  const addresses: Array<{
+    _id:                  string
+    label:                string
+    addressLine:          string
+    area?:                string
+    city:                 string
+    province?:            string
+    postalCode?:          string
+    location?:            { type: 'Point'; coordinates: [number, number] }
+    deliveryInstructions?: string
+    isDefault:            boolean
+  }> = body.data ?? body.result?.data ?? (Array.isArray(body) ? body : [])
+  const addr = addresses.find((a) => String(a._id) === String(addressId))
 
   if (!addr) {
     throw new NotFoundError(`Address ${addressId} not found in your profile`)

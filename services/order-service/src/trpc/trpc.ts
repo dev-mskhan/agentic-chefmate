@@ -1,4 +1,4 @@
-import { initTRPC } from '@trpc/server'
+import { initTRPC, TRPCError } from '@trpc/server'
 import { ZodError } from 'zod'
 import { UnauthorizedError, ForbiddenError } from '@chefmate/errors'
 import type { OrderContext } from './context'
@@ -32,18 +32,36 @@ export const publicProcedure = t.procedure
 
 /** Rejects requests without a valid principal. */
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.principal) throw new UnauthorizedError('Missing identity headers')
+  if (!ctx.principal) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'Missing identity headers',
+      cause: new UnauthorizedError('Missing identity headers'),
+    })
+  }
   return next({ ctx: { ...ctx, principal: ctx.principal as Principal } })
 })
 
 /** Requires role === 'CHEF'. */
 export const chefProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.principal.role !== 'CHEF') throw new ForbiddenError('Chef role required')
+  if (ctx.principal.role !== 'CHEF') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Chef role required',
+      cause: new ForbiddenError('Chef role required'),
+    })
+  }
   return next({ ctx })
 })
 
 /** Requires role === 'ADMIN'. */
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.principal.role !== 'ADMIN') throw new ForbiddenError('Admin role required')
+  if (ctx.principal.role !== 'ADMIN') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Admin role required',
+      cause: new ForbiddenError('Admin role required'),
+    })
+  }
   return next({ ctx })
 })

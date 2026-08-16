@@ -75,7 +75,7 @@ export const updateChefStatusProcedure = adminProcedure
       updated.accountState === 'ACTIVE'
 
     if (isApproval) {
-      const authServiceUrl = ctx.config.AUTH_SERVICE_URL
+      const authServiceUrl = ctx.config.AUTH_SERVICE_URL ?? 'http://localhost:3001'
       await promoteUserToChef(authServiceUrl, profile.userId)
     }
 

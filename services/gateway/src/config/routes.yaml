@@ -3,6 +3,18 @@ routes:
     targetKey: AUTH_SERVICE_URL
     auth: false
 
+  - prefix: /api/v1/payments/webhook
+    targetKey: PAYMENT_SERVICE_URL
+    auth: false
+
+  - prefix: /api/v1/payments
+    targetKey: PAYMENT_SERVICE_URL
+    auth: true
+    roles:
+      - USER
+      - CHEF
+      - ADMIN
+
   - prefix: /api/v1/users
     targetKey: USER_SERVICE_URL
     auth: true
@@ -25,6 +37,14 @@ routes:
     roles:
       - USER
       - CHEF
+
+  - prefix: /api/v1/subscriptions
+    targetKey: SUBSCRIPTION_SERVICE_URL
+    auth: true
+    roles:
+      - USER
+      - CHEF
+      - ADMIN
 
   - prefix: /api/v1/admin
     targetKey: ADMIN_SERVICE_URL

@@ -12,6 +12,11 @@ import { welcomeChefTemplate } from '../templates/email/welcome-chef'
 import { newOrderChefTemplate } from '../templates/email/new-order-chef'
 import { orderConfirmedUserTemplate } from '../templates/email/order-confirmed-user'
 import { leaveReviewTemplate } from '../templates/email/leave-review'
+import { paymentConfirmedTemplate } from '../templates/email/payment-confirmed'
+import { paymentFailedTemplate }    from '../templates/email/payment-failed'
+import { subscriptionActivatedTemplate } from '../templates/email/subscription-activated'
+import { subscriptionCancelledTemplate }  from '../templates/email/subscription-cancelled'
+import { subscriptionPastDueTemplate }    from '../templates/email/subscription-past-due'
 
 const logger = createLogger('notification-email-worker')
 
@@ -66,6 +71,19 @@ function renderTemplate(
 
     case 'leave-review':
       return leaveReviewTemplate(data as unknown as Parameters<typeof leaveReviewTemplate>[0])
+
+    case 'payment-confirmed':
+      return paymentConfirmedTemplate(data as unknown as Parameters<typeof paymentConfirmedTemplate>[0])
+
+    case 'payment-failed':
+      return paymentFailedTemplate(data as unknown as Parameters<typeof paymentFailedTemplate>[0])
+
+    case 'subscription-activated':
+      return subscriptionActivatedTemplate(data as unknown as Parameters<typeof subscriptionActivatedTemplate>[0])
+    case 'subscription-cancelled':
+      return subscriptionCancelledTemplate(data as unknown as Parameters<typeof subscriptionCancelledTemplate>[0])
+    case 'subscription-past-due':
+      return subscriptionPastDueTemplate(data as unknown as Parameters<typeof subscriptionPastDueTemplate>[0])
 
     default:
       return null

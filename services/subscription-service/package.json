@@ -1,0 +1,39 @@
+{
+  "name": "@chefmate/subscription-service",
+  "version": "0.0.1",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@chefmate/auth-clients": "workspace:*",
+    "@chefmate/config": "workspace:*",
+    "@chefmate/db": "workspace:*",
+    "@chefmate/errors": "workspace:*",
+    "@chefmate/event-contracts": "workspace:*",
+    "@chefmate/logger": "workspace:*",
+    "@chefmate/trpc": "workspace:*",
+    "@fastify/redis": "^6.1.1",
+    "@trpc/server": "^11.0.0-rc.446",
+    "bullmq": "^5.81.3",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.28.1",
+    "fastify-plugin": "^4.5.1",
+    "ioredis": "^5.4.1",
+    "kafkajs": "^2.2.4",
+    "mongoose": "^8.5.3",
+    "pino": "^9.3.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.12",
+    "pino-pretty": "^11.2.2",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3",
+    "vitest": "^1.6.0"
+  }
+}

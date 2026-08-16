@@ -5,6 +5,7 @@ export type OrderStatus =
   | 'CONFIRMED'
   | 'PREPARING'
   | 'READY'
+  | 'OUT_FOR_DELIVERY'
   | 'DELIVERED'
   | 'CANCELLED'
 
@@ -63,8 +64,9 @@ export type OrderEvent =
   | {
       type: 'refund.issued'
       orderId: string
-      amount: number
-      reason: string
+      userId:  string
+      amount:  number
+      reason:  string
       createdAt: string
       version: '1'
     }

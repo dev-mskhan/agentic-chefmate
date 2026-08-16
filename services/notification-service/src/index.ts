@@ -13,14 +13,18 @@ import {
   CHEF_EVENTS_TOPIC,
   CHAT_EVENTS_TOPIC,
   NOTIFICATION_EVENTS_TOPIC,
+  PAYMENT_EVENTS_TOPIC,
+  SUBSCRIPTION_EVENTS_TOPIC,
 } from '@chefmate/event-contracts'
-import type { AuthEvent, OrderEvent, ChefEvent, ChatEvent, NotificationEvent } from '@chefmate/event-contracts'
+import type { AuthEvent, OrderEvent, ChefEvent, ChatEvent, NotificationEvent, PaymentEvent, SubscriptionEvent } from '@chefmate/event-contracts'
 import { closeAllQueues } from './queues/notification.queue'
 import { handleAuthEvent } from './consumers/auth.consumer'
 import { handleOrderEvent } from './consumers/order.consumer'
 import { handleChefEvent } from './consumers/chef.consumer'
 import { handleChatEvent } from './consumers/chat.consumer'
 import { handleNotificationFailedEvent } from './consumers/notification-failure.consumer'
+import { handlePaymentEvent } from './consumers/payment.consumer'
+import { handleSubscriptionEvent } from './consumers/subscription.consumer'
 import { startEmailWorker } from './workers/email.worker'
 import { startPushWorker } from './workers/push.worker'
 import { startInAppWorker } from './workers/inapp.worker'
@@ -68,6 +72,8 @@ async function start() {
   const chefConsumer    = createConsumer(kafka, 'notification-service-chef')
   const chatConsumer    = createConsumer(kafka, 'notification-service-chat')
   const failureConsumer = createConsumer(kafka, 'notification-service-failures')
+  const paymentConsumer = createConsumer(kafka, 'notification-service-payments')
+  const subscriptionConsumer = createConsumer(kafka, 'notification-service-subscriptions')
 
   await Promise.all([
     authConsumer.connect(),
@@ -75,6 +81,8 @@ async function start() {
     chefConsumer.connect(),
     chatConsumer.connect(),
     failureConsumer.connect(),
+    paymentConsumer.connect(),
+    subscriptionConsumer.connect(),
   ])
 
   // Consumers no longer receive a queue parameter — they resolve their own
@@ -87,6 +95,8 @@ async function start() {
     NOTIFICATION_EVENTS_TOPIC,
     (e) => handleNotificationFailedEvent(e),
   )
+  await paymentConsumer.subscribe<PaymentEvent>(PAYMENT_EVENTS_TOPIC, (e) => handlePaymentEvent(e))
+  await subscriptionConsumer.subscribe<SubscriptionEvent>(SUBSCRIPTION_EVENTS_TOPIC, (e) => handleSubscriptionEvent(e))
 
   logger.info(`notification-service started (port ${config.PORT})`)
 
@@ -99,6 +109,8 @@ async function start() {
       chefConsumer.disconnect(),
       chatConsumer.disconnect(),
       failureConsumer.disconnect(),
+      paymentConsumer.disconnect(),
+      subscriptionConsumer.disconnect(),
       emailWorker.close(),
       pushWorker.close(),
       inappWorker.close(),

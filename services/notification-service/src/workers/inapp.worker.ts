@@ -70,6 +70,56 @@ const INAPP_TEMPLATES: Record<string, InAppTemplate> = {
     title:   'Welcome to ChefMate!',
     message: () => 'Your chef profile is set up. Start accepting orders!',
   },
+  'payment-confirmed': {
+    type:    'ORDER_ACCEPTED',
+    title:   'Payment Confirmed',
+    message: (d) => `Your payment for order #${String(d['orderId'] ?? '').slice(-8).toUpperCase()} was successful`,
+  },
+  'payment-failed': {
+    type:    'ORDER_CANCELLED',
+    title:   'Payment Failed',
+    message: (d) => `Payment failed for order #${String(d['orderId'] ?? '').slice(-8).toUpperCase()}. Please retry.`,
+  },
+  'refund-issued': {
+    type:    'ORDER_DELIVERED',
+    title:   'Refund Issued',
+    message: (d) => `A refund has been issued for order #${String(d['orderId'] ?? '').slice(-8).toUpperCase()}`,
+  },
+  'subscription-activated': {
+    type:    'ORDER_ACCEPTED',
+    title:   'Subscription Active!',
+    message: () => 'Your meal plan subscription is now active',
+  },
+  'subscription-paused': {
+    type:    'ORDER_CANCELLED',
+    title:   'Subscription Paused',
+    message: () => 'Your subscription has been paused',
+  },
+  'subscription-resumed': {
+    type:    'ORDER_ACCEPTED',
+    title:   'Subscription Resumed',
+    message: (d) => `Your subscription has resumed. Next billing: ${String(d['nextBillingDate'] ?? '')}`,
+  },
+  'subscription-cancelled': {
+    type:    'ORDER_CANCELLED',
+    title:   'Subscription Cancelled',
+    message: () => 'Your meal plan subscription has been cancelled',
+  },
+  'subscription-past-due': {
+    type:    'ORDER_CANCELLED',
+    title:   'Payment Failed',
+    message: () => 'Your subscription payment failed. Please update your payment method.',
+  },
+  'subscription-order-created': {
+    type:    'ORDER_ACCEPTED',
+    title:   'Recurring Order Created',
+    message: (d) => `Your subscription order #${String(d['orderId'] ?? '').slice(-8).toUpperCase()} is being prepared`,
+  },
+  'subscription-skipped': {
+    type:    'ORDER_DELIVERED',
+    title:   'Delivery Skipped',
+    message: (d) => `Your delivery for ${String(d['skippedPeriod'] ?? '')} has been skipped`,
+  },
 }
 
 function resolveTemplate(

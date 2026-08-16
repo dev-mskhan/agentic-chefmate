@@ -195,7 +195,7 @@ export async function handleOrderEvent(event: OrderEvent): Promise<void> {
         {
           channel: 'email',
           template: 'refund-issued',
-          userId: event.orderId, // ⚠️ placeholder — fix event contract to include userId
+          userId: event.userId,
           notificationId: emailId,
           data: { orderId: event.orderId, amount: event.amount },
         },

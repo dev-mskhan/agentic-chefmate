@@ -1,0 +1,38 @@
+{
+  "name": "@chefmate/order-service",
+  "version": "0.0.1",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "fastify": "^4.28.1",
+    "@trpc/server": "^11.0.0-rc.446",
+    "@fastify/redis": "^6.1.1",
+    "fastify-plugin": "^4.5.1",
+    "ioredis": "^5.4.1",
+    "mongoose": "^8.5.3",
+    "kafkajs": "^2.2.4",
+    "zod": "^3.23.8",
+    "pino": "^9.3.2",
+    "dotenv": "^16.4.5",
+    "@chefmate/trpc": "workspace:*",
+    "@chefmate/config": "workspace:*",
+    "@chefmate/errors": "workspace:*",
+    "@chefmate/logger": "workspace:*",
+    "@chefmate/db": "workspace:*",
+    "@chefmate/auth-clients": "workspace:*",
+    "@chefmate/event-contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3",
+    "@types/node": "^20.14.12",
+    "tsx": "^4.16.2",
+    "pino-pretty": "^11.2.2",
+    "vitest": "^1.6.0"
+  }
+}

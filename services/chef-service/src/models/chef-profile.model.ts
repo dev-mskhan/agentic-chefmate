@@ -122,4 +122,10 @@ chefProfileSchema.index({ 'serviceArea.coordinates': '2dsphere' }, { sparse: tru
 // Sparse 2dsphere index on GeoJSON location field for $geoNear aggregation
 chefProfileSchema.index({ 'serviceArea.location': '2dsphere' }, { sparse: true })
 
+// Compound text index for deterministic keyword search
+chefProfileSchema.index(
+  { displayName: 'text', bio: 'text', cuisineSpecialties: 'text' },
+  { weights: { displayName: 10, bio: 5, cuisineSpecialties: 8 }, name: 'chefprofile_text_search' },
+)
+
 export const ChefProfile = mongoose.model<IChefProfile>('ChefProfile', chefProfileSchema, 'chefprofiles')

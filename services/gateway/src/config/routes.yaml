@@ -43,6 +43,18 @@ routes:
     targetKey: CHEF_SERVICE_URL
     auth: false
 
+  - prefix: /api/v1/search/chefs
+    targetKey: CHEF_SERVICE_URL
+    auth: false
+
+  - prefix: /api/v1/search/dishes
+    targetKey: CHEF_SERVICE_URL
+    auth: false
+
+  - prefix: /api/v1/search/meal-plans
+    targetKey: CHEF_SERVICE_URL
+    auth: false
+
   - prefix: /api/v1/chefs
     targetKey: CHEF_SERVICE_URL
     auth: true

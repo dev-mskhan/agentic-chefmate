@@ -54,6 +54,11 @@ import { archivePlanProcedure }      from './procedures/archive-plan'
 import { discoverChefsProcedure }  from './procedures/discover-chefs'
 import { discoverDishesProcedure } from './procedures/discover-dishes'
 
+// ── Deterministic Search procedures (public, no auth) ─────────────────────────
+import { searchChefsProcedure }     from './procedures/search-chefs'
+import { searchDishesProcedure }    from './procedures/search-dishes'
+import { searchMealPlansProcedure } from './procedures/search-meal-plans'
+
 export const appRouter = router({
   // ── Chef profile procedures (Phase 1) ────────────────────────────────────────
   getChefProfile:           getChefProfileProcedure,
@@ -109,6 +114,11 @@ export const appRouter = router({
   // ── Geo Discovery procedures (public, no auth) ────────────────────────────────
   discoverChefs:  discoverChefsProcedure,
   discoverDishes: discoverDishesProcedure,
+
+  // ── Deterministic Search procedures (public, no auth) ────────────────────────
+  searchChefs:     searchChefsProcedure,
+  searchDishes:    searchDishesProcedure,
+  searchMealPlans: searchMealPlansProcedure,
 })
 
 export type AppRouter = typeof appRouter

@@ -117,6 +117,10 @@ const dishSchema = new Schema<IDish>(
 
 dishSchema.index({ chefId: 1, status: 1 })
 dishSchema.index({ chefId: 1, cuisine: 1 })
-dishSchema.index({ name: 'text' })
+// Compound text index for deterministic keyword search (replaces single-field name text index)
+dishSchema.index(
+  { name: 'text', description: 'text', cuisine: 'text', category: 'text' },
+  { weights: { name: 10, description: 5, cuisine: 8, category: 6 }, name: 'dish_text_search' },
+)
 
 export const Dish = mongoose.model<IDish>('Dish', dishSchema, 'dishes')

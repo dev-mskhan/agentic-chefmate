@@ -156,4 +156,10 @@ const mealPlanSchema = new Schema<IMealPlan>(
 mealPlanSchema.index({ chefId: 1, status: 1 })
 mealPlanSchema.index({ chefId: 1, type: 1 })
 
+// Compound text index for deterministic keyword search
+mealPlanSchema.index(
+  { name: 'text', description: 'text' },
+  { weights: { name: 10, description: 5 }, name: 'mealplan_text_search' },
+)
+
 export const MealPlan = mongoose.model<IMealPlan>('MealPlan', mealPlanSchema, 'mealplans')

@@ -27,6 +27,18 @@ routes:
     targetKey: CHEF_SERVICE_URL
     auth: false
 
+  - prefix: /api/v1/reviews/public
+    targetKey: REVIEW_SERVICE_URL
+    auth: false
+
+  - prefix: /api/v1/reviews
+    targetKey: REVIEW_SERVICE_URL
+    auth: true
+    roles:
+      - USER
+      - CHEF
+      - ADMIN
+
   - prefix: /api/v1/discovery/dishes
     targetKey: CHEF_SERVICE_URL
     auth: false

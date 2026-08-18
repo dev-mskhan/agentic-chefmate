@@ -7,11 +7,15 @@ import fastifySwaggerUi from '@fastify/swagger-ui'
 import { createFastifyLogger, createLogger } from '@chefmate/logger'
 import { config } from './config'
 import { initEventService, disconnectEventService } from './services/event.service'
+import { createConsumer, REVIEW_EVENTS_TOPIC } from '@chefmate/event-contracts'
+import type { ReviewEvent } from '@chefmate/event-contracts'
+import { handleReviewEvent } from './consumers/review.consumer'
 import mongoPlugin from './plugins/mongo'
 import redisPlugin from './plugins/redis'
 import trpcPlugin from './plugins/trpc'
 import { chefRoutes } from './routes/v1/chef.routes'
 import { toHttpResponse, isDomainError } from '@chefmate/errors'
+import { Kafka } from 'kafkajs'
 
 const logger = createLogger('chef-service')
 
@@ -56,6 +60,13 @@ async function start() {
     await initEventService(config.REDPANDA_BROKER!)
     logger.info('Redpanda producer connected')
 
+    // ── Review event consumer ─────────────────────────────────────────────────
+    const kafka = new Kafka({ clientId: 'chef-service', brokers: [config.REDPANDA_BROKER!] })
+    const reviewConsumer = createConsumer(kafka, 'chef-service-reviews')
+    await reviewConsumer.connect()
+    await reviewConsumer.subscribe<ReviewEvent>(REVIEW_EVENTS_TOPIC, handleReviewEvent)
+    logger.info('Review event consumer started')
+
     const app = await buildApp()
     await app.listen({ port: config.PORT, host: '0.0.0.0' })
     logger.info(`chef-service listening on port ${config.PORT}`)
@@ -63,6 +74,7 @@ async function start() {
     const shutdown = async (signal: string) => {
       logger.info(`${signal} received — shutting down`)
       await app.close()
+      await reviewConsumer.disconnect()
       await disconnectEventService()
       process.exit(0)
     }

@@ -76,9 +76,25 @@ services:
     networks:
       - chefmate
 
+  # ─── Review Service ─────────────────────────────────────────────────────────
+  review-service:
+    build:
+      context: ..
+      dockerfile: services/review-service/Dockerfile
+    container_name: chefmate-review-service
+    restart: unless-stopped
+    env_file:
+      - ../services/review-service/.env
+    ports:
+      - '3010:3010'
+    depends_on:
+      - mongo
+      - redpanda
+    networks:
+      - chefmate
+
   # ─── MinIO (S3-compatible object storage) ───────────────────────────────────
-  minio:
-    image: minio/minio
+  minio:    image: minio/minio
     container_name: chefmate-minio
     restart: unless-stopped
     command: server /data --console-address ":9001"

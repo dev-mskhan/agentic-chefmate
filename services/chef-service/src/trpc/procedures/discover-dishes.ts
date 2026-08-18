@@ -24,6 +24,7 @@ const discoverDishesInput = z
     occasionTags: z.array(z.enum(OccasionTagValues)).optional(),
     chefId:       z.string().optional(),
     availableDay: z.enum(WEEK_DAYS).optional(),
+    minRating:    z.number().min(1).max(5).optional(),
     page:         z.number().int().positive().default(1),
     limit:        z.number().int().min(1).max(50).default(20),
   })
@@ -80,6 +81,10 @@ export const discoverDishesProcedure = publicProcedure
     if (input.availableDay) {
       dishFilter['availability.isAvailable']   = true
       dishFilter['availability.availableDays'] = input.availableDay
+    }
+
+    if (input.minRating !== undefined) {
+      dishFilter['averageRating'] = { $gte: input.minRating }
     }
 
     const skip = (input.page - 1) * input.limit

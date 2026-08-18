@@ -50,6 +50,7 @@ export type OrderEvent =
       orderId: string
       userId: string
       chefId: string
+      items: Array<{ dishId: string; planId?: string }>
       createdAt: string
       version: '1'
     }

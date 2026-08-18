@@ -4,12 +4,13 @@ import { ChefProfile } from '../../models/chef-profile.model'
 import { CuisineCategoryValues } from '../../constants'
 
 const discoverChefsInput = z.object({
-  lat:      z.number().min(-90).max(90),
-  lng:      z.number().min(-180).max(180),
-  radiusKm: z.number().min(0.1).max(100).default(50),
-  cuisine:  z.array(z.enum(CuisineCategoryValues)).optional(),
-  page:     z.number().int().positive().default(1),
-  limit:    z.number().int().min(1).max(50).default(20),
+  lat:       z.number().min(-90).max(90),
+  lng:       z.number().min(-180).max(180),
+  radiusKm:  z.number().min(0.1).max(100).default(50),
+  cuisine:   z.array(z.enum(CuisineCategoryValues)).optional(),
+  minRating: z.number().min(1).max(5).optional(),
+  page:      z.number().int().positive().default(1),
+  limit:     z.number().int().min(1).max(50).default(20),
 })
 
 export const discoverChefsProcedure = publicProcedure
@@ -23,6 +24,9 @@ export const discoverChefsProcedure = publicProcedure
     }
     if (input.cuisine?.length) {
       matchStage['cuisineSpecialties'] = { $in: input.cuisine }
+    }
+    if (input.minRating !== undefined) {
+      matchStage['averageRating'] = { $gte: input.minRating }
     }
 
     const geoNearStage = {

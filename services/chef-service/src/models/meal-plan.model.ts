@@ -60,6 +60,8 @@ export interface IMealPlan extends Document {
   skipRules: ISkipRules
   swapRules: ISwapRules
   mediaIds: string[]
+  averageRating?: number
+  totalReviews?: number
   createdAt: Date
   updatedAt: Date
 }
@@ -145,6 +147,8 @@ const mealPlanSchema = new Schema<IMealPlan>(
       default: [],
       validate: [(v: string[]) => v.length <= 5, 'Max 5 media references per plan'],
     },
+    averageRating: { type: Number, min: 0, max: 5, default: 0 },
+    totalReviews:  { type: Number, min: 0, default: 0 },
   },
   { timestamps: true },
 )

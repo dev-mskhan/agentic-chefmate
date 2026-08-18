@@ -55,6 +55,8 @@ export interface IDish extends Document {
   mediaIds: string[]
   availability: IAvailability
   status: DishStatus
+  averageRating?: number
+  totalReviews?: number
   createdAt: Date
   updatedAt: Date
 }
@@ -107,6 +109,8 @@ const dishSchema = new Schema<IDish>(
     },
     availability: { type: availabilitySchema, default: () => ({}) },
     status:      { type: String, enum: DishStatusValues, default: 'DRAFT' },
+    averageRating: { type: Number, min: 0, max: 5, default: 0 },
+    totalReviews:  { type: Number, min: 0, default: 0 },
   },
   { timestamps: true },
 )

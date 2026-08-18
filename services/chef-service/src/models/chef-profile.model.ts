@@ -38,6 +38,8 @@ export interface IChefProfile extends Document {
   accountState: ChefAccountState
   serviceArea?: IServiceArea
   portfolioMediaIds: string[]
+  averageRating?: number
+  totalReviews?: number
   createdAt: Date
   updatedAt: Date
 }
@@ -105,6 +107,8 @@ const chefProfileSchema = new Schema<IChefProfile>(
     },
     serviceArea:       { type: serviceAreaSchema },
     portfolioMediaIds: { type: [String], default: [] },
+    averageRating:     { type: Number, min: 0, max: 5, default: 0 },
+    totalReviews:      { type: Number, min: 0, default: 0 },
   },
   { timestamps: true },
 )

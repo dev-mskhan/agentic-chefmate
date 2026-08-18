@@ -8,6 +8,7 @@ export { USER_EVENTS_TOPIC } from './topics/user.events'
 export { MEDIA_EVENTS_TOPIC } from './topics/media.events'
 export { PAYMENT_EVENTS_TOPIC } from './topics/payment.events'
 export { SUBSCRIPTION_EVENTS_TOPIC } from './topics/subscription.events'
+export { REVIEW_EVENTS_TOPIC } from './topics/review.events'
 
 // Event types
 export type { AuthEvent, Role } from './topics/auth.events'
@@ -19,6 +20,7 @@ export type { UserEvent } from './topics/user.events'
 export type { MediaEvent } from './topics/media.events'
 export type { PaymentEvent, PaymentStatus } from './topics/payment.events'
 export type { SubscriptionEvent, SubscriptionFrequency } from './topics/subscription.events'
+export type { ReviewEvent, ReviewStatus } from './topics/review.events'
 
 // Producer / Consumer factories
 export { createProducer } from './producer'

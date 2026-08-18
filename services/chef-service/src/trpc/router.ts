@@ -50,6 +50,10 @@ import { activatePlanProcedure }     from './procedures/activate-plan'
 import { pausePlanProcedure }        from './procedures/pause-plan'
 import { archivePlanProcedure }      from './procedures/archive-plan'
 
+// ── Geo Discovery procedures (public, no auth) ────────────────────────────────
+import { discoverChefsProcedure }  from './procedures/discover-chefs'
+import { discoverDishesProcedure } from './procedures/discover-dishes'
+
 export const appRouter = router({
   // ── Chef profile procedures (Phase 1) ────────────────────────────────────────
   getChefProfile:           getChefProfileProcedure,
@@ -101,6 +105,10 @@ export const appRouter = router({
   activatePlan:    activatePlanProcedure,
   pausePlan:       pausePlanProcedure,
   archivePlan:     archivePlanProcedure,
+
+  // ── Geo Discovery procedures (public, no auth) ────────────────────────────────
+  discoverChefs:  discoverChefsProcedure,
+  discoverDishes: discoverDishesProcedure,
 })
 
 export type AppRouter = typeof appRouter

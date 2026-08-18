@@ -23,6 +23,14 @@ routes:
       - CHEF
       - ADMIN
 
+  - prefix: /api/v1/discovery/chefs
+    targetKey: CHEF_SERVICE_URL
+    auth: false
+
+  - prefix: /api/v1/discovery/dishes
+    targetKey: CHEF_SERVICE_URL
+    auth: false
+
   - prefix: /api/v1/chefs
     targetKey: CHEF_SERVICE_URL
     auth: true

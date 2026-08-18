@@ -35,7 +35,13 @@ export const updateServiceAreaProcedure = protectedProcedure
 
     if (input.city !== undefined)        updateFields['serviceArea.city']        = input.city
     if (input.postalCodes !== undefined) updateFields['serviceArea.postalCodes'] = input.postalCodes
-    if (input.coordinates !== undefined) updateFields['serviceArea.coordinates'] = input.coordinates
+    if (input.coordinates !== undefined) {
+      updateFields['serviceArea.coordinates'] = input.coordinates
+      updateFields['serviceArea.location']    = {
+        type:        'Point',
+        coordinates: [input.coordinates.lng, input.coordinates.lat], // GeoJSON: [lng, lat]
+      }
+    }
     if (input.radiusKm !== undefined)    updateFields['serviceArea.radiusKm']    = input.radiusKm
 
     const updated = await ChefProfile.findOneAndUpdate(

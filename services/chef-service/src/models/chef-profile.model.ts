@@ -25,6 +25,7 @@ export interface IServiceArea {
   postalCodes: string[]
   coordinates?: { lat: number; lng: number }
   radiusKm?: number
+  location?: { type: 'Point'; coordinates: [number, number] }
 }
 
 export interface IChefProfile extends Document {
@@ -43,6 +44,14 @@ export interface IChefProfile extends Document {
 
 // ─── Sub-schemas ──────────────────────────────────────────────────────────────
 
+const geoJsonPointSchema = new Schema(
+  {
+    type:        { type: String, enum: ['Point'], required: true },
+    coordinates: { type: [Number], required: true }, // [lng, lat]
+  },
+  { _id: false },
+)
+
 const coordinatesSchema = new Schema(
   {
     lat: { type: Number },
@@ -57,6 +66,7 @@ const serviceAreaSchema = new Schema<IServiceArea>(
     postalCodes: { type: [String], default: [] },
     coordinates: { type: coordinatesSchema },
     radiusKm:    { type: Number, min: 1, max: 200 },
+    location:    { type: geoJsonPointSchema, required: false },
   },
   { _id: false },
 )
@@ -104,5 +114,8 @@ chefProfileSchema.index({ userId: 1 }, { unique: true })
 
 // Sparse 2dsphere index for future geo queries
 chefProfileSchema.index({ 'serviceArea.coordinates': '2dsphere' }, { sparse: true })
+
+// Sparse 2dsphere index on GeoJSON location field for $geoNear aggregation
+chefProfileSchema.index({ 'serviceArea.location': '2dsphere' }, { sparse: true })
 
 export const ChefProfile = mongoose.model<IChefProfile>('ChefProfile', chefProfileSchema, 'chefprofiles')

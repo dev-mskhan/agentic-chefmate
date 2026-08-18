@@ -93,6 +93,24 @@ services:
     networks:
       - chefmate
 
+  # ─── Chat Service ────────────────────────────────────────────────────────────
+  chat-service:
+    build:
+      context: ..
+      dockerfile: services/chat-service/Dockerfile
+    container_name: chefmate-chat-service
+    restart: unless-stopped
+    env_file:
+      - ../services/chat-service/.env
+    ports:
+      - '3011:3011'
+    depends_on:
+      - mongo
+      - redis
+      - redpanda
+    networks:
+      - chefmate
+
   # ─── MinIO (S3-compatible object storage) ───────────────────────────────────
   minio:    image: minio/minio
     container_name: chefmate-minio

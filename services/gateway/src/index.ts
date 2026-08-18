@@ -12,6 +12,7 @@ import rateLimitPlugin from './plugins/rate-limit'
 import tracingPlugin from './plugins/tracing'
 import authVerifyPlugin from './plugins/auth-verify'
 import proxyPlugin from './plugins/proxy'
+import wsProxyPlugin from './plugins/ws-proxy'
 import { gatewayRoutes } from './routes/proxy.routes'
 
 const logger = createLogger('gateway')
@@ -43,6 +44,7 @@ async function buildApp() {
   await app.register(tracingPlugin)
   await app.register(authVerifyPlugin)
   await app.register(proxyPlugin)
+  await app.register(wsProxyPlugin)  // after proxyPlugin
   await app.register(gatewayRoutes)
 
   app.setErrorHandler((error, _request, reply) => {

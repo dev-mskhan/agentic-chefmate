@@ -29,6 +29,8 @@ const SERVICE_URL_MAP: Record<string, string> = {
   MEDIA_SERVICE_URL:        config.MEDIA_SERVICE_URL!,
   PAYMENT_SERVICE_URL:      config.PAYMENT_SERVICE_URL!,
   SUBSCRIPTION_SERVICE_URL: config.SUBSCRIPTION_SERVICE_URL!,
+  REVIEW_SERVICE_URL:       config.REVIEW_SERVICE_URL!,
+  CHAT_SERVICE_URL:         config.CHAT_SERVICE_URL!,
 }
 
 export default fp(async function proxyPlugin(fastify: FastifyInstance) {

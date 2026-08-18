@@ -13,6 +13,8 @@ const gatewayEnvSchema = baseEnvSchema.extend({
   MEDIA_SERVICE_URL: z.string().url().default('http://localhost:3007'),
   PAYMENT_SERVICE_URL: z.string().url().default('http://localhost:3008'),
   SUBSCRIPTION_SERVICE_URL: z.string().url().default('http://localhost:3009'),
+  REVIEW_SERVICE_URL:       z.string().url().default('http://localhost:3010'),
+  CHAT_SERVICE_URL:         z.string().url().default('http://localhost:3011'),
   COOKIE_SECRET: z.string().min(32).default('dev-cookie-secret-min-32-characters!!'),
   JWKS_CACHE_TTL_SECONDS: z.coerce.number().default(3600),
   // Comma-separated list of allowed origins, e.g. "http://localhost:3000,https://app.chefmate.app"

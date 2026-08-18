@@ -58,6 +58,13 @@ routes:
       - USER
       - CHEF
 
+  - prefix: /api/v1/chat
+    targetKey: CHAT_SERVICE_URL
+    auth: true
+    roles:
+      - USER
+      - CHEF
+
   - prefix: /api/v1/subscriptions
     targetKey: SUBSCRIPTION_SERVICE_URL
     auth: true

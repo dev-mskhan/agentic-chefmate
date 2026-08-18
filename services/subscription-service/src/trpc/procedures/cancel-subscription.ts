@@ -1,9 +1,10 @@
 import { z } from 'zod'
+import { TRPCError } from '@trpc/server'
 import { protectedProcedure } from '../trpc'
 import { Subscription } from '../../models/subscription.model'
 import { publishSubscriptionEvent } from '../../services/event.service'
 import { cancelBillingJob } from '../../utils/scheduler'
-import { NotFoundError, ForbiddenError, ValidationError } from '@chefmate/errors'
+import { NotFoundError, ValidationError } from '@chefmate/errors'
 
 export const cancelSubscriptionProcedure = protectedProcedure
   .input(z.object({
@@ -14,7 +15,7 @@ export const cancelSubscriptionProcedure = protectedProcedure
     const sub = await Subscription.findById(input.subscriptionId)
     if (!sub) throw new NotFoundError('Subscription not found')
     if (sub.customerId !== ctx.principal.userId && ctx.principal.role !== 'ADMIN') {
-      throw new ForbiddenError('You can only cancel your own subscriptions')
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only cancel your own subscriptions' })
     }
     if (sub.status === 'CANCELLED') throw new ValidationError('Subscription is already cancelled')
 

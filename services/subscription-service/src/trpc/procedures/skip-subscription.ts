@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { TRPCError } from '@trpc/server'
 import { protectedProcedure } from '../trpc'
 import { Subscription } from '../../models/subscription.model'
 import { SubscriptionPeriod } from '../../models/subscription-period.model'
@@ -6,7 +7,7 @@ import { fetchPlanSnapshot } from '../../services/chef-client.service'
 import { publishSubscriptionEvent } from '../../services/event.service'
 import { scheduleNextBilling } from '../../utils/scheduler'
 import { computeNextPeriod, periodStartKey } from '../../utils/date.utils'
-import { NotFoundError, ForbiddenError, ValidationError } from '@chefmate/errors'
+import { NotFoundError, ValidationError } from '@chefmate/errors'
 
 export const skipSubscriptionProcedure = protectedProcedure
   .input(z.object({ subscriptionId: z.string().min(1) }))
@@ -14,7 +15,7 @@ export const skipSubscriptionProcedure = protectedProcedure
     const sub = await Subscription.findById(input.subscriptionId)
     if (!sub) throw new NotFoundError('Subscription not found')
     if (sub.customerId !== ctx.principal.userId && ctx.principal.role !== 'ADMIN') {
-      throw new ForbiddenError('You can only skip your own subscriptions')
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only skip your own subscriptions' })
     }
     if (sub.status !== 'ACTIVE') throw new ValidationError(`Cannot skip a subscription in ${sub.status} status`)
 
@@ -44,9 +45,15 @@ export const skipSubscriptionProcedure = protectedProcedure
     // Record skipped period
     const idempotencyKey = `sub_${input.subscriptionId}_${skippedPeriodKey}`
     await SubscriptionPeriod.findOneAndUpdate(
-      { idempotencyKey },
-      { $setOnInsert: { subscriptionId: input.subscriptionId, periodStart: skippedPeriodKey, periodEnd: periodStartKey(nextPeriod.periodEnd), status: 'SKIPPED', idempotencyKey } },
-      { upsert: true },
+      { subscriptionId: input.subscriptionId, periodStart: skippedPeriodKey },
+      {
+        $set: { status: 'SKIPPED' },
+        $setOnInsert: {
+          periodEnd: periodStartKey(nextPeriod.periodEnd),
+          idempotencyKey,
+        },
+      },
+      { upsert: true, new: true },
     )
 
     await scheduleNextBilling(input.subscriptionId, nextPeriod.nextBillingDate)

@@ -34,21 +34,14 @@ export async function fetchAddressSnapshot(
 
   if (!res.ok) throw new ValidationError(`Failed to fetch addresses from user-service: ${res.status}`)
 
-  const body = await res.json() as {
-    statusCode?: number
-    data?: Array<{ _id: string; label: string; addressLine: string; area?: string
-      city: string; province?: string; postalCode?: string
-      location?: { type: 'Point'; coordinates: [number, number] }
-      deliveryInstructions?: string; isDefault: boolean }>
-    message?: string
-  }
-
-  const addresses = body.data ?? []
-  const addr = addresses.find((a) => a._id === addressId)
+  const body = (await res.json()) as any
+  const rawList = body.result?.data ?? body.data ?? (Array.isArray(body) ? body : [])
+  const addresses = Array.isArray(rawList) ? rawList : (rawList.addresses ?? [])
+  const addr = addresses.find((a: any) => (a._id === addressId || a.id === addressId))
   if (!addr) throw new NotFoundError(`Address ${addressId} not found in your profile`)
 
   return {
-    addressId: addr._id, label: addr.label, addressLine: addr.addressLine,
+    addressId: addr._id ?? addr.id, label: addr.label, addressLine: addr.addressLine,
     area: addr.area, city: addr.city, province: addr.province,
     postalCode: addr.postalCode, location: addr.location,
     deliveryInstructions: addr.deliveryInstructions,

@@ -1,7 +1,8 @@
 import { z } from 'zod'
+import { TRPCError } from '@trpc/server'
 import { protectedProcedure } from '../trpc'
 import { Payment } from '../../models/payment.model'
-import { NotFoundError, ForbiddenError } from '@chefmate/errors'
+import { NotFoundError } from '@chefmate/errors'
 
 export const getPaymentProcedure = protectedProcedure
   .input(z.object({ paymentId: z.string().min(1) }))
@@ -9,7 +10,7 @@ export const getPaymentProcedure = protectedProcedure
     const payment = await Payment.findById(input.paymentId).lean()
     if (!payment) throw new NotFoundError('Payment not found')
     if (ctx.principal.role !== 'ADMIN' && payment.customerId !== ctx.principal.userId) {
-      throw new ForbiddenError('You can only view your own payments')
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only view your own payments' })
     }
     return payment
   })

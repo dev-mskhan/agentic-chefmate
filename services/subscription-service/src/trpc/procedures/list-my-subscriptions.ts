@@ -7,7 +7,7 @@ export const listMySubscriptionsProcedure = protectedProcedure
     status: z.enum(SubscriptionStatusValues).optional(),
     limit:  z.number().int().min(1).max(100).default(20),
     offset: z.number().int().min(0).default(0),
-  }))
+  }).optional().default({}))
   .query(async ({ ctx, input }) => {
     const filter: Record<string, unknown> = { customerId: ctx.principal.userId }
     if (input.status) filter['status'] = input.status

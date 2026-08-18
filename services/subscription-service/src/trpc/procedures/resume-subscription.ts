@@ -1,10 +1,11 @@
 import { z } from 'zod'
+import { TRPCError } from '@trpc/server'
 import { protectedProcedure } from '../trpc'
 import { Subscription } from '../../models/subscription.model'
 import { publishSubscriptionEvent } from '../../services/event.service'
 import { scheduleNextBilling } from '../../utils/scheduler'
 import { computeNextPeriod } from '../../utils/date.utils'
-import { NotFoundError, ForbiddenError, ValidationError } from '@chefmate/errors'
+import { NotFoundError, ValidationError } from '@chefmate/errors'
 
 export const resumeSubscriptionProcedure = protectedProcedure
   .input(z.object({ subscriptionId: z.string().min(1) }))
@@ -12,7 +13,7 @@ export const resumeSubscriptionProcedure = protectedProcedure
     const sub = await Subscription.findById(input.subscriptionId)
     if (!sub) throw new NotFoundError('Subscription not found')
     if (sub.customerId !== ctx.principal.userId && ctx.principal.role !== 'ADMIN') {
-      throw new ForbiddenError('You can only resume your own subscriptions')
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only resume your own subscriptions' })
     }
     if (sub.status !== 'PAUSED') throw new ValidationError(`Cannot resume a subscription in ${sub.status} status`)
 

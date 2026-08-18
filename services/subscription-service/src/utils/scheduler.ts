@@ -9,7 +9,7 @@ import { periodStartKey } from './date.utils'
 export async function scheduleNextBilling(subscriptionId: string, nextBillingDate: Date): Promise<void> {
   const queue = getBillingQueue()
   const delayMs = Math.max(0, nextBillingDate.getTime() - Date.now())
-  const jobId = `billing:${subscriptionId}`
+  const jobId = `sub_billing_${subscriptionId}`
 
   // Remove any existing pending job for this subscription before re-scheduling
   const existingJob = await queue.getJob(jobId)
@@ -32,7 +32,7 @@ export async function scheduleNextBilling(subscriptionId: string, nextBillingDat
  */
 export async function cancelBillingJob(subscriptionId: string): Promise<void> {
   const queue = getBillingQueue()
-  const jobId = `billing:${subscriptionId}`
+  const jobId = `sub_billing_${subscriptionId}`
   const job = await queue.getJob(jobId)
   if (job) {
     const state = await job.getState()

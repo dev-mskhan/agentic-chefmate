@@ -1,10 +1,11 @@
 import { z } from 'zod'
+import { TRPCError } from '@trpc/server'
 import { protectedProcedure } from '../trpc'
 import { Subscription } from '../../models/subscription.model'
 import { fetchPlanSnapshot } from '../../services/chef-client.service'
 import { publishSubscriptionEvent } from '../../services/event.service'
 import { cancelBillingJob } from '../../utils/scheduler'
-import { NotFoundError, ForbiddenError, ValidationError } from '@chefmate/errors'
+import { NotFoundError, ValidationError } from '@chefmate/errors'
 
 export const pauseSubscriptionProcedure = protectedProcedure
   .input(z.object({ subscriptionId: z.string().min(1) }))
@@ -12,7 +13,7 @@ export const pauseSubscriptionProcedure = protectedProcedure
     const sub = await Subscription.findById(input.subscriptionId)
     if (!sub) throw new NotFoundError('Subscription not found')
     if (sub.customerId !== ctx.principal.userId && ctx.principal.role !== 'ADMIN') {
-      throw new ForbiddenError('You can only pause your own subscriptions')
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only pause your own subscriptions' })
     }
     if (sub.status !== 'ACTIVE') throw new ValidationError(`Cannot pause a subscription in ${sub.status} status`)
 

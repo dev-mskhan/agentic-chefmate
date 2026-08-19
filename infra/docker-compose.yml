@@ -111,6 +111,24 @@ services:
     networks:
       - chefmate
 
+  # ─── Payout Service ─────────────────────────────────────────────────────────
+  payout-service:
+    build:
+      context: ..
+      dockerfile: services/payout-service/Dockerfile
+    container_name: chefmate-payout-service
+    restart: unless-stopped
+    env_file:
+      - ../services/payout-service/.env
+    ports:
+      - '3012:3012'
+    depends_on:
+      - mongo
+      - redis
+      - redpanda
+    networks:
+      - chefmate
+
   # ─── MinIO (S3-compatible object storage) ───────────────────────────────────
   minio:    image: minio/minio
     container_name: chefmate-minio

@@ -1,5 +1,5 @@
 import { Kafka } from 'kafkajs'
-import { createProducer, TypedProducer, PAYMENT_EVENTS_TOPIC, PaymentEvent } from '@chefmate/event-contracts'
+import { createProducer, TypedProducer, PAYMENT_EVENTS_TOPIC, PaymentEvent, CONNECT_EVENTS_TOPIC, ConnectEvent } from '@chefmate/event-contracts'
 
 let producer: TypedProducer | null = null
 
@@ -19,4 +19,12 @@ export async function publishPaymentEvent(event: PaymentEvent): Promise<void> {
     return
   }
   await producer.emit(PAYMENT_EVENTS_TOPIC, event)
+}
+
+export async function publishConnectEvent(event: ConnectEvent): Promise<void> {
+  if (!producer) {
+    console.warn('[event.service] Producer not initialized — skipping connect event:', event.type)
+    return
+  }
+  await producer.emit(CONNECT_EVENTS_TOPIC, event)
 }

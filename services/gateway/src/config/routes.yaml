@@ -85,6 +85,13 @@ routes:
       - CHEF
       - ADMIN
 
+  - prefix: /api/v1/payouts
+    targetKey: PAYOUT_SERVICE_URL
+    auth: true
+    roles:
+      - CHEF
+      - ADMIN
+
   - prefix: /api/v1/admin
     targetKey: ADMIN_SERVICE_URL
     auth: true

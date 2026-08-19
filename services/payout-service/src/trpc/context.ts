@@ -1,0 +1,21 @@
+import type { FastifyRequest, FastifyReply } from 'fastify'
+import type Redis from 'ioredis'
+import { extractPrincipal, Principal } from '@chefmate/auth-clients'
+import { config } from '../config'
+
+export interface PayoutContext {
+  req:       FastifyRequest
+  res:       FastifyReply
+  principal: Principal | null
+  redis:     Redis
+  config:    typeof config
+}
+
+export function createContext({ req, res }: { req: FastifyRequest; res: FastifyReply }): PayoutContext {
+  let principal: Principal | null = null
+  try {
+    principal = extractPrincipal(req.headers as Record<string, string | string[] | undefined>)
+  } catch { /* unauthenticated */ }
+  const redis = (req.server as any).redis as Redis
+  return { req, res, principal, redis, config }
+}

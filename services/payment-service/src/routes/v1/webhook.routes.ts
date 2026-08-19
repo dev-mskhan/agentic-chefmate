@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { getStripe } from '../../services/stripe.service'
 import { Payment } from '../../models/payment.model'
 import { ProcessedWebhook } from '../../models/processed-webhook.model'
-import { publishPaymentEvent } from '../../services/event.service'
+import { publishPaymentEvent, publishConnectEvent } from '../../services/event.service'
 import { config } from '../../config'
 import { createLogger } from '@chefmate/logger'
 import type Stripe from 'stripe'
@@ -140,6 +140,66 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
           version:         '1',
         })
       }
+      break
+    }
+
+    case 'account.updated': {
+      const account = event.data.object as Stripe.Account
+      await publishConnectEvent({
+        type:      'connect.account_updated',
+        accountId: account.id,
+        account:   account as unknown as Record<string, unknown>,
+        createdAt: new Date().toISOString(),
+        version:   '1',
+      })
+      break
+    }
+
+    case 'charge.dispute.created': {
+      const dispute = event.data.object as Stripe.Dispute
+      const chargeId = typeof dispute.charge === 'string' ? dispute.charge : (dispute.charge as Stripe.Charge).id
+      const piId = dispute.payment_intent
+        ? (typeof dispute.payment_intent === 'string' ? dispute.payment_intent : (dispute.payment_intent as Stripe.PaymentIntent).id)
+        : ''
+      await publishConnectEvent({
+        type:            'connect.dispute_created',
+        disputeId:       dispute.id,
+        chargeId,
+        paymentIntentId: piId,
+        amount:          dispute.amount,
+        currency:        dispute.currency,
+        reason:          dispute.reason,
+        createdAt:       new Date().toISOString(),
+        version:         '1',
+      })
+      break
+    }
+
+    case 'charge.dispute.updated': {
+      const dispute = event.data.object as Stripe.Dispute
+      const chargeId = typeof dispute.charge === 'string' ? dispute.charge : (dispute.charge as Stripe.Charge).id
+      await publishConnectEvent({
+        type:      'connect.dispute_updated',
+        disputeId: dispute.id,
+        chargeId,
+        status:    dispute.status,
+        updatedAt: new Date().toISOString(),
+        version:   '1',
+      })
+      break
+    }
+
+    case 'charge.dispute.closed': {
+      const dispute = event.data.object as Stripe.Dispute
+      const chargeId = typeof dispute.charge === 'string' ? dispute.charge : (dispute.charge as Stripe.Charge).id
+      await publishConnectEvent({
+        type:      'connect.dispute_closed',
+        disputeId: dispute.id,
+        chargeId,
+        status:    dispute.status,
+        closedAt:  new Date().toISOString(),
+        version:   '1',
+      })
       break
     }
 

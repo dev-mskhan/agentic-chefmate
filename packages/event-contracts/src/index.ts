@@ -27,3 +27,8 @@ export { createProducer } from './producer'
 export { createConsumer } from './consumer'
 export type { TypedProducer } from './producer'
 export type { TypedConsumer } from './consumer'
+
+export { PAYOUT_EVENTS_TOPIC } from './topics/payout.events'
+export { CONNECT_EVENTS_TOPIC } from './topics/connect.events'
+export type { PayoutEvent } from './topics/payout.events'
+export type { ConnectEvent } from './topics/connect.events'

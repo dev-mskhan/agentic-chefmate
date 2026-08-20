@@ -32,6 +32,7 @@ const SERVICE_URL_MAP: Record<string, string> = {
   REVIEW_SERVICE_URL:       config.REVIEW_SERVICE_URL!,
   CHAT_SERVICE_URL:         config.CHAT_SERVICE_URL!,
   PAYOUT_SERVICE_URL:       config.PAYOUT_SERVICE_URL!,
+  DASHBOARD_SERVICE_URL:    config.DASHBOARD_SERVICE_URL!,
 }
 
 export default fp(async function proxyPlugin(fastify: FastifyInstance) {

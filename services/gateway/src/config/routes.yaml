@@ -92,6 +92,12 @@ routes:
       - CHEF
       - ADMIN
 
+  - prefix: /api/v1/chef-dashboard
+    targetKey: DASHBOARD_SERVICE_URL
+    auth: true
+    roles:
+      - CHEF
+
   - prefix: /api/v1/admin
     targetKey: ADMIN_SERVICE_URL
     auth: true

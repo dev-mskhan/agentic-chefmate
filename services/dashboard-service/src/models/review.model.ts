@@ -1,13 +1,19 @@
 import mongoose from 'mongoose'
 
+const chefReplySchema = new mongoose.Schema({ text: String, createdAt: Date }, { _id: false })
+
 const s = new mongoose.Schema(
   {
-    chefId: String,
     customerId: String,
-    rating: Number,
-    text: String,
-    status: String,
-    createdAt: Date,
+    chefId:     String,
+    dishId:     String,
+    planId:     String,
+    orderId:    String,
+    rating:     Number,
+    text:       String,
+    status:     String,
+    chefReply:  chefReplySchema,
+    createdAt:  Date,
   },
   { strict: false },
 )

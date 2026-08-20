@@ -55,3 +55,14 @@ export const chefProcedure = protectedProcedure.use(({ ctx, next }) => {
   }
   return next({ ctx })
 })
+
+export const userProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.principal.role !== 'USER') {
+    throw new TRPCError({
+      code:    'FORBIDDEN',
+      message: 'User role required',
+      cause:   new ForbiddenError('User role required'),
+    })
+  }
+  return next({ ctx })
+})

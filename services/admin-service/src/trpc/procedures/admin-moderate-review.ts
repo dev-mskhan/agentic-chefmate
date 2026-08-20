@@ -15,8 +15,8 @@ export const adminModerateReviewProcedure = adminProcedure
       await callReviewService(
         'moderateReview',
         { reviewId: input.reviewId, status: input.status },
-        ctx.config.INTERNAL_SECRET,
-        ctx.config.REVIEW_SERVICE_URL,
+        ctx.config.INTERNAL_SECRET!,
+        ctx.config.REVIEW_SERVICE_URL!,
       )
     } catch (err) {
       throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: `Failed to moderate review: ${(err as Error).message}` })

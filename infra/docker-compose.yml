@@ -111,6 +111,23 @@ services:
     networks:
       - chefmate
 
+  # ─── Admin Service ──────────────────────────────────────────────────────────
+  admin-service:
+    build:
+      context: ..
+      dockerfile: services/admin-service/Dockerfile
+    container_name: chefmate-admin-service
+    restart: unless-stopped
+    env_file:
+      - ../services/admin-service/.env
+    ports:
+      - '3014:3014'
+    depends_on:
+      - mongo
+      - redpanda
+    networks:
+      - chefmate
+
   # ─── Payout Service ─────────────────────────────────────────────────────────
   payout-service:
     build:

@@ -11,8 +11,8 @@ export const suspendChefProcedure = adminProcedure
       await callChefService(
         'updateChefStatus',
         { chefId: input.chefId, verificationStatus: 'SUSPENDED' },
-        ctx.config.INTERNAL_SECRET,
-        ctx.config.CHEF_SERVICE_URL,
+        ctx.config.INTERNAL_SECRET!,
+        ctx.config.CHEF_SERVICE_URL!,
       )
     } catch (err) {
       throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: `Failed to suspend chef: ${(err as Error).message}` })

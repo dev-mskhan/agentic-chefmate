@@ -24,11 +24,11 @@ export const requestRefundProcedure = adminProcedure
 
     // Call payment-service internal refund route
     try {
-      const res = await fetch(`${ctx.config.PAYMENT_SERVICE_URL}/internal/refund`, {
+      const res = await fetch(`${ctx.config.PAYMENT_SERVICE_URL!}/internal/refund`, {
         method:  'POST',
         headers: {
           'Content-Type':      'application/json',
-          'x-internal-secret': ctx.config.INTERNAL_SECRET,
+          'x-internal-secret': ctx.config.INTERNAL_SECRET!,
         },
         body: JSON.stringify({ paymentIntentId, amountCents: input.amountCents }),
       })

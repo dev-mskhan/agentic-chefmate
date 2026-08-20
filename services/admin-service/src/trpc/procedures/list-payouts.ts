@@ -14,8 +14,8 @@ export const listPayoutsProcedure = adminProcedure
       return await callPayoutService(
         'adminListPayouts',
         { chefId: input.chefId, limit: input.limit, cursor: input.cursor },
-        ctx.config.INTERNAL_SECRET,
-        ctx.config.PAYOUT_SERVICE_URL,
+        ctx.config.INTERNAL_SECRET!,
+        ctx.config.PAYOUT_SERVICE_URL!,
       )
     } catch (err) {
       throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: `Failed to fetch payouts: ${(err as Error).message}` })

@@ -10,8 +10,8 @@ export const getChefBalanceProcedure = adminProcedure
       return await callPayoutService(
         'adminGetChefBalance',
         { chefId: input.chefId },
-        ctx.config.INTERNAL_SECRET,
-        ctx.config.PAYOUT_SERVICE_URL,
+        ctx.config.INTERNAL_SECRET!,
+        ctx.config.PAYOUT_SERVICE_URL!,
       )
     } catch (err) {
       throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: `Failed to fetch balance: ${(err as Error).message}` })

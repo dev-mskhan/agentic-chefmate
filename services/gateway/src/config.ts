@@ -8,7 +8,7 @@ const gatewayEnvSchema = baseEnvSchema.extend({
   USER_SERVICE_URL: z.string().url().default('http://localhost:3002'),
   CHEF_SERVICE_URL: z.string().url().default('http://localhost:3003'),
   ORDER_SERVICE_URL: z.string().url().default('http://localhost:3004'),
-  ADMIN_SERVICE_URL: z.string().url().default('http://localhost:3005'),
+  ADMIN_SERVICE_URL: z.string().url().default('http://localhost:3014'),
   NOTIFICATION_SERVICE_URL: z.string().url().default('http://localhost:3006'),
   MEDIA_SERVICE_URL: z.string().url().default('http://localhost:3007'),
   PAYMENT_SERVICE_URL: z.string().url().default('http://localhost:3008'),

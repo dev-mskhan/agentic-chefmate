@@ -9,6 +9,8 @@ export interface IUser extends Document {
   role: Role
   emailVerified: boolean
   googleId?: string
+  isSuspended: boolean
+  suspendedAt?: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -30,6 +32,8 @@ const UserSchema = new Schema<IUser>(
     },
     emailVerified: { type: Boolean, default: false },
     googleId: { type: String, sparse: true, unique: true },
+    isSuspended: { type: Boolean, default: false },
+    suspendedAt: { type: Date },
   },
   { timestamps: true },
 )

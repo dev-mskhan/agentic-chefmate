@@ -5,6 +5,18 @@ const REFRESH_COOKIE = '__Host-refresh'
 const ACCESS_MAX_AGE = 15 * 60 // 15 min
 const REFRESH_MAX_AGE = 7 * 24 * 60 * 60 // 7 days
 
+/**
+ * Refresh-token cookie path.
+ *
+ * Cookie paths are prefix-matched by the browser, so scoping the refresh
+ * cookie to `/api/v1/auth` ensures it is sent on the refresh mutation
+ * (`/api/v1/auth/trpc/refresh`) AND on signout (`/api/v1/auth/trpc/signout`)
+ * so the refresh token can be revoked on logout — but it is never sent to
+ * any other service. This is the standard pattern: access cookie on `/`,
+ * refresh cookie on the auth prefix only.
+ */
+const REFRESH_COOKIE_PATH = '/api/v1/auth'
+
 function isProduction(): boolean {
   return process.env['NODE_ENV'] === 'production'
 }
@@ -31,7 +43,7 @@ export function setAuthCookies(
     httpOnly: true,
     secure,
     sameSite: 'strict',
-    path: '/api/v1/auth/refresh',
+    path: REFRESH_COOKIE_PATH,
     maxAge: REFRESH_MAX_AGE,
     signed: true,
   })
@@ -43,7 +55,7 @@ export function clearAuthCookies(reply: FastifyReply): void {
   const refreshCookieName = secure ? '__Host-refresh' : 'refresh'
 
   reply.clearCookie(cookieName, { path: '/' })
-  reply.clearCookie(refreshCookieName, { path: '/api/v1/auth/refresh' })
+  reply.clearCookie(refreshCookieName, { path: REFRESH_COOKIE_PATH })
 }
 
 export function getAccessToken(request: FastifyRequest): string | undefined {

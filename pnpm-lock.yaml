@@ -1375,6 +1375,9 @@ importers:
 
   tests/api:
     devDependencies:
+      '@chefmate/event-contracts':
+        specifier: workspace:*
+        version: link:../../packages/event-contracts
       '@playwright/test':
         specifier: ^1.46.0
         version: 1.62.1
@@ -1384,6 +1387,9 @@ importers:
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1
+      kafkajs:
+        specifier: ^2.2.4
+        version: 2.2.4
       typescript:
         specifier: ^5.5.3
         version: 5.9.3

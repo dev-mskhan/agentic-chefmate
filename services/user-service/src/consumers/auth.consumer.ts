@@ -26,8 +26,11 @@ export async function startAuthConsumer(broker: string, redis: Redis): Promise<v
         try {
           await UserProfile.create({
             userId:    event.userId,
-            firstName: '',
-            lastName:  '',
+            // Placeholder names — the model requires these fields; the user
+            // updates them via updateMe after first login. Using '' would fail
+            // the required-validator, so seed with neutral placeholders.
+            firstName: 'New',
+            lastName:  'User',
           })
           logger.info({ userId: event.userId }, 'Created UserProfile for registered user')
         } catch (err: any) {

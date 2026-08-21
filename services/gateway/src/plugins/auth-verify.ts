@@ -86,7 +86,8 @@ export function createAuthVerifyHook(allowedRoles?: Role[]) {
       request.headers['x-user-id'] = payload.sub
       request.headers['x-user-role'] = payload.role
       request.headers['x-user-email'] = payload.email
-    } catch {
+    } catch (err) {
+      request.log.error({ err }, 'auth-verify: token verification failed')
       return reply.code(401).send(toHttpResponse(new UnauthorizedError('Invalid or expired token')))
     }
   }

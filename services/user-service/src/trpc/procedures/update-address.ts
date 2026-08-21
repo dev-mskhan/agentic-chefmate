@@ -30,6 +30,23 @@ export const updateAddressProcedure = protectedProcedure
       throw new NotFoundError('Address not found')
     }
 
+    // Verify the address exists in the caller's profile BEFORE updating.
+    // Relying on updateOne's modifiedCount is unreliable: MongoDB can report
+    // modifiedCount=1 even when the arrayFilters match no subdocument to
+    // change (the document is considered "updated" with no net change), which
+    // would let a user "update" an address id that isn't theirs and get a
+    // false 200.
+    const profile = await UserProfile.findOne({ userId })
+    if (!profile) {
+      throw new NotFoundError('User profile not found')
+    }
+    const addressExists = profile.addresses.some(
+      (a) => a._id.toString() === id,
+    )
+    if (!addressExists) {
+      throw new NotFoundError('Address not found')
+    }
+
     const updateSet: Record<string, unknown> = {}
     if (fields.label                !== undefined) updateSet['addresses.$[elem].label']                = fields.label
     if (fields.addressLine          !== undefined) updateSet['addresses.$[elem].addressLine']          = fields.addressLine
@@ -41,14 +58,11 @@ export const updateAddressProcedure = protectedProcedure
     if (fields.deliveryInstructions !== undefined) updateSet['addresses.$[elem].deliveryInstructions'] = fields.deliveryInstructions
     if (fields.isDefault            !== undefined) updateSet['addresses.$[elem].isDefault']            = fields.isDefault
 
-    const result = await UserProfile.updateOne(
+    await UserProfile.updateOne(
       { userId },
       { $set: updateSet },
       { arrayFilters: [{ 'elem._id': new mongoose.Types.ObjectId(id) }] },
     )
-
-    if (result.matchedCount === 0) throw new NotFoundError('User profile not found')
-    if (result.modifiedCount === 0) throw new NotFoundError('Address not found')
 
     await ctx.cache.invalidateAddresses(userId)
     return { success: true }

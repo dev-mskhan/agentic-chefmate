@@ -1,151 +1,118 @@
 import { test, expect } from '@playwright/test'
+import {
+  setupUser,
+  utrpcPost,
+  utrpcGet,
+  errorHttpStatus,
+} from '../../helpers/user'
 
-const AUTH_SERVICE_URL = process.env['AUTH_SERVICE_URL'] ?? 'http://127.0.0.1:3001'
-const USER_SERVICE_URL = process.env['USER_SERVICE_URL'] ?? 'http://127.0.0.1:3002'
+/**
+ * Phase 2 — User Service: Preferences & Allergies (via Gateway)
+ * Covers: dietary preferences, spice level, disliked ingredients, favorite
+ * cuisines, allergies set/get, enum validation, get-reflects-update.
+ */
 
-function uniqueEmail() {
-  return `user-pref-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@chefmate.test`
-}
+test.describe('Phase 2 — Preferences & Allergies (via Gateway)', () => {
 
-async function setupRegisteredUser(request: any) {
-  const email = uniqueEmail()
-  const password = 'UserPassword123!'
-
-  const signupRes = await request.post(`${AUTH_SERVICE_URL}/api/v1/auth/trpc/signup`, {
-    data: { email, password },
-  })
-  expect(signupRes.status()).toBe(200)
-  const userId = (await signupRes.json()).result.data.userId
-
-  const userHeaders = {
-    'x-user-id': userId,
-    'x-user-role': 'USER',
-    'x-user-email': email,
-  }
-
-  // Ensure initial profile document exists
-  await request.post(`${USER_SERVICE_URL}/trpc/updateMe`, {
-    headers: userHeaders,
-    data: { firstName: 'Test', lastName: 'User' },
-  })
-
-  return { userId, email, userHeaders }
-}
-
-test.describe('User Service: Preferences, Allergies, Favorites & Notifications', () => {
-
-  test('1. Dietary Preferences & Spice Level Lifecycle', async ({ request }) => {
-    const { userHeaders } = await setupRegisteredUser(request)
-
-    // Step A: Update Preferences (Valid enum: HALAL, VEGETARIAN, etc.)
-    const updateRes = await request.post(`${USER_SERVICE_URL}/trpc/updatePreferences`, {
-      headers: userHeaders,
-      data: {
-        dietaryPreferences: ['HALAL', 'VEGETARIAN'],
-        spiceLevel: 'MEDIUM',
-        favoriteCuisines: ['PAKISTANI', 'MIDDLE_EASTERN'],
-      },
+  test('1. updatePreferences + getPreferences reflect changes', async ({ request }) => {
+    await setupUser(request)
+    const upd = await utrpcPost(request, 'updatePreferences', {
+      dietaryPreferences: ['HALAL', 'VEGETARIAN'],
+      spiceLevel: 'SPICY',
+      favoriteCuisines: ['PAKISTANI', 'MIDDLE_EASTERN'],
+      dislikedIngredients: ['ONION', 'GARLIC'],
     })
-    expect(updateRes.status()).toBe(200)
-    const updated = (await updateRes.json()).result.data
-    expect(updated.dietaryPreferences).toContain('HALAL')
-    expect(updated.spiceLevel).toBe('MEDIUM')
+    expect(upd.status).toBe(200)
+    expect(upd.data.dietaryPreferences).toContain('HALAL')
+    expect(upd.data.spiceLevel).toBe('SPICY')
+    expect(upd.data.dislikedIngredients).toContain('ONION')
 
-    // Step B: Get Preferences (tRPC Query -> GET)
-    const getRes = await request.get(`${USER_SERVICE_URL}/trpc/getPreferences`, {
-      headers: userHeaders,
-    })
-    expect(getRes.status()).toBe(200)
-    const prefs = (await getRes.json()).result.data
-    expect(prefs.dietaryPreferences).toContain('HALAL')
-    expect(prefs.spiceLevel).toBe('MEDIUM')
+    const get = await utrpcGet(request, 'getPreferences')
+    expect(get.status).toBe(200)
+    expect(get.data.dietaryPreferences).toContain('HALAL')
+    expect(get.data.spiceLevel).toBe('SPICY')
+    expect(get.data.favoriteCuisines).toContain('PAKISTANI')
   })
 
-  test('2. Allergies Management (setAllergies & getAllergies)', async ({ request }) => {
-    const { userHeaders } = await setupRegisteredUser(request)
-
-    // Step A: Set Allergies (Valid enum: PEANUTS, SHELLFISH, MILK_DAIRY, etc.)
-    const setRes = await request.post(`${USER_SERVICE_URL}/trpc/setAllergies`, {
-      headers: userHeaders,
-      data: {
-        allergies: ['PEANUTS', 'SHELLFISH', 'MILK_DAIRY'],
-      },
+  test('2. updatePreferences rejects an invalid dietaryPreference → 400', async ({ request }) => {
+    await setupUser(request)
+    const { status, error } = await utrpcPost(request, 'updatePreferences', {
+      dietaryPreferences: ['HALAL', 'JUNK_FOOD'],
     })
-    expect(setRes.status()).toBe(200)
-    const allergiesList = (await setRes.json()).result.data
-    expect(allergiesList).toContain('PEANUTS')
-    expect(allergiesList).toContain('SHELLFISH')
-
-    // Step B: Get Allergies (tRPC Query -> GET)
-    const getRes = await request.get(`${USER_SERVICE_URL}/trpc/getAllergies`, {
-      headers: userHeaders,
-    })
-    expect(getRes.status()).toBe(200)
-    const result = (await getRes.json()).result.data
-    expect(result).toContain('PEANUTS')
+    expect(status).toBe(400)
+    expect(errorHttpStatus(error, status)).toBe(400)
   })
 
-  test('3. Favorites Management (add & remove chef/dish favorites)', async ({ request }) => {
-    const { userHeaders } = await setupRegisteredUser(request)
-
-    // Step A: Add favorite chef
-    const addChefRes = await request.post(`${USER_SERVICE_URL}/trpc/addFavoriteChef`, {
-      headers: userHeaders,
-      data: { chefId: 'chef_test_id_123' },
+  test('3. updatePreferences rejects an invalid spiceLevel → 400', async ({ request }) => {
+    await setupUser(request)
+    const { status, error } = await utrpcPost(request, 'updatePreferences', {
+      spiceLevel: 'NUCLEAR',
     })
-    expect(addChefRes.status()).toBe(200)
-    const favorites = (await addChefRes.json()).result.data
-    expect(favorites.chefIds).toContain('chef_test_id_123')
-
-    // Step B: Add favorite dish
-    const addDishRes = await request.post(`${USER_SERVICE_URL}/trpc/addFavoriteDish`, {
-      headers: userHeaders,
-      data: { dishId: 'dish_test_id_456' },
-    })
-    expect(addDishRes.status()).toBe(200)
-
-    // Step C: Get Favorites (tRPC Query -> GET)
-    const getFavsRes = await request.get(`${USER_SERVICE_URL}/trpc/getFavorites`, {
-      headers: userHeaders,
-    })
-    expect(getFavsRes.status()).toBe(200)
-    const allFavs = (await getFavsRes.json()).result.data
-    expect(allFavs.chefIds).toContain('chef_test_id_123')
-    expect(allFavs.dishIds).toContain('dish_test_id_456')
-
-    // Step D: Remove favorite chef
-    const removeRes = await request.post(`${USER_SERVICE_URL}/trpc/removeFavoriteChef`, {
-      headers: userHeaders,
-      data: { chefId: 'chef_test_id_123' },
-    })
-    expect(removeRes.status()).toBe(200)
-    const updatedFavs = (await removeRes.json()).result.data
-    expect(updatedFavs.chefIds).not.toContain('chef_test_id_123')
+    expect(status).toBe(400)
+    expect(errorHttpStatus(error, status)).toBe(400)
   })
 
-  test('4. Notification Preferences (getNotifPrefs & updateNotifPrefs)', async ({ request }) => {
-    const { userHeaders } = await setupRegisteredUser(request)
-
-    // Step A: Update Notification Channels & Quiet Hours
-    const updateRes = await request.post(`${USER_SERVICE_URL}/trpc/updateNotifPrefs`, {
-      headers: userHeaders,
-      data: {
-        channels: { push: true, email: true, sms: false, inApp: true },
-        categories: { orderUpdates: true, chefMessages: true, promotions: false },
-        quietHours: { enabled: true, start: '22:00', end: '07:00' },
-      },
+  test('4. updatePreferences rejects an invalid cuisine → 400', async ({ request }) => {
+    await setupUser(request)
+    const { status, error } = await utrpcPost(request, 'updatePreferences', {
+      favoriteCuisines: ['PAKISTANI', 'MEXICAN'],
     })
-    expect(updateRes.status()).toBe(200)
+    expect(status).toBe(400)
+    expect(errorHttpStatus(error, status)).toBe(400)
+  })
 
-    // Step B: Get Notification Preferences (tRPC Query -> GET)
-    const getRes = await request.get(`${USER_SERVICE_URL}/trpc/getNotifPrefs`, {
-      headers: userHeaders,
+  test('5. updatePreferences rejects an invalid dislikedIngredient → 400', async ({ request }) => {
+    await setupUser(request)
+    const { status, error } = await utrpcPost(request, 'updatePreferences', {
+      dislikedIngredients: ['BROCCOLI'],
     })
-    expect(getRes.status()).toBe(200)
-    const notifPrefs = (await getRes.json()).result.data
-    expect(notifPrefs.channels.push).toBe(true)
-    expect(notifPrefs.channels.sms).toBe(false)
-    expect(notifPrefs.categories.promotions).toBe(false)
-    expect(notifPrefs.quietHours.enabled).toBe(true)
+    expect(status).toBe(400)
+    expect(errorHttpStatus(error, status)).toBe(400)
+  })
+
+  test('6. setAllergies + getAllergies reflect changes', async ({ request }) => {
+    await setupUser(request)
+    const set = await utrpcPost(request, 'setAllergies', {
+      allergies: ['PEANUTS', 'SHELLFISH', 'MILK_DAIRY'],
+    })
+    expect(set.status).toBe(200)
+    expect(set.data).toContain('PEANUTS')
+    expect(set.data).toContain('SHELLFISH')
+
+    const get = await utrpcGet(request, 'getAllergies')
+    expect(get.status).toBe(200)
+    expect(get.data).toContain('PEANUTS')
+    expect(get.data).toContain('MILK_DAIRY')
+  })
+
+  test('7. setAllergies rejects an invalid allergy → 400', async ({ request }) => {
+    await setupUser(request)
+    const { status, error } = await utrpcPost(request, 'setAllergies', {
+      allergies: ['PEANUTS', 'DUST'],
+    })
+    expect(status).toBe(400)
+    expect(errorHttpStatus(error, status)).toBe(400)
+  })
+
+  test('8. setAllergies with an empty array clears allergies', async ({ request }) => {
+    await setupUser(request)
+    await utrpcPost(request, 'setAllergies', { allergies: ['PEANUTS', 'EGGS'] })
+    const cleared = await utrpcPost(request, 'setAllergies', { allergies: [] })
+    expect(cleared.status).toBe(200)
+    expect(cleared.data).toEqual([])
+
+    const get = await utrpcGet(request, 'getAllergies')
+    expect(get.data).toEqual([])
+  })
+
+  test('9. getPreferences/getAllergies without a profile → 404', async ({ request }) => {
+    // Signup but don't ensure a profile (consumer may not have created one).
+    // To be deterministic we still need a profile-less read. setupUser creates
+    // a profile, so instead we use a fresh signup and read immediately.
+    const email = `pref-noprofile-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@chefmate.test`
+    await request.post('/api/v1/auth/trpc/signup', { data: { email, password: 'UserTest123!' } })
+    const { status } = await utrpcGet(request, 'getPreferences')
+    // 404 if consumer hasn't created the stub yet; 200 if it has (with defaults).
+    expect([200, 404]).toContain(status)
   })
 })

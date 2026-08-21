@@ -13,6 +13,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.46.0",
+    "@chefmate/event-contracts": "workspace:*",
+    "kafkajs": "^2.2.4",
     "dotenv": "^16.4.5",
     "typescript": "^5.5.3",
     "@types/node": "^20.14.12"

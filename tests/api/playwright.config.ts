@@ -32,13 +32,19 @@ export default defineConfig({
       testMatch: 'tests/chef/**/*.spec.ts',
     },
     {
-      name: 'user-direct',
-      use: { baseURL: USER_URL },
+      // User-service tests run through the gateway (GATEWAY_URL), not the
+      // user-service directly, so that cookie auth, the auth-verify hook,
+      // role gating, and proxy behaviour are exercised end-to-end.
+      name: 'user-via-gateway',
+      use: { baseURL: GATEWAY_URL },
       testMatch: 'tests/users/**/*.spec.ts',
     },
     {
-      name: 'auth-direct',
-      use: { baseURL: AUTH_URL },
+      // Auth tests run through the gateway (GATEWAY_URL), not the auth
+      // service directly, so that cookie auth, JWKS verification, the
+      // auth-verify hook, and proxy behaviour are exercised end-to-end.
+      name: 'auth-via-gateway',
+      use: { baseURL: GATEWAY_URL },
       testMatch: 'tests/auth/**/*.spec.ts',
     },
     {

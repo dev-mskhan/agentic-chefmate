@@ -1,5 +1,13 @@
-import { createConfig, baseEnvSchema } from '@chefmate/config'
+import { createConfig, baseEnvSchema, loadEnv } from '@chefmate/config'
 import { z } from 'zod'
+
+// Load the gateway's own .env (services/gateway/.env) plus the root .env
+// before createConfig reads process.env. Must run in this module — not in
+// index.ts — because ES-module/tsx import hoisting can execute config.ts
+// before index.ts's loadEnv() call, causing createConfig to fall back to
+// defaults (e.g. the wrong COOKIE_SECRET, which breaks gateway cookie
+// verification against auth-service-issued cookies).
+loadEnv(__dirname)
 
 const gatewayEnvSchema = baseEnvSchema.extend({
   PORT: z.coerce.number().default(3000),

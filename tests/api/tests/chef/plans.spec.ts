@@ -1,133 +1,131 @@
 import { test, expect } from '@playwright/test'
+import { setupActiveChef, chefPost, chefPatch, chefPut } from '../../helpers/chef'
 
-const AUTH_SERVICE_URL = process.env['AUTH_SERVICE_URL'] ?? 'http://localhost:3001'
-const CHEF_SERVICE_URL = process.env['CHEF_SERVICE_URL'] ?? 'http://localhost:3003'
-
-function uniqueEmail() {
-  return `chef-plan-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@chefmate.test`
+function validPlanInput(o: Record<string, unknown> = {}) {
+  return { name: `Plan ${Date.now()}`, description: 'Test plan', type: 'ONE_OFF', basePrice: 1000, currency: 'PKR', ...o }
 }
 
-async function setupActiveChef(request: any) {
-  const email = uniqueEmail()
-  const password = 'ChefPassword123!'
-
-  const signupRes = await request.post(`${AUTH_SERVICE_URL}/api/v1/auth/trpc/signup`, {
-    data: { email, password },
-  })
-  const userId = (await signupRes.json()).result.data.userId
-
-  const userHeaders = { 'x-user-id': userId, 'x-user-role': 'USER', 'x-user-email': email }
-  const profileRes = await request.post(`${CHEF_SERVICE_URL}/trpc/createChefProfile`, {
-    headers: userHeaders,
-    data: { displayName: 'Chef Plan Test', cuisineSpecialties: ['PAKISTANI'] },
-  })
-  const chefId = (await profileRes.json()).result.data._id
-
-  await request.post(`${CHEF_SERVICE_URL}/trpc/updateChefStatus`, {
-    headers: { 'x-user-id': 'admin-01', 'x-user-role': 'ADMIN', 'x-user-email': 'admin@chefmate.test' },
-    data: { chefId, verificationStatus: 'ACTIVE', accountState: 'ACTIVE' },
+test.describe('Phase 3D - Meal Plans (via Gateway)', () => {
+  test('1. Create ONE_OFF plan - 200, DRAFT', async ({ request }) => {
+    await setupActiveChef(request)
+    const res = await chefPost(request, '/me/plans', validPlanInput())
+    expect(res.status).toBe(200)
+    expect(res.data.status).toBe('DRAFT')
   })
 
-  return { userId, email, chefId }
-}
-
-test.describe('Group 5: Meal Plan Routes (/api/v1/chefs/me/plans)', () => {
-
-  test('1. Unauthenticated request to create plan returns 401', async ({ request }) => {
-    const res = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/plans`, {
-      data: { name: 'Test Plan', type: 'ONE_OFF' },
-    })
-    expect(res.status()).toBe(401)
+  test('2. SUBSCRIPTION without frequency -> 400', async ({ request }) => {
+    await setupActiveChef(request)
+    const res = await chefPost(request, '/me/plans', validPlanInput({ type: 'SUBSCRIPTION' }))
+    expect(res.status).toBe(400)
   })
 
-  test('2. Create ONE_OFF Meal Plan Draft (POST /api/v1/chefs/me/plans)', async ({ request }) => {
-    const { userId, email } = await setupActiveChef(request)
-    const chefHeaders = { 'x-user-id': userId, 'x-user-role': 'CHEF', 'x-user-email': email }
-
-    const res = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/plans`, {
-      headers: chefHeaders,
-      data: {
-        name: 'Eid Special Feast',
-        description: 'Premium Eid dinner package for 6 people',
-        type: 'ONE_OFF',
-        basePrice: 8000,
-        currency: 'PKR',
-      },
-    })
-    expect([200, 201]).toContain(res.status())
-    const body = await res.json()
-    expect(body.name).toBe('Eid Special Feast')
-    expect(body.type).toBe('ONE_OFF')
-    expect(body.status).toBe('DRAFT')
-    expect(body.basePrice).toBe(8000)
+  test('3. SUBSCRIPTION with frequency -> 200', async ({ request }) => {
+    await setupActiveChef(request)
+    const res = await chefPost(request, '/me/plans', validPlanInput({ type: 'SUBSCRIPTION', frequency: 'WEEKLY' }))
+    expect(res.status).toBe(200)
+    expect(res.data.type).toBe('SUBSCRIPTION')
   })
 
-  test('3. Create SUBSCRIPTION Plan & Activate/Pause/Archive lifecycle', async ({ request }) => {
-    const { userId, email } = await setupActiveChef(request)
-    const chefHeaders = { 'x-user-id': userId, 'x-user-role': 'CHEF', 'x-user-email': email }
+  test('4. Update plan', async ({ request }) => {
+    await setupActiveChef(request)
+    const c = await chefPost(request, '/me/plans', validPlanInput())
+    const res = await chefPatch(request, `/me/plans/${c.data._id}`, { name: 'Updated Plan' })
+    expect(res.status).toBe(200)
+    expect(res.data.name).toBe('Updated Plan')
+  })
 
-    // Step A: Create and activate a dish (plan tiers require at least one ACTIVE dish)
-    const dishRes = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/dishes`, {
-      headers: chefHeaders,
-      data: { name: 'Weekly Meal', cuisine: 'PAKISTANI', price: 800 },
-    })
-    expect(dishRes.status()).toBe(200)
-    const dishId = (await dishRes.json())._id
+  test('5. Manage plan tiers', async ({ request }) => {
+    await setupActiveChef(request)
+    // Create a dish first — tiers require at least 1 dishId
+    const dish = await chefPost(request, '/me/dishes', { name: 'Tier Dish', price: 300, currency: 'PKR', cuisine: 'PAKISTANI' })
+    const c = await chefPost(request, '/me/plans', validPlanInput())
+    const res = await chefPut(request, `/me/plans/${c.data._id}/tiers`, { tiers: [{ name: 'Basic', dishIds: [dish.data._id] }] })
+    expect(res.status).toBe(200)
+  })
 
-    await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/dishes/${dishId}/activate`, {
-      headers: chefHeaders,
-      data: {},
-    })
+  test('6. Manage plan media', async ({ request }) => {
+    await setupActiveChef(request)
+    const c = await chefPost(request, '/me/plans', validPlanInput())
+    const res = await chefPut(request, `/me/plans/${c.data._id}/media`, { mediaIds: ['pm1'] })
+    expect(res.status).toBe(200)
+  })
 
-    // Step B: Create subscription plan
-    const createRes = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/plans`, {
-      headers: chefHeaders,
-      data: {
-        name: 'Weekly Home Meals',
-        description: 'Daily fresh home-cooked meals delivered weekly',
-        type: 'SUBSCRIPTION',
-        frequency: 'WEEKLY',
-        basePrice: 12000,
-        currency: 'PKR',
-      },
-    })
-    expect([200, 201]).toContain(createRes.status())
-    const plan = await createRes.json()
-    expect(plan.type).toBe('SUBSCRIPTION')
-    expect(plan.status).toBe('DRAFT')
-    const planId = plan._id
+  test('7. Activate plan (with tier + verified chef)', async ({ request }) => {
+    await setupActiveChef(request)
+    // Create + activate a dish first (validatePlanActivation requires ACTIVE dishes)
+    const dish = await chefPost(request, '/me/dishes', { name: 'Act Dish', price: 300, currency: 'PKR', cuisine: 'PAKISTANI' })
+    await chefPost(request, `/me/dishes/${dish.data._id}/activate`, {})
+    const c = await chefPost(request, '/me/plans', validPlanInput())
+    await chefPut(request, `/me/plans/${c.data._id}/tiers`, { tiers: [{ name: 'Std', dishIds: [dish.data._id] }] })
+    const res = await chefPost(request, `/me/plans/${c.data._id}/activate`, {})
+    expect(res.status).toBe(200)
+    expect(res.data.status).toBe('ACTIVE')
+  })
 
-    // Step C: Add a tier with the active dish (required before activation)
-    const tierRes = await request.put(`${CHEF_SERVICE_URL}/api/v1/chefs/me/plans/${planId}/tiers`, {
-      headers: chefHeaders,
-      data: {
-        tiers: [{ name: 'Standard', dishIds: [dishId], portionsPerDish: 1 }],
-      },
-    })
-    expect(tierRes.status()).toBe(200)
+  test('8. Activate plan without tiers -> 400', async ({ request }) => {
+    await setupActiveChef(request)
+    const c = await chefPost(request, '/me/plans', validPlanInput())
+    const res = await chefPost(request, `/me/plans/${c.data._id}/activate`, {})
+    expect(res.status).toBe(400)
+  })
 
-    // Step D: Activate Plan
-    const activateRes = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/plans/${planId}/activate`, {
-      headers: chefHeaders,
-      data: {},
-    })
-    expect(activateRes.status()).toBe(200)
-    expect((await activateRes.json()).status).toBe('ACTIVE')
+  test('9. Pause and resume ACTIVE plan', async ({ request }) => {
+    await setupActiveChef(request)
+    const dish = await chefPost(request, '/me/dishes', { name: 'Pause Dish', price: 300, currency: 'PKR', cuisine: 'PAKISTANI' })
+    await chefPost(request, `/me/dishes/${dish.data._id}/activate`, {})
+    const c = await chefPost(request, '/me/plans', validPlanInput())
+    await chefPut(request, `/me/plans/${c.data._id}/tiers`, { tiers: [{ name: 'Std', dishIds: [dish.data._id] }] })
+    await chefPost(request, `/me/plans/${c.data._id}/activate`, {})
+    const pause = await chefPost(request, `/me/plans/${c.data._id}/pause`, {})
+    expect(pause.status).toBe(200)
+    expect(pause.data.status).toBe('PAUSED')
+    const resume = await chefPost(request, `/me/plans/${c.data._id}/activate`, {})
+    expect(resume.status).toBe(200)
+    expect(resume.data.status).toBe('ACTIVE')
+  })
 
-    // Step E: Pause Plan
-    const pauseRes = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/plans/${planId}/pause`, {
-      headers: chefHeaders,
-      data: {},
-    })
-    expect(pauseRes.status()).toBe(200)
-    expect((await pauseRes.json()).status).toBe('PAUSED')
+  test('10. Archive plan', async ({ request }) => {
+    await setupActiveChef(request)
+    const c = await chefPost(request, '/me/plans', validPlanInput())
+    const res = await chefPost(request, `/me/plans/${c.data._id}/archive`, {})
+    expect(res.status).toBe(200)
+    expect(res.data.status).toBe('ARCHIVED')
+  })
 
-    // Step F: Archive Plan
-    const archiveRes = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/plans/${planId}/archive`, {
-      headers: chefHeaders,
-      data: {},
-    })
-    expect(archiveRes.status()).toBe(200)
-    expect((await archiveRes.json()).status).toBe('ARCHIVED')
+  test('11. Chef ownership isolation - chef B cannot update chef A plan', async ({ request }) => {
+    const { request: pw } = await import('@playwright/test')
+    const ctxA = await pw.newContext({ baseURL: 'http://localhost:3000' })
+    let aPlanId: string
+    try {
+      await setupActiveChef(ctxA)
+      aPlanId = (await chefPost(ctxA, '/me/plans', validPlanInput({ name: 'A Plan' }))).data._id
+    } finally { await ctxA.dispose() }
+    const ctxB = await pw.newContext({ baseURL: 'http://localhost:3000' })
+    try {
+      await setupActiveChef(ctxB)
+      const res = await chefPatch(ctxB, `/me/plans/${aPlanId}`, { name: 'Stolen' })
+      expect(res.status).toBe(403)
+    } finally { await ctxB.dispose() }
+  })
+
+  test('12. Dish ownership validation - activate plan with another chef dish -> 400', async ({ request }) => {
+    const { request: pw } = await import('@playwright/test')
+    const ctxA = await pw.newContext({ baseURL: 'http://localhost:3000' })
+    let aDishId: string
+    try {
+      await setupActiveChef(ctxA)
+      aDishId = (await chefPost(ctxA, '/me/dishes', { name: 'A Dish', price: 300, currency: 'PKR', cuisine: 'PAKISTANI' })).data._id
+      await chefPost(ctxA, `/me/dishes/${aDishId}/activate`, {})
+    } finally { await ctxA.dispose() }
+    await setupActiveChef(request)
+    const c = await chefPost(request, '/me/plans', validPlanInput())
+    await chefPut(request, `/me/plans/${c.data._id}/tiers`, { tiers: [{ name: 'T', price: 500, dishIds: [aDishId] }] })
+    const res = await chefPost(request, `/me/plans/${c.data._id}/activate`, {})
+    expect(res.status).toBe(400)
+  })
+
+  test('13. Unauthenticated create plan -> 401', async ({ request }) => {
+    const res = await chefPost(request, '/me/plans', validPlanInput())
+    expect(res.status).toBe(401)
   })
 })

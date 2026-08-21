@@ -7,6 +7,12 @@ routes:
     targetKey: PAYMENT_SERVICE_URL
     auth: false
 
+  # Public chef metadata routes (must be registered BEFORE /api/v1/chefs
+  # so the prefix match takes precedence over the auth-gated /api/v1/chefs)
+  - prefix: /api/v1/chefs/meta
+    targetKey: CHEF_SERVICE_URL
+    auth: false
+
   - prefix: /api/v1/payments
     targetKey: PAYMENT_SERVICE_URL
     auth: true

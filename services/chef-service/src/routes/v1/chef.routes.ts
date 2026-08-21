@@ -35,7 +35,10 @@ async function callTrpc<T>(req: FastifyRequest, res: FastifyReply, fn: (caller: 
       UNPROCESSABLE_CONTENT: 422,
       TOO_MANY_REQUESTS: 429,
     }
-    const statusCode: number = domainErr?.statusCode ?? codeMap[err?.code ?? ''] ?? 500
+    // Prefer the ApiError statusCode, then the tRPC code map, then 500.
+    const statusCode: number =
+      domainErr?.statusCode ??
+      codeMap[err?.code ?? ''] ?? 500
     const message: string = domainErr?.message ?? err?.message ?? 'Internal server error'
     return res.code(statusCode).send({ statusCode, message, error: http.STATUS_CODES[statusCode] ?? 'Error' })
   }
@@ -332,9 +335,22 @@ export async function chefRoutes(fastify: FastifyInstance): Promise<void> {
   })
 
   // Error handler for domain errors thrown from tRPC callers
-  fastify.setErrorHandler((error, _req, res) => {
-    if (isDomainError(error)) {
-      return res.code(error.statusCode).send(toHttpResponse(error))
+  fastify.setErrorHandler((error: any, _req, res) => {
+    // tRPC wraps ApiError subclasses in TRPCError; the ApiError is in error.cause
+    const domainErr = error?.cause ?? error
+    if (isDomainError(domainErr)) {
+      return res.code(domainErr.statusCode).send(toHttpResponse(domainErr))
+    }
+    // Also handle raw TRPCError codes
+    const codeMap: Record<string, number> = {
+      UNAUTHORIZED: 401, FORBIDDEN: 403, NOT_FOUND: 404,
+      BAD_REQUEST: 400, CONFLICT: 409, UNPROCESSABLE_CONTENT: 422,
+      TOO_MANY_REQUESTS: 429,
+    }
+    const statusCode = domainErr?.statusCode ?? codeMap[error?.code ?? ''] ?? 500
+    const message = domainErr?.message ?? error?.message ?? 'Internal server error'
+    if (statusCode !== 500) {
+      return res.code(statusCode).send({ statusCode, message })
     }
     fastify.log.error({ err: error }, 'Unhandled chef route error')
     return res.code(500).send(toHttpResponse(error))

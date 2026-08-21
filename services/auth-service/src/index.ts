@@ -4,9 +4,11 @@ loadEnv(__dirname)
 import Fastify from 'fastify'
 import fastifyCookie from '@fastify/cookie'
 import fastifyRateLimit from '@fastify/rate-limit'
+import * as argon2 from 'argon2'
 import { createFastifyLogger, createLogger } from '@chefmate/logger'
 import { config } from './config'
 import { initEventService, disconnectEventService } from './services/event.service'
+import { User } from './models/user.model'
 import mongoPlugin from './plugins/mongo'
 import redisPlugin from './plugins/redis'
 import passportPlugin from './plugins/passport'
@@ -16,6 +18,31 @@ import { toHttpResponse, isDomainError } from '@chefmate/errors'
 
 const logger = createLogger('auth-service')
 
+/**
+ * Ensure a pre-seeded admin account exists at boot.
+ * If no ADMIN user is found in the database, create one with the credentials
+ * from SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD. This gives tests and local
+ * development a known admin identity they can sign in with to obtain an
+ * ADMIN-role access token. In production this is a no-op if an admin already
+ * exists.
+ */
+async function seedAdminAccount(): Promise<void> {
+  const existing = await User.findOne({ role: 'ADMIN' })
+  if (existing) {
+    logger.info({ email: existing.email }, 'Admin account already exists — skipping seed')
+    return
+  }
+  const email = config.SEED_ADMIN_EMAIL!.toLowerCase()
+  const passwordHash = await argon2.hash(config.SEED_ADMIN_PASSWORD!, { type: argon2.argon2id })
+  await User.create({
+    email,
+    passwordHash,
+    role: 'ADMIN',
+    emailVerified: true,
+  })
+  logger.info({ email }, 'Seeded initial admin account')
+}
+
 async function buildApp() {
   const app = Fastify({
     logger: createFastifyLogger('auth-service'),
@@ -24,7 +51,7 @@ async function buildApp() {
 
   await app.register(fastifyCookie, { secret: config.COOKIE_SECRET })
   await app.register(fastifyRateLimit, {
-    max: 100,
+    max: 1000,
     timeWindow: '1 minute',
     keyGenerator: (req) => req.ip,
   })
@@ -53,6 +80,8 @@ async function start() {
     logger.info('Redpanda producer connected')
 
     const app = await buildApp()
+    // Seed admin account after Mongo is connected (mongoPlugin runs in buildApp)
+    await seedAdminAccount()
     await app.listen({ port: config.PORT, host: '0.0.0.0' })
     logger.info(`auth-service listening on port ${config.PORT}`)
 

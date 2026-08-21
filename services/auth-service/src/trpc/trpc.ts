@@ -1,7 +1,7 @@
 import { initTRPC } from '@trpc/server'
 import { ZodError } from 'zod'
 import type { AuthContext } from './context'
-import { ApiError } from '@chefmate/errors'
+import { ApiError, UnauthorizedError } from '@chefmate/errors'
 
 const isDev = process.env['NODE_ENV'] !== 'production'
 
@@ -60,4 +60,20 @@ export const router                    = t.router
 export const publicProcedure           = t.procedure
 export const protectedProcedure        = t.procedure
 export const protectedRefreshProcedure = t.procedure
-export const internalProcedure         = t.procedure
+
+/**
+ * Internal procedure: only callable by other services using the shared
+ * x-internal-secret header. This guards service-to-service endpoints
+ * (e.g. changeRole) so external clients cannot invoke them directly.
+ *
+ * The gateway strips x-internal-secret from proxied requests (proxy.ts),
+ * so this header can only be set by a service making a direct HTTP call.
+ */
+export const internalProcedure = t.procedure.use(({ ctx, next }) => {
+  const provided = ctx.req.headers['x-internal-secret']
+  const expected = ctx.config.INTERNAL_SECRET
+  if (!provided || provided !== expected) {
+    throw new UnauthorizedError('Missing or invalid internal secret')
+  }
+  return next({ ctx })
+})

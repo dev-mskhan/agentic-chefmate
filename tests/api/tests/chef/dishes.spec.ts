@@ -1,154 +1,114 @@
 import { test, expect } from '@playwright/test'
+import { setupActiveChef, chefPost, chefPatch, chefGet, chefPut } from '../../helpers/chef'
 
-const AUTH_SERVICE_URL = process.env['AUTH_SERVICE_URL'] ?? 'http://localhost:3001'
-const CHEF_SERVICE_URL = process.env['CHEF_SERVICE_URL'] ?? 'http://localhost:3003'
-
-function uniqueEmail() {
-  return `chef-dish-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@chefmate.test`
+function validDishInput(overrides: Record<string, unknown> = {}) {
+  return { name: `Dish ${Date.now()}`, description: 'Test dish', price: 500, currency: 'PKR', cuisine: 'PAKISTANI', dietaryTags: ['HALAL'], allergens: [], occasionTags: [], ...overrides }
 }
 
-test.describe('Group 3: Dish Management Routes (/api/v1/chefs/me/dishes)', () => {
-
-  test('1. Unauthenticated request to create dish returns 401 Unauthorized', async ({ request }) => {
-    const res = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/dishes`, {
-      data: { name: 'Test Dish', price: 500, cuisine: 'PAKISTANI' },
-    })
-    expect(res.status()).toBe(401)
+test.describe('Phase 3B - Dishes (via Gateway)', () => {
+  test('1. Create dish draft - 200, DRAFT', async ({ request }) => {
+    await setupActiveChef(request)
+    const res = await chefPost(request, '/me/dishes', validDishInput())
+    expect(res.status).toBe(200)
+    expect(res.data.status).toBe('DRAFT')
   })
 
-  test('2. Create Dish Draft (POST /api/v1/chefs/me/dishes)', async ({ request }) => {
-    const email = uniqueEmail()
-    const password = 'ChefPassword123!'
-
-    // Step A: Signup & promote to CHEF
-    const signupRes = await request.post(`${AUTH_SERVICE_URL}/api/v1/auth/trpc/signup`, {
-      data: { email, password },
-    })
-    expect(signupRes.status()).toBe(200)
-    const userId = (await signupRes.json()).result.data.userId
-
-    await request.post(`${AUTH_SERVICE_URL}/api/v1/auth/trpc/changeRole`, {
-      data: { userId, newRole: 'CHEF' },
-    })
-
-    const chefHeaders = {
-      'x-user-id': userId,
-      'x-user-role': 'CHEF',
-      'x-user-email': email,
-    }
-
-    // Step B: Create Chef Profile
-    const profileRes = await request.post(`${CHEF_SERVICE_URL}/trpc/createChefProfile`, {
-      headers: chefHeaders,
-      data: { displayName: 'Chef Biryani Master', cuisineSpecialties: ['PAKISTANI'] },
-    })
-    expect(profileRes.status()).toBe(200)
-
-    // Step C: Create Dish
-    const createDishRes = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/dishes`, {
-      headers: chefHeaders,
-      data: {
-        name: 'Special Dum Biryani',
-        description: 'Authentic slow-cooked mutton biryani',
-        cuisine: 'PAKISTANI',
-        price: 1200,
-        portionInfo: 'Serves 2-3 persons',
-        dietaryTags: ['HALAL'],
-      },
-    })
-
-    expect([200, 201]).toContain(createDishRes.status())
-    const dish = await createDishRes.json()
-    expect(dish.name).toBe('Special Dum Biryani')
-    expect(dish.price).toBe(1200)
-    expect(dish.status).toBe('DRAFT')
+  test('2. Update dish', async ({ request }) => {
+    await setupActiveChef(request)
+    const c = await chefPost(request, '/me/dishes', validDishInput())
+    const res = await chefPatch(request, `/me/dishes/${c.data._id}`, { name: 'Updated Dish' })
+    expect(res.status).toBe(200)
+    expect(res.data.name).toBe('Updated Dish')
   })
 
-  test('3. Update, Activate, Deactivate & Archive Dish Lifecycle', async ({ request }) => {
-    const email = uniqueEmail()
-    const password = 'ChefPassword123!'
+  test('3. Activate dish', async ({ request }) => {
+    await setupActiveChef(request)
+    const c = await chefPost(request, '/me/dishes', validDishInput())
+    const res = await chefPost(request, `/me/dishes/${c.data._id}/activate`, {})
+    expect(res.status).toBe(200)
+    expect(res.data.status).toBe('ACTIVE')
+  })
 
-    // Step A: Setup Chef Profile
-    const signupRes = await request.post(`${AUTH_SERVICE_URL}/api/v1/auth/trpc/signup`, {
-      data: { email, password },
-    })
-    const userId = (await signupRes.json()).result.data.userId
+  test('4. Deactivate dish', async ({ request }) => {
+    await setupActiveChef(request)
+    const c = await chefPost(request, '/me/dishes', validDishInput())
+    await chefPost(request, `/me/dishes/${c.data._id}/activate`, {})
+    const res = await chefPost(request, `/me/dishes/${c.data._id}/deactivate`, {})
+    expect(res.status).toBe(200)
+    expect(res.data.status).toBe('INACTIVE')
+  })
 
-    const userHeaders = {
-      'x-user-id': userId,
-      'x-user-role': 'USER',
-      'x-user-email': email,
-    }
+  test('5. Archive dish', async ({ request }) => {
+    await setupActiveChef(request)
+    const c = await chefPost(request, '/me/dishes', validDishInput())
+    const res = await chefPost(request, `/me/dishes/${c.data._id}/archive`, {})
+    expect(res.status).toBe(200)
+    expect(res.data.status).toBe('ARCHIVED')
+  })
 
-    const profileRes = await request.post(`${CHEF_SERVICE_URL}/trpc/createChefProfile`, {
-      headers: userHeaders,
-      data: { displayName: 'Chef Karahi Expert', cuisineSpecialties: ['PAKISTANI'] },
-    })
-    expect(profileRes.status()).toBe(200)
-    const profileJson = await profileRes.json()
-    const chefId = profileJson.result?.data?._id ?? profileJson._id
+  test('6. Manage ingredients', async ({ request }) => {
+    await setupActiveChef(request)
+    const c = await chefPost(request, '/me/dishes', validDishInput())
+    const res = await chefPut(request, `/me/dishes/${c.data._id}/ingredients`, { ingredients: [{ name: 'Rice', quantity: 2, unit: 'cups' }] })
+    expect(res.status).toBe(200)
+  })
 
-    // Admin approves chef so dish activation is allowed (triggers auto-role promotion to CHEF)
-    const approveRes = await request.post(`${CHEF_SERVICE_URL}/trpc/updateChefStatus`, {
-      headers: { 'x-user-id': 'admin-01', 'x-user-role': 'ADMIN', 'x-user-email': 'admin@chefmate.test' },
-      data: { chefId, verificationStatus: 'ACTIVE', accountState: 'ACTIVE' },
-    })
-    expect(approveRes.status()).toBe(200)
+  test('7. Manage pricing', async ({ request }) => {
+    await setupActiveChef(request)
+    const c = await chefPost(request, '/me/dishes', validDishInput())
+    const res = await chefPatch(request, `/me/dishes/${c.data._id}/pricing`, { price: 750 })
+    expect(res.status).toBe(200)
+  })
 
-    const chefHeaders = {
-      'x-user-id': userId,
-      'x-user-role': 'CHEF',
-      'x-user-email': email,
-    }
+  test('8. Manage media', async ({ request }) => {
+    await setupActiveChef(request)
+    const c = await chefPost(request, '/me/dishes', validDishInput())
+    const res = await chefPut(request, `/me/dishes/${c.data._id}/media`, { mediaIds: ['m1'] })
+    expect(res.status).toBe(200)
+  })
 
-    // Step B: Create Dish
-    const createRes = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/dishes`, {
-      headers: chefHeaders,
-      data: {
-        name: 'Chicken Karahi',
-        description: 'Desi ghee chicken karahi',
-        cuisine: 'PAKISTANI',
-        price: 1500,
-      },
-    })
-    expect(createRes.status()).toBe(200)
-    const dishData = await createRes.json()
-    const dishId = dishData._id
+  test('9. Manage availability', async ({ request }) => {
+    await setupActiveChef(request)
+    const c = await chefPost(request, '/me/dishes', validDishInput())
+    const res = await chefPatch(request, `/me/dishes/${c.data._id}/availability`, { available: true })
+    expect(res.status).toBe(200)
+  })
 
-    // Step C: Update Dish (PATCH /me/dishes/:dishId)
-    const updateRes = await request.patch(`${CHEF_SERVICE_URL}/api/v1/chefs/me/dishes/${dishId}`, {
-      headers: chefHeaders,
-      data: { price: 1600, description: 'Desi ghee special chicken karahi' },
-    })
-    expect(updateRes.status()).toBe(200)
-    const updated = await updateRes.json()
-    expect(updated.price).toBe(1600)
+  test('10. Customer visibility - only ACTIVE in public listing', async ({ request }) => {
+    const s = await setupActiveChef(request)
+    const draft = await chefPost(request, '/me/dishes', validDishInput({ name: 'Draft' }))
+    const active = await chefPost(request, '/me/dishes', validDishInput({ name: 'Active' }))
+    await chefPost(request, `/me/dishes/${active.data._id}/activate`, {})
+    const res = await chefGet(request, `/${s.chefId}/dishes?status=ACTIVE`)
+    expect(res.status).toBe(200)
+    const dishes = res.data.dishes ?? res.data
+    expect(dishes.some((d: any) => d._id === draft.data._id)).toBe(false)
+  })
 
-    // Step D: Activate Dish (POST /me/dishes/:dishId/activate)
-    const activateRes = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/dishes/${dishId}/activate`, {
-      headers: chefHeaders,
-      data: {},
-    })
-    if (activateRes.status() !== 200) {
-      console.log('Activate failed:', activateRes.status(), await activateRes.text())
-    }
-    expect(activateRes.status()).toBe(200)
-    expect((await activateRes.json()).status).toBe('ACTIVE')
+  test('11. Chef ownership isolation - chef B cannot update chef A dish', async ({ request }) => {
+    const { request: pw } = await import('@playwright/test')
+    const ctxA = await pw.newContext({ baseURL: 'http://localhost:3000' })
+    let aDishId: string
+    try {
+      await setupActiveChef(ctxA)
+      aDishId = (await chefPost(ctxA, '/me/dishes', validDishInput({ name: 'A Dish' }))).data._id
+    } finally { await ctxA.dispose() }
+    const ctxB = await pw.newContext({ baseURL: 'http://localhost:3000' })
+    try {
+      await setupActiveChef(ctxB)
+      const res = await chefPatch(ctxB, `/me/dishes/${aDishId}`, { name: 'Stolen' })
+      expect(res.status).toBe(403)
+    } finally { await ctxB.dispose() }
+  })
 
-    // Step E: Deactivate Dish (POST /me/dishes/:dishId/deactivate)
-    const deactivateRes = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/dishes/${dishId}/deactivate`, {
-      headers: chefHeaders,
-      data: {},
-    })
-    expect(deactivateRes.status()).toBe(200)
-    expect((await deactivateRes.json()).status).toBe('INACTIVE')
+  test('12. Unauthenticated create -> 401', async ({ request }) => {
+    const res = await chefPost(request, '/me/dishes', validDishInput())
+    expect(res.status).toBe(401)
+  })
 
-    // Step F: Archive Dish (POST /me/dishes/:dishId/archive)
-    const archiveRes = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/dishes/${dishId}/archive`, {
-      headers: chefHeaders,
-      data: {},
-    })
-    expect(archiveRes.status()).toBe(200)
-    expect((await archiveRes.json()).status).toBe('ARCHIVED')
+  test('13. Invalid price (3 decimals) -> 400', async ({ request }) => {
+    await setupActiveChef(request)
+    const res = await chefPost(request, '/me/dishes', validDishInput({ price: 5.001 }))
+    expect(res.status).toBe(400)
   })
 })

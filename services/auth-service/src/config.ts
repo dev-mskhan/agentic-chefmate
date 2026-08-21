@@ -18,6 +18,12 @@ const authEnvSchema = baseEnvSchema.extend({
   REDPANDA_BROKER: z.string().default('localhost:9092'),
   COOKIE_SECRET: z.string().min(32),
   APP_URL: z.string().url().default('http://localhost:3000'),
+  // Shared secret for service-to-service calls (internal procedures).
+  // Must match the INTERNAL_SECRET in caller services (chef-service, admin-service, …).
+  INTERNAL_SECRET: z.string().min(16).default('dev-internal-secret-32-characters!!'),
+  // Pre-seeded admin account (created at boot if no ADMIN user exists).
+  SEED_ADMIN_EMAIL: z.string().email().default('admin@chefmate.test'),
+  SEED_ADMIN_PASSWORD: z.string().min(8).default('AdminPass123!'),
 })
 
 export type AuthConfig = z.infer<typeof authEnvSchema>

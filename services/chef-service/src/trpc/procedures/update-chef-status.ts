@@ -13,15 +13,23 @@ const updateChefStatusInput = z.object({
 
 /**
  * Calls the auth-service internal changeRole endpoint to promote a user to CHEF.
- * This is a service-to-service call using the internal tRPC route.
+ * This is a service-to-service call using the internal tRPC route, authenticated
+ * with the shared x-internal-secret header.
  */
-async function promoteUserToChef(authServiceUrl: string, userId: string): Promise<void> {
+async function promoteUserToChef(
+  authServiceUrl: string,
+  userId: string,
+  internalSecret: string,
+): Promise<void> {
   const url = `${authServiceUrl}/api/v1/auth/trpc/changeRole`
   const body = JSON.stringify({ userId, newRole: 'CHEF' })
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type':      'application/json',
+      'x-internal-secret': internalSecret,
+    },
     body,
   })
 
@@ -76,7 +84,7 @@ export const updateChefStatusProcedure = adminProcedure
 
     if (isApproval) {
       const authServiceUrl = ctx.config.AUTH_SERVICE_URL ?? 'http://localhost:3001'
-      await promoteUserToChef(authServiceUrl, profile.userId)
+      await promoteUserToChef(authServiceUrl, profile.userId, ctx.config.INTERNAL_SECRET!)
     }
 
     // Build a combined status string for the event

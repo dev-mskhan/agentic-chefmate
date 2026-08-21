@@ -3,9 +3,10 @@ dist/
 .env
 .env*
 .turbo
+scripts/
 .kiro
 .antigravity
-
+TEST_WORKFLOW_MEMORY.md
 
 # RSA key files — never commit these
 *.pem

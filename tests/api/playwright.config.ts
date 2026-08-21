@@ -27,8 +27,11 @@ export default defineConfig({
 
   projects: [
     {
-      name: 'chef-direct',
-      use: { baseURL: CHEF_URL },
+      // Chef-service tests run through the gateway (GATEWAY_URL), not the
+      // chef-service directly, so that cookie auth, the auth-verify hook,
+      // role gating, and proxy behaviour are exercised end-to-end.
+      name: 'chef-via-gateway',
+      use: { baseURL: GATEWAY_URL },
       testMatch: 'tests/chef/**/*.spec.ts',
     },
     {

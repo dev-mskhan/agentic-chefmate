@@ -33,6 +33,9 @@ const mediaEnvSchema = baseEnvSchema.extend({
   // ─── Signed URL expiry ────────────────────────────────────────────────────
   SIGNED_URL_UPLOAD_EXPIRY: z.coerce.number().default(900),
   SIGNED_URL_DOWNLOAD_EXPIRY: z.coerce.number().default(3600),
+
+  // ─── Internal secret for service-to-service calls ──────────────────────────
+  INTERNAL_SECRET: z.string().min(16).default('dev-internal-secret-32-characters!!'),
 })
 
 export type MediaConfig = z.infer<typeof mediaEnvSchema>

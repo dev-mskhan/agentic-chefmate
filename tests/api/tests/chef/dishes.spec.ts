@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { setupActiveChef, chefPost, chefPatch, chefGet, chefPut } from '../../helpers/chef'
+import { uploadImage } from '../../helpers/media'
 
 function validDishInput(overrides: Record<string, unknown> = {}) {
   return { name: `Dish ${Date.now()}`, description: 'Test dish', price: 500, currency: 'PKR', cuisine: 'PAKISTANI', dietaryTags: ['HALAL'], allergens: [], occasionTags: [], ...overrides }
@@ -61,9 +62,17 @@ test.describe('Phase 3B - Dishes (via Gateway)', () => {
   })
 
   test('8. Manage media', async ({ request }) => {
-    await setupActiveChef(request)
+    const session = await setupActiveChef(request)
+    // Upload a real media asset and confirm it READY via admin
+    const { mediaId } = await uploadImage(request, session.userId, 'chef', 'image/png', 100)
+    const { setupAdminContext, mediaPatch } = await import('../../helpers/media')
+    const adminCtx = await setupAdminContext()
+    try {
+      await mediaPatch(adminCtx, `/${mediaId}/status`, { status: 'READY', width: 1, height: 1 })
+    } finally { await adminCtx.dispose() }
+    // Now attach the real mediaId to the dish
     const c = await chefPost(request, '/me/dishes', validDishInput())
-    const res = await chefPut(request, `/me/dishes/${c.data._id}/media`, { mediaIds: ['m1'] })
+    const res = await chefPut(request, `/me/dishes/${c.data._id}/media`, { mediaIds: [mediaId] })
     expect(res.status).toBe(200)
   })
 

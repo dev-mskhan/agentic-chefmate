@@ -3,6 +3,7 @@ import { NotFoundError, ValidationError } from '@chefmate/errors'
 import { protectedProcedure } from '../trpc'
 import { Dish } from '../../models/dish.model'
 import { requireDishOwnership, invalidateDishCache } from './update-dish'
+import { validateMediaOwnership } from '../../services/media-validation.service'
 
 export const manageDishMediaProcedure = protectedProcedure
   .input(z.object({
@@ -27,6 +28,15 @@ export const manageDishMediaProcedure = protectedProcedure
     if (mediaIds.length > 10) {
       throw new ValidationError('Maximum 10 media references allowed per dish')
     }
+
+    // Validate media ownership — each mediaId must exist, be READY, and belong
+    // to the calling chef (identified by userId, which is the media ownerId).
+    await validateMediaOwnership(
+      ctx.config.MEDIA_SERVICE_URL!,
+      ctx.config.INTERNAL_SECRET!,
+      mediaIds,
+      userId,
+    )
 
     const updated = await Dish.findByIdAndUpdate(
       dishId,

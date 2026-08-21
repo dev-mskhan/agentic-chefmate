@@ -9,6 +9,7 @@ const chefServiceEnvSchema = baseEnvSchema.extend({
   REDIS_URL:        z.string().url(),
   REDPANDA_BROKER:  z.string().default('localhost:9092'),
   AUTH_SERVICE_URL: z.string().url().default('http://localhost:3001'),
+  MEDIA_SERVICE_URL: z.string().url().default('http://localhost:3007'),
   // Shared secret for service-to-service calls to auth-service.
   // Must match INTERNAL_SECRET in auth-service.
   INTERNAL_SECRET: z.string().min(16).default('dev-internal-secret-32-characters!!'),

@@ -276,4 +276,45 @@ export async function mediaRoutes(
 
     return reply.send({ mediaId, status: 'DELETED' })
   })
+
+  // ─── Internal route: bulk media ownership validation ───────────────────────
+  // Called by chef-service (or other services) to verify that a set of mediaIds
+  // exist, are READY, and belong to the specified ownerId.
+  // Authenticated via x-internal-secret header (service-to-service only).
+  fastify.post('/internal/validate-media', async (request, reply) => {
+    const secret = request.headers['x-internal-secret']
+    const expectedSecret = opts.config.INTERNAL_SECRET
+    if (!expectedSecret || secret !== expectedSecret) {
+      throw new UnauthorizedError('Invalid internal secret')
+    }
+
+    const body = request.body as { mediaIds: string[]; ownerId: string }
+    if (!body?.mediaIds || !Array.isArray(body.mediaIds) || !body.ownerId) {
+      throw new ValidationError('mediaIds (string[]) and ownerId (string) are required')
+    }
+
+    const assets = await MediaAsset.find({
+      mediaId: { $in: body.mediaIds },
+      status: { $ne: 'DELETED' },
+    }).lean()
+
+    // Build a map of mediaId → { ownerId, status } for quick lookup
+    const assetMap = new Map(assets.map((a) => [a.mediaId, { ownerId: a.ownerId, status: a.status }]))
+
+    const results = body.mediaIds.map((mediaId) => {
+      const asset = assetMap.get(mediaId)
+      if (!asset) {
+        return { mediaId, valid: false, reason: 'not_found' }
+      }
+      if (asset.ownerId !== body.ownerId) {
+        return { mediaId, valid: false, reason: 'not_owned' }
+      }
+      if (asset.status !== 'READY') {
+        return { mediaId, valid: false, reason: `status_${asset.status.toLowerCase()}` }
+      }
+      return { mediaId, valid: true }
+    })
+
+    return reply.send({ results })
+  })
 }

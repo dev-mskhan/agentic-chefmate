@@ -7,9 +7,10 @@ import fastifySwaggerUi from '@fastify/swagger-ui'
 import { createFastifyLogger, createLogger } from '@chefmate/logger'
 import { config } from './config'
 import { initEventService, disconnectEventService } from './services/event.service'
-import { createConsumer, REVIEW_EVENTS_TOPIC } from '@chefmate/event-contracts'
-import type { ReviewEvent } from '@chefmate/event-contracts'
+import { createConsumer, REVIEW_EVENTS_TOPIC, MEDIA_EVENTS_TOPIC } from '@chefmate/event-contracts'
+import type { ReviewEvent, MediaEvent } from '@chefmate/event-contracts'
 import { handleReviewEvent } from './consumers/review.consumer'
+import { handleMediaEvent } from './consumers/media.consumer'
 import mongoPlugin from './plugins/mongo'
 import redisPlugin from './plugins/redis'
 import trpcPlugin from './plugins/trpc'
@@ -67,6 +68,14 @@ async function start() {
     await reviewConsumer.subscribe<ReviewEvent>(REVIEW_EVENTS_TOPIC, handleReviewEvent)
     logger.info('Review event consumer started')
 
+    // ── Media event consumer ──────────────────────────────────────────────────
+    // Listens for media.deleted events to remove deleted mediaIds from
+    // dishes, meal plans, and chef profiles that reference them.
+    const mediaConsumer = createConsumer(kafka, 'chef-service-media')
+    await mediaConsumer.connect()
+    await mediaConsumer.subscribe<MediaEvent>(MEDIA_EVENTS_TOPIC, handleMediaEvent)
+    logger.info('Media event consumer started')
+
     const app = await buildApp()
     await app.listen({ port: config.PORT, host: '0.0.0.0' })
     logger.info(`chef-service listening on port ${config.PORT}`)
@@ -75,6 +84,7 @@ async function start() {
       logger.info(`${signal} received — shutting down`)
       await app.close()
       await reviewConsumer.disconnect()
+      await mediaConsumer.disconnect()
       await disconnectEventService()
       process.exit(0)
     }

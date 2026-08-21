@@ -51,6 +51,14 @@ export default defineConfig({
       testMatch: 'tests/auth/**/*.spec.ts',
     },
     {
+      // Media-service tests run through the gateway (GATEWAY_URL), not the
+      // media-service directly, so that cookie auth, the auth-verify hook,
+      // role gating, and proxy behaviour are exercised end-to-end.
+      name: 'media-via-gateway',
+      use: { baseURL: GATEWAY_URL },
+      testMatch: 'tests/media/**/*.spec.ts',
+    },
+    {
       name: 'order-direct',
       use: { baseURL: ORDER_URL },
       testMatch: 'tests/orders/**/*.spec.ts',

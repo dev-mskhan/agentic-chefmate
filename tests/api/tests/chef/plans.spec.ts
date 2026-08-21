@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { setupActiveChef, chefPost, chefPatch, chefPut } from '../../helpers/chef'
+import { uploadImage, setupAdminContext, mediaPatch } from '../../helpers/media'
 
 function validPlanInput(o: Record<string, unknown> = {}) {
   return { name: `Plan ${Date.now()}`, description: 'Test plan', type: 'ONE_OFF', basePrice: 1000, currency: 'PKR', ...o }
@@ -44,9 +45,15 @@ test.describe('Phase 3D - Meal Plans (via Gateway)', () => {
   })
 
   test('6. Manage plan media', async ({ request }) => {
-    await setupActiveChef(request)
+    const session = await setupActiveChef(request)
+    // Upload a real media asset and confirm it READY via admin
+    const { mediaId } = await uploadImage(request, session.userId, 'chef', 'image/png', 100)
+    const adminCtx = await setupAdminContext()
+    try {
+      await mediaPatch(adminCtx, `/${mediaId}/status`, { status: 'READY', width: 1, height: 1 })
+    } finally { await adminCtx.dispose() }
     const c = await chefPost(request, '/me/plans', validPlanInput())
-    const res = await chefPut(request, `/me/plans/${c.data._id}/media`, { mediaIds: ['pm1'] })
+    const res = await chefPut(request, `/me/plans/${c.data._id}/media`, { mediaIds: [mediaId] })
     expect(res.status).toBe(200)
   })
 

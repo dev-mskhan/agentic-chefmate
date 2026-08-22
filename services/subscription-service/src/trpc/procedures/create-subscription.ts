@@ -80,7 +80,6 @@ export const createSubscriptionProcedure = protectedProcedure
     // First delivery: one cycle from today; period starts today
     const periodStart = today
     const periodEnd   = initialPeriod.periodEnd
-    const idempotencyKey = `sub_init_${customerId}_${input.planId}_${periodStartKey(today)}`
 
     // ── 6. Create subscription (PENDING) ──────────────────────────────────────
     const subscription = await Subscription.create({
@@ -105,6 +104,10 @@ export const createSubscriptionProcedure = protectedProcedure
     const subscriptionId = subscription._id.toString()
 
     // ── 7. Create initial recurring order via Order Service ───────────────────
+    // Use subscriptionId in the idempotency key so each subscription gets a unique
+    // initial order (prevents duplicate key errors when same customer creates
+    // multiple subscriptions for the same plan on the same day).
+    const idempotencyKey = `sub_init_${subscriptionId}_${periodStartKey(today)}`
     const deliveryDate = periodStartKey(initialPeriod.nextBillingDate)
     const orderResult = await createRecurringOrder({
       subscriptionId,

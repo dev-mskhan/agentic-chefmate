@@ -19,8 +19,9 @@ export async function fetchAddressSnapshot(
   addressId:     string,
 ): Promise<AddressSnapshot> {
   const base = config.USER_SERVICE_URL
+  // NOTE: user-service tRPC is mounted at /api/v1/users/trpc (not /trpc).
   const inputParam = encodeURIComponent(JSON.stringify({}))
-  const url = `${base}/trpc/getAddresses?input=${inputParam}`
+  const url = `${base}/api/v1/users/trpc/getAddresses?input=${inputParam}`
 
   const res = await fetch(url, {
     method: 'GET',

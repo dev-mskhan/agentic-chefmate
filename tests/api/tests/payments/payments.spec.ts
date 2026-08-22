@@ -1,270 +1,261 @@
 import { test, expect } from '@playwright/test'
+import {
+  setupCustomer,
+  setupChefWithDish,
+  checkout,
+  orderGet,
+  paymentGet,
+  paymentPost,
+  simulateWebhook,
+  setupAdminContext,
+  signinCustomer,
+  type ChefFixture,
+  type CustomerSession,
+} from '../../helpers/order'
+import { signupViaGateway } from '../../helpers/user'
+import { uniqueEmail } from '../../helpers/chef'
 
-const AUTH_SERVICE_URL    = process.env['AUTH_SERVICE_URL']    ?? 'http://127.0.0.1:3001'
-const USER_SERVICE_URL    = process.env['USER_SERVICE_URL']    ?? 'http://127.0.0.1:3002'
-const CHEF_SERVICE_URL    = process.env['CHEF_SERVICE_URL']    ?? 'http://127.0.0.1:3003'
-const ORDER_SERVICE_URL   = process.env['ORDER_SERVICE_URL']   ?? 'http://127.0.0.1:3004'
-const PAYMENT_SERVICE_URL = process.env['PAYMENT_SERVICE_URL'] ?? 'http://127.0.0.1:3008'
+// ── Shared fixtures ───────────────────────────────────────────────────────
+let chef: ChefFixture
+let customer: CustomerSession
 
-function uniqueEmail(prefix = 'user') {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@chefmate.test`
-}
+test.beforeAll(async ({ request }) => {
+  chef = await setupChefWithDish()
+  customer = await setupCustomer(request, 'pmt')
+})
 
-async function createCustomer(request: any) {
-  const email = uniqueEmail('pmtcust')
-  const signupRes = await request.post(`${AUTH_SERVICE_URL}/api/v1/auth/trpc/signup`, {
-    data: { email, password: 'CustPass123!' },
-  })
-  expect(signupRes.status()).toBe(200)
-  const userId = (await signupRes.json()).result.data.userId
-  const headers = { 'x-user-id': userId, 'x-user-role': 'USER', 'x-user-email': email }
-  await request.post(`${USER_SERVICE_URL}/trpc/updateMe`, {
-    headers,
-    data: { firstName: 'Pay', lastName: 'Customer', phone: '+923009998877' },
-  })
-  const addrRes = await request.post(`${USER_SERVICE_URL}/trpc/createAddress`, {
-    headers,
-    data: { label: 'HOME', addressLine: '5 Test Street', city: 'Karachi', isDefault: true },
-  })
-  expect(addrRes.status()).toBe(200)
-  const addrJson = await addrRes.json()
-  const addressId = addrJson.result?.data?._id ?? addrJson.data?._id ?? addrJson._id
-  return { userId, email, headers, addressId }
-}
-
-async function createActiveChefWithDish(request: any) {
-  const email = uniqueEmail('pmtchef')
-  const signupRes = await request.post(`${AUTH_SERVICE_URL}/api/v1/auth/trpc/signup`, {
-    data: { email, password: 'ChefPass123!' },
-  })
-  expect(signupRes.status()).toBe(200)
-  const userId = (await signupRes.json()).result.data.userId
-  const userHeaders = { 'x-user-id': userId, 'x-user-role': 'USER', 'x-user-email': email }
-
-  const appRes = await request.post(`${CHEF_SERVICE_URL}/trpc/createChefProfile`, {
-    headers: userHeaders,
-    data: {
-      displayName: 'Chef Payment Test',
-      bio: 'Testing payments end-to-end',
-      cuisineSpecialties: ['PAKISTANI'],
-    },
-  })
-  expect(appRes.status()).toBe(200)
-  const chefId = (await appRes.json()).result.data._id
-
-  const adminHeaders = { 'x-user-id': 'admin-01', 'x-user-role': 'ADMIN', 'x-user-email': 'admin@chefmate.test' }
-  const approveRes = await request.post(`${CHEF_SERVICE_URL}/trpc/updateChefStatus`, {
-    headers: adminHeaders,
-    data: { chefId, verificationStatus: 'ACTIVE', accountState: 'ACTIVE' },
-  })
-  expect(approveRes.status()).toBe(200)
-
-  const chefHeaders = { 'x-user-id': userId, 'x-user-role': 'CHEF', 'x-user-email': email }
-
-  const allDays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'] as const
-  const schedRes = await request.put(`${CHEF_SERVICE_URL}/api/v1/chefs/me/schedule`, {
-    headers: chefHeaders,
-    data: {
-      recurringDays: allDays.map((dayOfWeek) => ({
-        dayOfWeek,
-        windows: [{ openTime: '08:00', closeTime: '23:00' }],
-        isActive: true,
-      })),
-    },
-  })
-  expect(schedRes.status()).toBe(200)
-
-  await request.patch(`${CHEF_SERVICE_URL}/api/v1/chefs/me/schedule/capacity`, {
-    headers: chefHeaders,
-    data: { maxOrdersPerDay: 50, prepTimeMinutes: 30, leadTimeHours: 1 },
-  })
-
-  const dishRes = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/dishes`, {
-    headers: chefHeaders,
-    data: {
-      name: 'Lamb Karahi',
-      description: 'Slow-cooked lamb in tomato-based gravy',
-      price: 20.00,
-      currency: 'USD',
-      portionInfo: '2 persons',
-      cuisine: 'PAKISTANI',
-      dietaryTags: ['HALAL'],
-      allergens: [],
-      preparationTimeMinutes: 60,
-      minimumOrderQuantity: 1,
-      maximumOrderQuantity: 10,
-    },
-  })
-  expect([200, 201]).toContain(dishRes.status())
-  const dishJson = await dishRes.json()
-  const dishId = dishJson._id ?? dishJson.id ?? dishJson.data?._id ?? dishJson.data?.id
-
-  const activateRes = await request.post(`${CHEF_SERVICE_URL}/api/v1/chefs/me/dishes/${dishId}/activate`, {
-    headers: chefHeaders,
-    data: {},
-  })
-  expect(activateRes.status()).toBe(200)
-
-  return { userId, email, chefId, chefHeaders, dishId }
-}
-
-async function createOrderAndPayment(request: any, customer: any, chef: any, deliveryDate: string) {
-  const checkoutRes = await request.post(`${ORDER_SERVICE_URL}/trpc/checkout`, {
-    headers: customer.headers,
-    data: {
-      chefId: chef.chefId,
-      deliveryDate,
-      addressId: customer.addressId,
-      items: [{ dishId: chef.dishId, quantity: 1 }],
-    },
-  })
-  if (checkoutRes.status() !== 200) {
-    const txt = await checkoutRes.text()
-    throw new Error(`Checkout failed ${checkoutRes.status()}: ${txt}`)
+test.afterAll(async () => {
+  if (chef?.request) {
+    try { await (chef.request as any).dispose?.() } catch { /* noop */ }
   }
-  const checkoutData = (await checkoutRes.json()).result.data
-  const orderId   = checkoutData.order._id
-  const paymentId = checkoutData.paymentId  // checkout returns { order, paymentId, clientSecret }
-  return { orderId, paymentId }
-}
+})
 
-test.describe('Phase B: Payment Service Tests (/trpc/*)', () => {
+test.beforeEach(async ({ request }) => {
+  await signinCustomer(request, customer.email, customer.password)
+})
 
-  test('B-1: Unauthenticated request to /trpc/getPayment returns 401', async ({ request }) => {
-    const inputParam = encodeURIComponent(JSON.stringify({ paymentId: 'some-id' }))
-    const res = await request.get(`${PAYMENT_SERVICE_URL}/trpc/getPayment?input=${inputParam}`)
-    expect(res.status()).toBe(401)
+test.describe('Phase 5 — Payment Service (via Gateway)', () => {
+
+  // ── 1. Payment creation (via checkout) ──────────────────────────────────
+  test('1. Payment creation — checkout returns paymentId, getPayment returns details', async ({ request }) => {
+    const co = await checkout(request, chef, customer, '2026-12-01')
+    expect(co.paymentId).toBeTruthy()
+
+    const res = await paymentGet(request, `/${co.paymentId}`)
+    expect(res.status).toBe(200)
+    expect(res.data._id ?? res.data.id).toBe(co.paymentId)
+    expect(res.data.customerId).toBe(customer.userId)
+    expect(res.data.amountCents).toBe(1500) // 1 × $15.00 = 1500 cents
+    expect(res.data.currency).toBe('USD')
+    expect(['PENDING', 'PROCESSING', 'SUCCEEDED']).toContain(res.data.status)
   })
 
-  test('B-2: getPaymentStatus by orderId returns payment status after checkout', async ({ request }) => {
-    const customer = await createCustomer(request)
-    const chef     = await createActiveChefWithDish(request)
-
-    const { orderId } = await createOrderAndPayment(request, customer, chef, '2026-11-10')
-
-    const inputParam = encodeURIComponent(JSON.stringify({ orderId }))
-    const res = await request.get(`${PAYMENT_SERVICE_URL}/trpc/getPaymentStatus?input=${inputParam}`, {
-      headers: customer.headers,
-    })
-    expect(res.status()).toBe(200)
-    const data = (await res.json()).result.data
-    expect(['PENDING', 'PROCESSING', 'SUCCEEDED']).toContain(data.status)
-    expect(data.amountCents).toBeGreaterThan(0)
-    expect(data.currency).toBeDefined()
+  // ── 2. Payment status by orderId ────────────────────────────────────────
+  test('2. getPaymentStatus by orderId — 200', async ({ request }) => {
+    const co = await checkout(request, chef, customer, '2026-12-02')
+    const res = await paymentGet(request, `/status/${co.orderId}`)
+    expect(res.status).toBe(200)
+    expect(['PENDING', 'PROCESSING', 'SUCCEEDED']).toContain(res.data.status)
+    expect(res.data.amountCents).toBeGreaterThan(0)
+    expect(res.data.currency).toBeDefined()
   })
 
-  test('B-3: getPayment by paymentId — customer can retrieve their own payment', async ({ request }) => {
-    const customer = await createCustomer(request)
-    const chef     = await createActiveChefWithDish(request)
+  // ── 3. Webhook simulate: payment_intent.succeeded ───────────────────────
+  test('3. Webhook simulate — payment_intent.succeeded → payment SUCCEEDED, order CONFIRMED', async ({ request }) => {
+    const co = await checkout(request, chef, customer, '2026-12-03')
 
-    const { paymentId } = await createOrderAndPayment(request, customer, chef, '2026-11-15')
+    // Simulate Stripe webhook
+    const simRes = await simulateWebhook(co.orderId, 'payment_intent.succeeded')
+    expect(simRes.status).toBe(200)
+    expect(simRes.data.status).toBe('SUCCEEDED')
 
-    const inputParam = encodeURIComponent(JSON.stringify({ paymentId }))
-    const res = await request.get(`${PAYMENT_SERVICE_URL}/trpc/getPayment?input=${inputParam}`, {
-      headers: customer.headers,
-    })
-    expect(res.status()).toBe(200)
-    const payment = (await res.json()).result.data
-    expect(payment._id ?? payment.id).toBeDefined()
-    expect(payment.customerId).toBe(customer.userId)
-    expect(payment.amountCents).toBe(2000)  // 1 x $20.00 = 2000 cents
-    expect(payment.currency).toBe('USD')
-    expect(['PENDING', 'PROCESSING', 'SUCCEEDED']).toContain(payment.status)
+    // Payment should now be SUCCEEDED
+    const payRes = await paymentGet(request, `/status/${co.orderId}`)
+    expect(payRes.status).toBe(200)
+    expect(payRes.data.status).toBe('SUCCEEDED')
+
+    // Wait for the order-service payment consumer to process the event
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    // Order should have auto-confirmed (PENDING → CONFIRMED) via payment.succeeded event
+    const orderRes = await orderGet(request, `/my/${co.orderId}`)
+    expect(orderRes.status).toBe(200)
+    expect(orderRes.data.status).toBe('CONFIRMED')
   })
 
-  test('B-4: getPayment — different customer cannot view another payment (403)', async ({ request }) => {
-    const customer1 = await createCustomer(request)
-    const customer2 = await createCustomer(request)
-    const chef      = await createActiveChefWithDish(request)
+  // ── 4. Duplicate webhook idempotency ────────────────────────────────────
+  test('4. Duplicate webhook simulate — second call is idempotent', async ({ request }) => {
+    const co = await checkout(request, chef, customer, '2026-12-04')
 
-    const { paymentId } = await createOrderAndPayment(request, customer1, chef, '2026-11-20')
+    // First webhook
+    const sim1 = await simulateWebhook(co.orderId, 'payment_intent.succeeded')
+    expect(sim1.status).toBe(200)
+    expect(sim1.data.status).toBe('SUCCEEDED')
 
-    const inputParam = encodeURIComponent(JSON.stringify({ paymentId }))
-    const res = await request.get(`${PAYMENT_SERVICE_URL}/trpc/getPayment?input=${inputParam}`, {
-      headers: customer2.headers,
-    })
-    expect(res.status()).toBe(403)
+    // Second webhook — should return 200 without error (idempotent)
+    const sim2 = await simulateWebhook(co.orderId, 'payment_intent.succeeded')
+    expect(sim2.status).toBe(200)
+
+    // Payment status should still be SUCCEEDED (no double-processing)
+    const payRes = await paymentGet(request, `/status/${co.orderId}`)
+    expect(payRes.data.status).toBe('SUCCEEDED')
   })
 
-  test('B-5: Admin can view any customer payment', async ({ request }) => {
-    const customer = await createCustomer(request)
-    const chef     = await createActiveChefWithDish(request)
+  // ── 5. Failed payment ───────────────────────────────────────────────────
+  test('5. Webhook simulate — payment_intent.payment_failed → payment FAILED, order stays PENDING', async ({ request }) => {
+    const co = await checkout(request, chef, customer, '2026-12-05')
 
-    const { paymentId } = await createOrderAndPayment(request, customer, chef, '2026-11-25')
+    const simRes = await simulateWebhook(co.orderId, 'payment_intent.payment_failed', { reason: 'Card declined' })
+    expect(simRes.status).toBe(200)
+    expect(simRes.data.status).toBe('FAILED')
 
-    const adminHeaders = { 'x-user-id': 'admin-01', 'x-user-role': 'ADMIN', 'x-user-email': 'admin@chefmate.test' }
-    const inputParam = encodeURIComponent(JSON.stringify({ paymentId }))
-    const res = await request.get(`${PAYMENT_SERVICE_URL}/trpc/getPayment?input=${inputParam}`, {
-      headers: adminHeaders,
-    })
-    expect(res.status()).toBe(200)
-    const payment = (await res.json()).result.data
-    expect(payment.customerId).toBe(customer.userId)
+    // Payment should be FAILED
+    const payRes = await paymentGet(request, `/status/${co.orderId}`)
+    expect(payRes.data.status).toBe('FAILED')
+
+    // Wait for event propagation
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    // Order should remain PENDING (not confirmed)
+    const orderRes = await orderGet(request, `/my/${co.orderId}`)
+    expect(orderRes.status).toBe(200)
+    expect(orderRes.data.status).toBe('PENDING')
   })
 
-  test('B-6: Admin createRefund — succeeds if payment is SUCCEEDED, or gracefully skips if PENDING in test env', async ({ request }) => {
-    const customer = await createCustomer(request)
-    const chef     = await createActiveChefWithDish(request)
+  // ── 6. Refund (admin) — full refund after SUCCEEDED ──────────────────────
+  test('6. Admin refund — full refund after payment.succeeded → REFUNDED', async ({ request }) => {
+    const co = await checkout(request, chef, customer, '2026-12-06')
 
-    const { orderId } = await createOrderAndPayment(request, customer, chef, '2026-11-30')
+    // Simulate payment success first
+    await simulateWebhook(co.orderId, 'payment_intent.succeeded')
 
-    // Advance order to DELIVERED
-    const statuses = ['CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED'] as const
-    for (const newStatus of statuses) {
-      const updateRes = await request.post(`${ORDER_SERVICE_URL}/trpc/updateOrderStatus`, {
-        headers: chef.chefHeaders,
-        data: { orderId, newStatus },
-      })
-      expect(updateRes.status()).toBe(200)
+    // Admin creates refund
+    const adminCtx = await setupAdminContext()
+    try {
+      const res = await paymentPost(adminCtx, '/admin/refund', { orderId: co.orderId, reason: 'Customer complaint' })
+      expect(res.status).toBe(200)
+      expect(res.data.status).toBe('REFUNDED')
+      expect(res.data.refundId).toBeTruthy()
+    } finally {
+      try { await (adminCtx as any).dispose?.() } catch { /* noop */ }
     }
 
-    // Check payment current status
-    const statusParam = encodeURIComponent(JSON.stringify({ orderId }))
-    const statusRes = await request.get(`${PAYMENT_SERVICE_URL}/trpc/getPaymentStatus?input=${statusParam}`, {
-      headers: customer.headers,
-    })
-    expect(statusRes.status()).toBe(200)
-    const currentStatus = (await statusRes.json()).result.data.status
+    // Verify payment is now REFUNDED
+    const payRes = await paymentGet(request, `/status/${co.orderId}`)
+    expect(payRes.data.status).toBe('REFUNDED')
+  })
 
-    // If payment not SUCCEEDED (no real Stripe webhook in test env), try simulate endpoint
-    if (currentStatus !== 'SUCCEEDED') {
-      const webhookRes = await request.post(`${PAYMENT_SERVICE_URL}/internal/webhook/simulate`, {
-        headers: { 'x-internal-secret': process.env['INTERNAL_SECRET'] ?? 'internal-secret-chefmate' },
-        data: { orderId, event: 'payment_intent.succeeded' },
-      })
-      if (webhookRes.status() === 404) {
-        console.log('B-6: Webhook simulate not available — payment stayed', currentStatus, '— skipping refund assertion')
-        return
-      }
-      expect(webhookRes.status()).toBe(200)
-    }
+  // ── 7. Partial refund ───────────────────────────────────────────────────
+  test('7. Partial refund — charge.refunded.partial → PARTIALLY_REFUNDED', async ({ request }) => {
+    const co = await checkout(request, chef, customer, '2026-12-07')
 
-    const adminHeaders = { 'x-user-id': 'admin-01', 'x-user-role': 'ADMIN', 'x-user-email': 'admin@chefmate.test' }
-    const refundRes = await request.post(`${PAYMENT_SERVICE_URL}/trpc/createRefund`, {
-      headers: adminHeaders,
-      data: { orderId, reason: 'Customer complaint resolved' },
-    })
+    // Simulate payment success
+    await simulateWebhook(co.orderId, 'payment_intent.succeeded')
 
-    if (refundRes.status() === 200) {
-      const refundData = (await refundRes.json()).result.data
-      expect(refundData.status).toBe('REFUNDED')
-      expect(refundData.refundId).toMatch(/^re_/)
-    } else {
-      // Expected in test env without real Stripe webhook
-      console.log('B-6 (test env): Refund blocked because payment status is still:', currentStatus)
-      expect([400, 422]).toContain(refundRes.status())
+    // Simulate partial refund webhook
+    const partialAmount = 500 // $5.00 of $15.00
+    const simRes = await simulateWebhook(co.orderId, 'charge.refunded.partial', { amountCents: partialAmount })
+    expect(simRes.status).toBe(200)
+    expect(simRes.data.status).toBe('PARTIALLY_REFUNDED')
+
+    // Verify payment
+    const payRes = await paymentGet(request, `/${co.paymentId}`)
+    expect(payRes.data.status).toBe('PARTIALLY_REFUNDED')
+    expect(payRes.data.refundedAmountCents).toBe(partialAmount)
+  })
+
+  // ── 8. Payment/order consistency — order confirms after payment succeeds ─
+  test('8. Payment→Order consistency — order auto-confirms after payment.succeeded', async ({ request }) => {
+    const co = await checkout(request, chef, customer, '2026-12-08')
+
+    // Before payment: order is PENDING
+    const beforeRes = await orderGet(request, `/my/${co.orderId}`)
+    expect(beforeRes.data.status).toBe('PENDING')
+
+    // Simulate payment success
+    await simulateWebhook(co.orderId, 'payment_intent.succeeded')
+
+    // Wait for event propagation
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    // After payment: order should be CONFIRMED
+    const afterRes = await orderGet(request, `/my/${co.orderId}`)
+    expect(afterRes.data.status).toBe('CONFIRMED')
+  })
+
+  // ── 9. Non-owner cannot view payment → 403 ──────────────────────────────
+  test('9. Non-owner cannot view payment → 403', async ({ request }) => {
+    const co = await checkout(request, chef, customer, '2026-12-09')
+
+    // Create a second customer
+    const { request: pw } = await import('@playwright/test')
+    const ctx2 = await pw.newContext({ baseURL: 'http://localhost:3000' })
+    try {
+      await signupViaGateway(ctx2, uniqueEmail('pmt2'))
+      const res = await paymentGet(ctx2, `/${co.paymentId}`)
+      expect(res.status).toBe(403)
+    } finally {
+      await ctx2.dispose()
     }
   })
 
-  test('B-7: Non-admin cannot call createRefund (403)', async ({ request }) => {
-    const customer    = await createCustomer(request)
-    const chef        = await createActiveChefWithDish(request)
-    const { orderId } = await createOrderAndPayment(request, customer, chef, '2026-12-05')
+  // ── 10. Non-admin cannot create refund → 403 ────────────────────────────
+  test('10. Non-admin cannot create refund → 403', async ({ request }) => {
+    const co = await checkout(request, chef, customer, '2026-12-10')
+    const res = await paymentPost(request, '/admin/refund', { orderId: co.orderId })
+    expect(res.status).toBe(403)
+  })
 
-    const refundRes = await request.post(`${PAYMENT_SERVICE_URL}/trpc/createRefund`, {
-      headers: customer.headers,
-      data: { orderId },
-    })
-    expect(refundRes.status()).toBe(403)
+  // ── 11. Unauthenticated getPayment → 401 ────────────────────────────────
+  test('11. Unauthenticated getPayment → 401', async () => {
+    const { request: pw } = await import('@playwright/test')
+    const ctx = await pw.newContext({ baseURL: 'http://localhost:3000' })
+    try {
+      const res = await ctx.get('/api/v1/payments/some-id')
+      expect(res.status()).toBe(401)
+    } finally { await ctx.dispose() }
+  })
+
+  // ── 12. Admin can view any payment ──────────────────────────────────────
+  test('12. Admin can view any customer payment', async ({ request }) => {
+    const co = await checkout(request, chef, customer, '2026-12-11')
+    const adminCtx = await setupAdminContext()
+    try {
+      const res = await paymentGet(adminCtx, `/${co.paymentId}`)
+      expect(res.status).toBe(200)
+      expect(res.data.customerId).toBe(customer.userId)
+    } finally {
+      try { await (adminCtx as any).dispose?.() } catch { /* noop */ }
+    }
+  })
+
+  // ── 13. Refund on non-SUCCEEDED payment → 400 ───────────────────────────
+  test('13. Refund on PENDING payment → 400', async ({ request }) => {
+    const co = await checkout(request, chef, customer, '2026-12-12')
+    // Don't simulate payment success — payment stays PENDING
+    const adminCtx = await setupAdminContext()
+    try {
+      const res = await paymentPost(adminCtx, '/admin/refund', { orderId: co.orderId })
+      expect(res.status).toBe(400)
+    } finally {
+      try { await (adminCtx as any).dispose?.() } catch { /* noop */ }
+    }
+  })
+
+  // ── 14. Get payment for non-existent order → 404 ────────────────────────
+  test('14. getPaymentStatus for non-existent order → 404', async ({ request }) => {
+    const res = await paymentGet(request, '/status/nonexistent-order-id-99999')
+    expect(res.status).toBe(404)
+  })
+
+  // ── 15. Refund for non-existent order → 404 ─────────────────────────────
+  test('15. Refund for non-existent order → 404', async () => {
+    const adminCtx = await setupAdminContext()
+    try {
+      const res = await paymentPost(adminCtx, '/admin/refund', { orderId: 'nonexistent-order-id-99999' })
+      expect(res.status).toBe(404)
+    } finally {
+      try { await (adminCtx as any).dispose?.() } catch { /* noop */ }
+    }
   })
 })

@@ -48,3 +48,21 @@ export async function createRefund(
     return { id: `re_test_${Date.now()}`, amount: amountCents ?? 100, status: 'succeeded' }
   }
 }
+
+/**
+ * Confirms a PaymentIntent using a Stripe test payment method token.
+ * This triggers the real Stripe webhook flow (payment_intent.succeeded)
+ * through the ngrok tunnel — no mocking.
+ *
+ * Uses 'pm_card_visa' which is Stripe's built-in test card (4242 4242 4242 4242)
+ * that always succeeds in test mode.
+ */
+export async function confirmPaymentIntent(
+  paymentIntentId: string,
+): Promise<{ id: string; status: string }> {
+  const intent = await getStripe().paymentIntents.confirm(
+    paymentIntentId,
+    { payment_method: 'pm_card_visa' },
+  )
+  return { id: intent.id, status: intent.status }
+}

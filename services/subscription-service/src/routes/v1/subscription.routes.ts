@@ -2,16 +2,16 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import * as http from 'http'
 import { appRouter } from '../../trpc/router'
 import { createContext } from '../../trpc/context'
-import { toHttpResponse, isDomainError } from '@chefmate/errors'
+import { toHttpResponse } from '@chefmate/errors'
 
 function makeCaller(req: FastifyRequest, res: FastifyReply) {
   return appRouter.createCaller(createContext({ req, res }))
 }
 
-async function callTrpc<T>(req: FastifyRequest, res: FastifyReply, fn: (c: ReturnType<typeof makeCaller>) => Promise<T>): Promise<void> {
+async function callTrpc<T>(req: FastifyRequest, res: FastifyReply, fn: (c: ReturnType<typeof makeCaller>) => Promise<T>, successCode: number = 200): Promise<void> {
   try {
     const result = await fn(makeCaller(req, res))
-    return res.send(result)
+    return res.code(successCode).send(result)
   } catch (err: any) {
     const domainErr = err?.cause ?? err
     const codeMap: Record<string, number> = {
@@ -27,8 +27,7 @@ async function callTrpc<T>(req: FastifyRequest, res: FastifyReply, fn: (c: Retur
 export async function subscriptionRoutes(fastify: FastifyInstance): Promise<void> {
   // POST / → createSubscription
   fastify.post('/', async (req, res) => {
-    const result = await makeCaller(req, res).createSubscription(req.body as any)
-    return res.code(201).send(result)
+    return callTrpc(req, res, (c) => c.createSubscription(req.body as any), 201)
   })
 
   // GET /my → listMySubscriptions
@@ -78,8 +77,10 @@ export async function subscriptionRoutes(fastify: FastifyInstance): Promise<void
   })
 
   fastify.setErrorHandler((error, _req, res) => {
-    if (isDomainError(error)) return res.code(error.statusCode).send(toHttpResponse(error))
-    fastify.log.error({ err: error }, 'Unhandled subscription route error')
-    return res.code(500).send(toHttpResponse(error))
+    const httpResp = toHttpResponse(error)
+    if (httpResp.statusCode >= 500) {
+      fastify.log.error({ err: error }, 'Unhandled subscription route error')
+    }
+    return res.code(httpResp.statusCode).send(httpResp)
   })
 }

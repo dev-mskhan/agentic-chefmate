@@ -47,8 +47,9 @@ export async function fetchAddressSnapshot(
 
   // tRPC query input must be URL-encoded JSON in the `input` query param.
   // getAddresses takes no input, so we pass an empty object.
+  // NOTE: user-service tRPC is mounted at /api/v1/users/trpc (not /trpc).
   const inputParam = encodeURIComponent(JSON.stringify({}))
-  const url = `${base}/trpc/getAddresses?input=${inputParam}`
+  const url = `${base}/api/v1/users/trpc/getAddresses?input=${inputParam}`
 
   const res = await fetch(url, {
     method: 'GET',

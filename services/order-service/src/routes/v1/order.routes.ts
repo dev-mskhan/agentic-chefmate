@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import * as http from 'http'
 import { appRouter } from '../../trpc/router'
 import { createContext } from '../../trpc/context'
-import { toHttpResponse, isDomainError } from '@chefmate/errors'
+import { toHttpResponse } from '@chefmate/errors'
 
 function makeCaller(req: FastifyRequest, res: FastifyReply) {
   return appRouter.createCaller(createContext({ req, res }))
@@ -12,11 +12,12 @@ async function callTrpc<T>(
   req: FastifyRequest,
   res: FastifyReply,
   fn: (caller: ReturnType<typeof makeCaller>) => Promise<T>,
+  successCode: number = 200,
 ): Promise<void> {
   try {
     const caller = makeCaller(req, res)
     const result = await fn(caller)
-    return res.send(result)
+    return res.code(successCode).send(result)
   } catch (err: any) {
     const domainErr = err?.cause ?? err
     const codeMap: Record<string, number> = {
@@ -39,9 +40,7 @@ export async function orderRoutes(fastify: FastifyInstance): Promise<void> {
   // ── Customer: create order ────────────────────────────────────────────────
   // POST /api/v1/orders
   fastify.post('/', async (req, res) => {
-    const caller = makeCaller(req, res)
-    const result = await caller.createOrder(req.body as any)
-    return res.code(201).send(result)
+    return callTrpc(req, res, (caller) => caller.createOrder(req.body as any), 201)
   })
 
   // ── Customer: get my order ────────────────────────────────────────────────
@@ -106,9 +105,7 @@ export async function orderRoutes(fastify: FastifyInstance): Promise<void> {
   // ── Checkout ─────────────────────────────────────────────────────────────
   // POST /api/v1/orders/checkout
   fastify.post('/checkout', async (req, res) => {
-    const caller = makeCaller(req, res)
-    const result = await caller.checkout(req.body as any)
-    return res.code(201).send(result)
+    return callTrpc(req, res, (caller) => caller.checkout(req.body as any), 201)
   })
 
   // POST /api/v1/orders/checkout/preview
@@ -132,9 +129,7 @@ export async function orderRoutes(fastify: FastifyInstance): Promise<void> {
   // ── Admin coupon endpoints ────────────────────────────────────────────────
   // POST /api/v1/orders/admin/coupons
   fastify.post('/admin/coupons', async (req, res) => {
-    const caller = makeCaller(req, res)
-    const result = await caller.createCoupon(req.body as any)
-    return res.code(201).send(result)
+    return callTrpc(req, res, (caller) => caller.createCoupon(req.body as any), 201)
   })
 
   // PATCH /api/v1/orders/admin/coupons/:couponId
@@ -171,10 +166,10 @@ export async function orderRoutes(fastify: FastifyInstance): Promise<void> {
 
   // ── Error handler ─────────────────────────────────────────────────────────
   fastify.setErrorHandler((error, _req, res) => {
-    if (isDomainError(error)) {
-      return res.code(error.statusCode).send(toHttpResponse(error))
+    const httpResp = toHttpResponse(error)
+    if (httpResp.statusCode >= 500) {
+      fastify.log.error({ err: error }, 'Unhandled order route error')
     }
-    fastify.log.error({ err: error }, 'Unhandled order route error')
-    return res.code(500).send(toHttpResponse(error))
+    return res.code(httpResp.statusCode).send(httpResp)
   })
 }

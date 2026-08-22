@@ -46,6 +46,7 @@ export const updateOrderStatusProcedure = chefProcedure
         orderId:   input.orderId,
         userId:    order.customerId,
         chefId:    order.chefId,
+        items:     order.items.map((i) => ({ dishId: i.dishId })),
         createdAt: new Date().toISOString(),
         version:   '1',
       })

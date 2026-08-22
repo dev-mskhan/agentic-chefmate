@@ -59,18 +59,28 @@ export default defineConfig({
       testMatch: 'tests/media/**/*.spec.ts',
     },
     {
-      name: 'order-direct',
-      use: { baseURL: ORDER_URL },
+      // Order-service tests run through the gateway (GATEWAY_URL), not the
+      // order-service directly, so that cookie auth, the auth-verify hook,
+      // role gating, and proxy behaviour are exercised end-to-end.
+      name: 'order-via-gateway',
+      use: { baseURL: GATEWAY_URL },
       testMatch: 'tests/orders/**/*.spec.ts',
     },
     {
-      name: 'payment-direct',
-      use: { baseURL: PAYMENT_URL },
+      // Payment-service tests run through the gateway (GATEWAY_URL), not the
+      // payment-service directly, so that cookie auth, the auth-verify hook,
+      // role gating, and proxy behaviour are exercised end-to-end.
+      name: 'payment-via-gateway',
+      use: { baseURL: GATEWAY_URL },
       testMatch: 'tests/payments/**/*.spec.ts',
     },
     {
-      name: 'subscription-direct',
-      use: { baseURL: SUBSCRIPTION_URL },
+      // Subscription-service tests run through the gateway (GATEWAY_URL),
+      // not the subscription-service directly, so that cookie auth, the
+      // auth-verify hook, role gating, and proxy behaviour are exercised
+      // end-to-end.
+      name: 'subscription-via-gateway',
+      use: { baseURL: GATEWAY_URL },
       testMatch: 'tests/subscriptions/**/*.spec.ts',
     },
     {

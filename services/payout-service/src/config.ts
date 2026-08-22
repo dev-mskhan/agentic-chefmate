@@ -14,6 +14,7 @@ const payoutServiceEnvSchema = baseEnvSchema.extend({
   STRIPE_CONNECT_RETURN_URL:  z.string().url(),
   STRIPE_CONNECT_REFRESH_URL: z.string().url(),
   PLATFORM_FEE_BPS:           z.coerce.number().int().min(0).max(10000).default(1000),
+  CHEF_SERVICE_URL:           z.string().url().default('http://localhost:3003'),
 })
 
 export type PayoutServiceConfig = z.infer<typeof payoutServiceEnvSchema>

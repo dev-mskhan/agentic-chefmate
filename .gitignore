@@ -7,7 +7,7 @@ scripts/
 .kiro
 .antigravity
 TEST_WORKFLOW_MEMORY.md
-
+.vscode
 # RSA key files — never commit these
 *.pem
 *.key

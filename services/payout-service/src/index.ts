@@ -8,6 +8,7 @@ import { initEventService, disconnectEventService } from './services/event.servi
 import mongoPlugin from './plugins/mongo'
 import redisPlugin from './plugins/redis'
 import trpcPlugin  from './plugins/trpc'
+import { payoutRoutes } from './routes/v1/payout.routes'
 import { toHttpResponse } from '@chefmate/errors'
 
 const logger = createLogger('payout-service')
@@ -18,6 +19,7 @@ async function buildApp() {
   await app.register(mongoPlugin)
   await app.register(redisPlugin)
   await app.register(trpcPlugin)
+  await app.register(payoutRoutes, { prefix: '/api/v1/payouts' })
 
   app.setErrorHandler((error, _req, reply) => {
     const httpResp = toHttpResponse(error)

@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { chefProcedure } from '../trpc'
 import { EarningsLedger, LedgerEntryTypeValues } from '../../models/earnings-ledger.model'
+import { resolveChefId } from '../../services/chef-client.service'
 
 export const getEarningsProcedure = chefProcedure
   .input(z.object({
@@ -9,7 +10,8 @@ export const getEarningsProcedure = chefProcedure
     type:   z.enum(LedgerEntryTypeValues).optional(),
   }))
   .query(async ({ ctx, input }) => {
-    const filter: Record<string, unknown> = { chefId: ctx.principal.userId }
+    const chefId = await resolveChefId(ctx.principal.userId, ctx.principal.email)
+    const filter: Record<string, unknown> = { chefId }
     if (input.type)   filter['type']      = input.type
     if (input.cursor) filter['_id']       = { $lt: input.cursor }
 

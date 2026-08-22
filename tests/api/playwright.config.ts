@@ -11,6 +11,7 @@ const CHEF_URL         = process.env['CHEF_SERVICE_URL']         ?? 'http://loca
 const ORDER_URL        = process.env['ORDER_SERVICE_URL']        ?? 'http://localhost:3004'
 const PAYMENT_URL      = process.env['PAYMENT_SERVICE_URL']      ?? 'http://localhost:3008'
 const SUBSCRIPTION_URL = process.env['SUBSCRIPTION_SERVICE_URL'] ?? 'http://localhost:3009'
+const PAYOUT_URL       = process.env['PAYOUT_SERVICE_URL']       ?? 'http://localhost:3012'
 
 export default defineConfig({
   testDir: './tests',
@@ -82,6 +83,15 @@ export default defineConfig({
       name: 'subscription-via-gateway',
       use: { baseURL: GATEWAY_URL },
       testMatch: 'tests/subscriptions/**/*.spec.ts',
+    },
+    {
+      // Payout-service tests run through the gateway (GATEWAY_URL),
+      // not the payout-service directly, so that cookie auth, the
+      // auth-verify hook, role gating (CHEF | ADMIN), and proxy behaviour
+      // are exercised end-to-end.
+      name: 'payout-via-gateway',
+      use: { baseURL: GATEWAY_URL },
+      testMatch: 'tests/payouts/**/*.spec.ts',
     },
     {
       name: 'gateway',

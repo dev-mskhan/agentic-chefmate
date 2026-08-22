@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { chefProcedure } from '../trpc'
 import { Payout } from '../../models/payout.model'
+import { resolveChefId } from '../../services/chef-client.service'
 
 export const getPayoutsProcedure = chefProcedure
   .input(z.object({
@@ -8,7 +9,8 @@ export const getPayoutsProcedure = chefProcedure
     limit:  z.number().int().min(1).max(100).default(20),
   }))
   .query(async ({ ctx, input }) => {
-    const filter: Record<string, unknown> = { chefId: ctx.principal.userId }
+    const chefId = await resolveChefId(ctx.principal.userId, ctx.principal.email)
+    const filter: Record<string, unknown> = { chefId }
     if (input.cursor) filter['_id'] = { $lt: input.cursor }
 
     const payouts = await Payout.find(filter).sort({ createdAt: -1 }).limit(input.limit).lean()

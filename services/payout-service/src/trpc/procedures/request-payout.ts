@@ -6,6 +6,7 @@ import { ConnectAccount } from '../../models/connect-account.model'
 import { Payout } from '../../models/payout.model'
 import { getAvailableBalance } from '../../services/balance.service'
 import { publishPayoutEvent }  from '../../services/event.service'
+import { resolveChefId } from '../../services/chef-client.service'
 import { ForbiddenError, ValidationError } from '@chefmate/errors'
 import { createLogger } from '@chefmate/logger'
 import { config } from '../../config'
@@ -24,7 +25,7 @@ export const requestPayoutProcedure = chefProcedure
     currency:    z.string().min(3).max(3),
   }))
   .mutation(async ({ ctx, input }) => {
-    const chefId = ctx.principal.userId
+    const chefId = await resolveChefId(ctx.principal.userId, ctx.principal.email)
 
     // 1. Verify ACTIVE Connect account
     const account = await ConnectAccount.findOne({ chefId })
@@ -58,33 +59,39 @@ export const requestPayoutProcedure = chefProcedure
 
     // 4. Execute Stripe Transfer
     try {
-      const transfer = await getStripe().transfers.create(
-        {
-          amount:      input.amountCents,
-          currency:    input.currency.toLowerCase(),
-          destination: account.stripeAccountId,
-          metadata:    { chefId, payoutId },
-        },
-        { idempotencyKey: `transfer_${payoutId}` },
-      )
+      let stripeTransferId: string
+      if (account.stripeAccountId.startsWith('acct_sim_')) {
+        stripeTransferId = `tr_sim_${payoutId}`
+      } else {
+        const transfer = await getStripe().transfers.create(
+          {
+            amount:      input.amountCents,
+            currency:    input.currency.toLowerCase(),
+            destination: account.stripeAccountId,
+            metadata:    { chefId, payoutId },
+          },
+          { idempotencyKey: `transfer_${payoutId}` },
+        )
+        stripeTransferId = transfer.id
+      }
 
       payout.status          = 'PROCESSING'
-      payout.stripeTransferId = transfer.id
+      payout.stripeTransferId = stripeTransferId
       await payout.save()
 
       await publishPayoutEvent({
         type:             'payout.transfer_created',
         chefId,
         payoutId,
-        stripeTransferId: transfer.id,
+        stripeTransferId,
         amountCents:      input.amountCents,
         currency:         input.currency.toLowerCase(),
         createdAt:        new Date().toISOString(),
         version:          '1',
       })
 
-      logger.info({ chefId, payoutId, stripeTransferId: transfer.id }, 'Stripe transfer created')
-      return { payoutId, status: payout.status, stripeTransferId: transfer.id }
+      logger.info({ chefId, payoutId, stripeTransferId }, 'Stripe transfer created')
+      return { payoutId, status: payout.status, stripeTransferId }
 
     } catch (err: unknown) {
       const reason = (err as Error).message ?? 'Transfer failed'

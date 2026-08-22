@@ -94,6 +94,13 @@ export default defineConfig({
       testMatch: 'tests/payouts/**/*.spec.ts',
     },
     {
+      // Review-service tests run through the gateway (GATEWAY_URL),
+      // exercising cookie auth, role gating, public access, and proxy behavior.
+      name: 'review-via-gateway',
+      use: { baseURL: GATEWAY_URL },
+      testMatch: 'tests/reviews/**/*.spec.ts',
+    },
+    {
       name: 'gateway',
       use: { baseURL: GATEWAY_URL },
       testMatch: 'tests/gateway/**/*.spec.ts',

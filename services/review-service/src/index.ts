@@ -12,6 +12,7 @@ import { handleOrderEvent } from './consumers/order.consumer'
 import mongoPlugin from './plugins/mongo'
 import trpcPlugin from './plugins/trpc'
 import { healthRoutes, setKafkaConsumerRunning } from './routes/v1/health.routes'
+import { reviewRoutes } from './routes/v1/review.routes'
 import { toHttpResponse, isDomainError } from '@chefmate/errors'
 
 const logger = createLogger('review-service')
@@ -25,6 +26,7 @@ async function buildApp() {
   await app.register(mongoPlugin)
   await app.register(trpcPlugin)
   await app.register(healthRoutes)
+  await app.register(reviewRoutes, { prefix: '/api/v1/reviews' })
 
   app.setErrorHandler((error, _request, reply) => {
     const httpResp = toHttpResponse(error)

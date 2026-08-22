@@ -5,6 +5,8 @@ import { Review } from '../../models/review.model'
 import { publishReviewEvent } from '../../services/event.service'
 import type { ReviewStatus } from '../../models/review.model'
 
+import mongoose from 'mongoose'
+
 export const moderateReviewProcedure = adminProcedure
   .input(
     z.object({
@@ -14,6 +16,9 @@ export const moderateReviewProcedure = adminProcedure
   )
   .mutation(async ({ input }) => {
     // 1. Lookup review
+    if (!mongoose.isValidObjectId(input.reviewId)) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Review not found' })
+    }
     const review = await Review.findById(input.reviewId)
     if (!review) {
       throw new TRPCError({ code: 'NOT_FOUND', message: 'Review not found' })
@@ -41,5 +46,8 @@ export const moderateReviewProcedure = adminProcedure
       version:    '1',
     })
 
-    return review
+    return {
+      ...review.toObject(),
+      _id: (review._id as any).toString(),
+    }
   })

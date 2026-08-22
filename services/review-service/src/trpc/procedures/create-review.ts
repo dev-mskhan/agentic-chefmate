@@ -46,7 +46,27 @@ export const createReviewProcedure = protectedProcedure
       }
     }
 
-    // 5. Create the review with server-side fields
+    // 5. Check if duplicate review already exists for this target (chef/dish/plan)
+    const existingQuery: Record<string, unknown> = {
+      customerId: principal.userId,
+      orderId:    input.orderId,
+      chefId:     input.chefId,
+    }
+    if (input.dishId) {
+      existingQuery['dishId'] = input.dishId
+    } else if (input.planId) {
+      existingQuery['planId'] = input.planId
+    } else {
+      existingQuery['dishId'] = { $exists: false }
+      existingQuery['planId'] = { $exists: false }
+    }
+
+    const existingReview = await Review.findOne(existingQuery)
+    if (existingReview) {
+      throw new TRPCError({ code: 'CONFLICT', message: 'Duplicate review' })
+    }
+
+    // 6. Create the review with server-side fields
     let review
     try {
       review = await Review.create({
@@ -96,5 +116,8 @@ export const createReviewProcedure = protectedProcedure
       version:    '1',
     })
 
-    return review
+    return {
+      ...review.toObject(),
+      _id: (review._id as any).toString(),
+    }
   })

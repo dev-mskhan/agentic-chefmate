@@ -71,14 +71,23 @@ const reviewSchema = new Schema<IReview>(
 
 // ─── Indexes ──────────────────────────────────────────────────────────────────
 
-// Unique: prevent duplicate chef-level reviews per customer per order
-reviewSchema.index({ customerId: 1, orderId: 1, chefId: 1 }, { unique: true })
+// Unique: prevent duplicate chef-level reviews per customer per order (when neither dishId nor planId is set)
+reviewSchema.index(
+  { customerId: 1, orderId: 1, chefId: 1 },
+  { unique: true, partialFilterExpression: { dishId: { $exists: false }, planId: { $exists: false } } },
+)
 
-// Unique sparse: prevent duplicate dish-level reviews per customer per order
-reviewSchema.index({ customerId: 1, orderId: 1, dishId: 1 }, { unique: true, sparse: true })
+// Unique: prevent duplicate dish-level reviews per customer per order per dish
+reviewSchema.index(
+  { customerId: 1, orderId: 1, dishId: 1 },
+  { unique: true, partialFilterExpression: { dishId: { $exists: true } } },
+)
 
-// Unique sparse: prevent duplicate plan-level reviews per customer per order
-reviewSchema.index({ customerId: 1, orderId: 1, planId: 1 }, { unique: true, sparse: true })
+// Unique: prevent duplicate plan-level reviews per customer per order per plan
+reviewSchema.index(
+  { customerId: 1, orderId: 1, planId: 1 },
+  { unique: true, partialFilterExpression: { planId: { $exists: true } } },
+)
 
 // Non-unique: paginated chef review listing
 reviewSchema.index({ chefId: 1, status: 1, createdAt: -1 })

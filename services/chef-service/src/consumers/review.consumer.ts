@@ -6,6 +6,18 @@ import { MealPlan } from '../models/meal-plan.model'
 
 // ─── Aggregate helpers ────────────────────────────────────────────────────────
 
+import mongoose from 'mongoose'
+import Redis from 'ioredis'
+import { config } from '../config'
+
+let redisClient: Redis | null = null
+function getRedisClient(): Redis {
+  if (!redisClient) {
+    redisClient = new Redis(config.REDIS_URL, { maxRetriesPerRequest: null })
+  }
+  return redisClient
+}
+
 async function recalculateChefAggregate(chefId: string): Promise<void> {
   const [result] = await ReviewShadow.aggregate([
     { $match: { chefId, status: 'PUBLISHED' } },
@@ -23,10 +35,22 @@ async function recalculateChefAggregate(chefId: string): Promise<void> {
     : 0
   const totalReviews = result ? (result.totalReviews as number) : 0
 
-  await ChefProfile.findOneAndUpdate(
-    { userId: chefId },
+  const filter: Record<string, unknown>[] = [{ userId: chefId }]
+  if (mongoose.isValidObjectId(chefId)) {
+    filter.push({ _id: new mongoose.Types.ObjectId(chefId) })
+  }
+
+  const updated = await ChefProfile.findOneAndUpdate(
+    { $or: filter },
     { $set: { averageRating, totalReviews } },
+    { new: true },
   )
+
+  if (updated) {
+    const redis = getRedisClient()
+    const pId = updated._id.toString()
+    await redis.del(`chef:${pId}:profile`, `chef:${updated.userId}:profile`).catch(() => {})
+  }
 }
 
 async function recalculateDishAggregate(dishId: string): Promise<void> {

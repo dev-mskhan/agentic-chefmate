@@ -1,4 +1,5 @@
 import { Worker } from 'bullmq'
+import { Notification } from '../models/notification.model'
 import { createLogger } from '@chefmate/logger'
 import type { NotificationJob } from '../queues/notification.queue'
 import { getBullMQConnection } from '../queues/redis-connection'
@@ -8,7 +9,7 @@ import { PermanentNotificationError } from '../utils/errors'
 import { withCircuitBreaker } from '../utils/circuit-breaker'
 import { config } from '../config'
 
-const logger = createLogger('notification-push-worker')
+const logger = createLogger('notification-push-worker').child({ instanceId: config.INSTANCE_ID })
 
 export function startPushWorker(): Worker<NotificationJob> {
   return new Worker<NotificationJob>(
@@ -83,6 +84,10 @@ export function startPushWorker(): Worker<NotificationJob> {
       logger.info(
         { userId, template, notificationId, subscriptionCount: subscriptions.length },
         'Push notification delivered',
+      )
+      await Notification.updateOne(
+        { userId, 'data.notificationId': notificationId },
+        { $set: { 'channelStatus.push.status': 'delivered', 'channelStatus.push.sentAt': new Date() } },
       )
     },
     {

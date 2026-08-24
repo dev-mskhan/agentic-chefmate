@@ -1,10 +1,12 @@
 import { createConfig, baseEnvSchema, loadEnv } from '@chefmate/config'
 import { z } from 'zod'
+import os from 'node:os'
 
 loadEnv(__dirname)
 
 const notifEnvSchema = baseEnvSchema.extend({
   PORT:             z.coerce.number().default(3006),
+  INSTANCE_ID:      z.string().default(() => os.hostname()),
   MONGODB_URI:      z.string().url(),
   REDIS_URL:        z.string().url().default('redis://localhost:6379'),
   REDPANDA_BROKER:  z.string().default('localhost:9092'),

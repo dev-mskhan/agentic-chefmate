@@ -3,10 +3,11 @@ import type { Redis } from 'ioredis'
 import { createLogger } from '@chefmate/logger'
 import type { NotificationJob } from '../queues/notification.queue'
 import { getBullMQConnection } from '../queues/redis-connection'
-import { persistNotification } from '../services/notification.service'
+import { Notification } from '../models/notification.model'
 import type { NotificationType } from '../models/notification.model'
+import { config } from '../config'
 
-const logger = createLogger('notification-inapp-worker')
+const logger = createLogger('notification-inapp-worker').child({ instanceId: config.INSTANCE_ID })
 
 // ── Template registry ─────────────────────────────────────────────────────────
 // Centralised map instead of giant switch statements in each function.
@@ -152,8 +153,10 @@ export function startInAppWorker(pubClient: Redis): Worker<NotificationJob> {
 
       const { type, title, message } = resolveTemplate(template, data)
 
-      // Persist to MongoDB so reconnecting users can fetch missed notifications
-      const saved = await persistNotification(userId, type, title, message, data)
+      const saved = await Notification.findOne({ userId, 'data.notificationId': notificationId })
+      if (!saved) {
+        throw new Error(`Notification ${notificationId} was not persisted before in-app delivery`)
+      }
 
       // Publish to Redis pub/sub for real-time delivery
       // Channel: notif:user:{userId} — subscribed by the gateway/chat-service
@@ -169,6 +172,10 @@ export function startInAppWorker(pubClient: Redis): Worker<NotificationJob> {
       })
 
       await pubClient.publish(channel, payload)
+      await Notification.updateOne(
+        { userId, 'data.notificationId': notificationId },
+        { $set: { 'channelStatus.inApp.status': 'delivered', 'channelStatus.inApp.sentAt': new Date() } },
+      )
       logger.info({ channel, template, notificationId }, 'In-app notification published')
     },
     {

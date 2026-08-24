@@ -1,4 +1,5 @@
 import { Worker } from 'bullmq'
+import { Notification } from '../models/notification.model'
 import nodemailer from 'nodemailer'
 import { config } from '../config'
 import type { NotificationJob } from '../queues/notification.queue'
@@ -18,7 +19,7 @@ import { subscriptionActivatedTemplate } from '../templates/email/subscription-a
 import { subscriptionCancelledTemplate }  from '../templates/email/subscription-cancelled'
 import { subscriptionPastDueTemplate }    from '../templates/email/subscription-past-due'
 
-const logger = createLogger('notification-email-worker')
+const logger = createLogger('notification-email-worker').child({ instanceId: config.INSTANCE_ID })
 
 // ── Nodemailer transporter (Gmail SMTP via App Password) ──────────────────────
 
@@ -134,6 +135,10 @@ export function startEmailWorker(): Worker<NotificationJob> {
           text:    rendered.text,
         }),
       )
+      await Notification.updateOne(
+        { userId, 'data.notificationId': notificationId },
+        { $set: { 'channelStatus.email.status': 'delivered', 'channelStatus.email.sentAt': new Date() } },
+      )
     },
     {
       connection:  getBullMQConnection(),
@@ -141,4 +146,3 @@ export function startEmailWorker(): Worker<NotificationJob> {
     },
   )
 }
-

@@ -2,10 +2,12 @@ import type { Worker, Job } from 'bullmq'
 import type { NotificationJob } from '../queues/notification.queue'
 import { publishNotificationEvent } from '../services/event.service'
 import { Notification } from '../models/notification.model'
+import { getEmailQueue } from '../queues/notification.queue'
 import { isPermanentError } from '../utils/errors'
 import { createLogger } from '@chefmate/logger'
+import { config } from '../config'
 
-const logger = createLogger('notification-worker-lifecycle')
+const logger = createLogger('notification-worker-lifecycle').child({ instanceId: config.INSTANCE_ID })
 
 /** Max attempts budget per channel queue — must stay in sync with queue config. */
 const MAX_ATTEMPTS: Record<string, number> = {
@@ -41,7 +43,7 @@ export function attachWorkerLifecycle(
     // Update delivery status in MongoDB (fire-and-forget — don't block the worker)
     void Notification.findOneAndUpdate(
       { userId, 'data.notificationId': notificationId },
-      { status: 'delivered', deliveredAt: new Date() },
+      { $set: { [`channelStatus.${channel}.status`]: 'delivered', [`channelStatus.${channel}.sentAt`]: new Date() } },
     ).catch((err) =>
       logger.error({ err, notificationId }, 'Failed to update notification status to delivered'),
     )
@@ -78,10 +80,24 @@ export function attachWorkerLifecycle(
     if (isFinal) {
       void Notification.findOneAndUpdate(
         { userId, 'data.notificationId': notificationId },
-        { status: 'failed', failedReason: err.message },
+        { $set: { [`channelStatus.${channel}.status`]: 'failed' } },
       ).catch((dbErr) =>
         logger.error({ dbErr, notificationId }, 'Failed to update notification status to failed'),
       )
+    }
+
+    if (channel === 'push' && isFinal && job.data.priority === 'high') {
+      void getEmailQueue().add(
+        'send-notification',
+        {
+          ...job.data,
+          channel: 'email',
+          data: { ...job.data.data, fallbackReason: 'push_failed' },
+        },
+        { jobId: job.data.notificationId },
+      ).catch((fallbackErr) => {
+        logger.error({ fallbackErr, notificationId }, 'Failed to enqueue push-to-email fallback')
+      })
     }
 
     void publishNotificationEvent({

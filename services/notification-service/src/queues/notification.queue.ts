@@ -1,5 +1,6 @@
 import { Queue } from 'bullmq'
 import { getBullMQConnection } from './redis-connection'
+import { enqueueNotification } from '../services/notification.service'
 
 export type NotificationChannel = 'email' | 'push' | 'inapp'
 
@@ -9,6 +10,7 @@ export interface NotificationJob {
   userId: string
   data: Record<string, unknown>
   notificationId: string
+  priority?: 'high' | 'normal'
 }
 
 // ── Per-channel queues ────────────────────────────────────────────────────────
@@ -18,13 +20,22 @@ export interface NotificationJob {
 //  • Isolated metrics in Bull-Board / BullMQ dashboard
 //  • No wasted poll cycles from channel-mismatch skips on a shared queue
 
-let emailQueue: Queue<NotificationJob> | null = null
-let pushQueue:  Queue<NotificationJob> | null = null
-let inappQueue: Queue<NotificationJob> | null = null
+type NotificationQueue = Pick<Queue<NotificationJob>, 'add' | 'close'>
 
-export function getEmailQueue(): Queue<NotificationJob> {
+let emailQueue: NotificationQueue | null = null
+let pushQueue:  NotificationQueue | null = null
+let inappQueue: NotificationQueue | null = null
+
+function wrapQueue(queue: Queue<NotificationJob>): NotificationQueue {
+  return {
+    add: (name, data, options) => enqueueNotification(queue, name, data, options),
+    close: () => queue.close(),
+  }
+}
+
+export function getEmailQueue(): NotificationQueue {
   if (!emailQueue) {
-    emailQueue = new Queue<NotificationJob>('notifications-email', {
+    emailQueue = wrapQueue(new Queue<NotificationJob>('notifications-email', {
       connection: getBullMQConnection(),
       defaultJobOptions: {
         attempts: 5,
@@ -35,14 +46,14 @@ export function getEmailQueue(): Queue<NotificationJob> {
         // so we cap it at a generous 1000 for operational safety.
         removeOnFail: { count: 1000 },
       },
-    })
+    }))
   }
   return emailQueue
 }
 
-export function getPushQueue(): Queue<NotificationJob> {
+export function getPushQueue(): NotificationQueue {
   if (!pushQueue) {
-    pushQueue = new Queue<NotificationJob>('notifications-push', {
+    pushQueue = wrapQueue(new Queue<NotificationJob>('notifications-push', {
       connection: getBullMQConnection(),
       defaultJobOptions: {
         // Push is best-effort — fewer retries, faster promotion to DLQ
@@ -51,14 +62,14 @@ export function getPushQueue(): Queue<NotificationJob> {
         removeOnComplete: { count: 500 },
         removeOnFail: { count: 1000 },
       },
-    })
+    }))
   }
   return pushQueue
 }
 
-export function getInAppQueue(): Queue<NotificationJob> {
+export function getInAppQueue(): NotificationQueue {
   if (!inappQueue) {
-    inappQueue = new Queue<NotificationJob>('notifications-inapp', {
+    inappQueue = wrapQueue(new Queue<NotificationJob>('notifications-inapp', {
       connection: getBullMQConnection(),
       defaultJobOptions: {
         // In-app is critical for UX — more attempts, shorter delay
@@ -67,7 +78,7 @@ export function getInAppQueue(): Queue<NotificationJob> {
         removeOnComplete: { count: 100 },
         removeOnFail: { count: 1000 },
       },
-    })
+    }))
   }
   return inappQueue
 }

@@ -1,6 +1,7 @@
 import { loadEnv } from '@chefmate/config'
 loadEnv(__dirname)
 
+import Fastify from 'fastify'
 import { Kafka } from 'kafkajs'
 import { config } from './config'
 import Redis from 'ioredis'
@@ -31,8 +32,10 @@ import { startInAppWorker } from './workers/inapp.worker'
 import { attachWorkerLifecycle } from './workers/lifecycle'
 import { initNotificationEventService, disconnectNotificationEventService } from './services/event.service'
 import { initWebPush } from './services/web-push.service'
+import { notificationRoutes } from './routes/v1/notification.routes'
+import { startNotificationPresence } from './services/presence.service'
 
-const logger = createLogger('notification-service')
+const logger = createLogger('notification-service').child({ instanceId: config.INSTANCE_ID })
 
 async function start() {
   // ── MongoDB ──────────────────────────────────────────────────────────────
@@ -47,17 +50,14 @@ async function start() {
   logger.info('Notification event producer connected')
 
   // ── Redis pub/sub client for the in-app worker ────────────────────────────
-  // This ioredis instance is used only for Redis pub/sub.
-  // BullMQ Queue/Worker constructors receive a plain connection-config object
-  // (from getBullMQConnection()), not this instance.
   const pubClient = new Redis(config.REDIS_URL!, { maxRetriesPerRequest: null })
+  const stopPresence = startNotificationPresence(pubClient, config.INSTANCE_ID!)
 
   // ── BullMQ workers (per-channel queues) ───────────────────────────────────
   const emailWorker = startEmailWorker()
   const pushWorker  = startPushWorker()
   const inappWorker = startInAppWorker(pubClient)
 
-  // Attach lifecycle listeners — publish notification.sent / notification.failed
   attachWorkerLifecycle(emailWorker, 'email')
   attachWorkerLifecycle(pushWorker,  'push')
   attachWorkerLifecycle(inappWorker, 'inapp')
@@ -85,8 +85,6 @@ async function start() {
     subscriptionConsumer.connect(),
   ])
 
-  // Consumers no longer receive a queue parameter — they resolve their own
-  // channel-specific queue via the singleton getters.
   await authConsumer.subscribe<AuthEvent>(AUTH_EVENTS_TOPIC, (e) => handleAuthEvent(e))
   await orderConsumer.subscribe<OrderEvent>(ORDER_EVENTS_TOPIC, (e) => handleOrderEvent(e))
   await chefConsumer.subscribe<ChefEvent>(CHEF_EVENTS_TOPIC, (e) => handleChefEvent(e))
@@ -98,11 +96,25 @@ async function start() {
   await paymentConsumer.subscribe<PaymentEvent>(PAYMENT_EVENTS_TOPIC, (e) => handlePaymentEvent(e))
   await subscriptionConsumer.subscribe<SubscriptionEvent>(SUBSCRIPTION_EVENTS_TOPIC, (e) => handleSubscriptionEvent(e))
 
-  logger.info(`notification-service started (port ${config.PORT})`)
+  logger.info('All 7 Kafka consumers connected and listening')
+
+  // ── Fastify HTTP Server ──────────────────────────────────────────────────
+  const server = Fastify({ logger: false, trustProxy: true })
+
+  await server.register(notificationRoutes, { prefix: '/api/v1/notifications' })
+
+  // Health route at root level
+  server.get('/health', async (_req, res) => {
+    return res.code(200).send({ status: 'ok', service: 'notification-service' })
+  })
+
+  await server.listen({ port: config.PORT, host: '0.0.0.0' })
+  logger.info(`notification-service started — HTTP on port ${config.PORT}`)
 
   // ── Graceful shutdown ─────────────────────────────────────────────────────
   const shutdown = async (signal: string) => {
     logger.info(`${signal} — shutting down notification-service`)
+    try { await server.close() } catch {}
     await Promise.all([
       authConsumer.disconnect(),
       orderConsumer.disconnect(),
@@ -115,6 +127,7 @@ async function start() {
       pushWorker.close(),
       inappWorker.close(),
       pubClient.quit(),
+      stopPresence(),
       disconnectNotificationEventService(),
       closeAllQueues(),
     ])

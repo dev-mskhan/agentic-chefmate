@@ -10,7 +10,12 @@ export type NotificationType =
   | 'CHAT_MESSAGE'
   | 'WELCOME_CHEF'
 
-export type NotificationStatus = 'pending' | 'delivered' | 'failed'
+export type NotificationChannelStatus = 'pending' | 'delivered' | 'failed' | 'skipped'
+
+export interface IChannelStatus {
+  status: NotificationChannelStatus
+  sentAt?: Date
+}
 
 export interface INotification extends Document {
   _id: Types.ObjectId
@@ -19,9 +24,11 @@ export interface INotification extends Document {
   title: string
   message: string
   data: Record<string, unknown>
-  status: NotificationStatus
-  deliveredAt?: Date
-  failedReason?: string
+  channelStatus: {
+    inApp: IChannelStatus
+    email: IChannelStatus
+    push: IChannelStatus
+  }
   readAt?: Date
   createdAt: Date
   expiresAt?: Date
@@ -34,14 +41,11 @@ const NotificationSchema = new Schema<INotification>(
     title:        { type: String, required: true },
     message:      { type: String, required: true },
     data:         { type: Schema.Types.Mixed, default: {} },
-    status:       {
-      type:    String,
-      enum:    ['pending', 'delivered', 'failed'],
-      default: 'pending',
-      index:   true,
+    channelStatus: {
+      inApp: { status: { type: String, enum: ['pending', 'delivered', 'failed', 'skipped'], default: 'skipped' }, sentAt: Date },
+      email: { status: { type: String, enum: ['pending', 'delivered', 'failed', 'skipped'], default: 'skipped' }, sentAt: Date },
+      push: { status: { type: String, enum: ['pending', 'delivered', 'failed', 'skipped'], default: 'skipped' }, sentAt: Date },
     },
-    deliveredAt:  { type: Date },
-    failedReason: { type: String },
     readAt:       { type: Date },
     expiresAt:    { type: Date },
   },
@@ -51,6 +55,6 @@ const NotificationSchema = new Schema<INotification>(
 // TTL index — auto-delete old notifications after 30 days
 NotificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 NotificationSchema.index({ userId: 1, createdAt: -1 })
-NotificationSchema.index({ userId: 1, status: 1 })
+NotificationSchema.index({ userId: 1, 'channelStatus.inApp.status': 1 })
 
 export const Notification = model<INotification>('Notification', NotificationSchema)

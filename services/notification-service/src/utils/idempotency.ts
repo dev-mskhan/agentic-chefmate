@@ -6,9 +6,12 @@ import crypto from 'crypto'
  * are safely deduplicated when passed as BullMQ jobId.
  */
 export function deriveNotificationId(eventType: string, ...parts: string[]): string {
+  const normalizedParts = parts.at(-1) && ['email', 'push', 'inapp'].includes(parts.at(-1)!)
+    ? parts.slice(0, -1)
+    : parts
   return crypto
     .createHash('sha256')
-    .update([eventType, ...parts].join(':'))
+    .update([eventType, ...normalizedParts].join(':'))
     .digest('hex')
     .slice(0, 32)
 }

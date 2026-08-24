@@ -18,7 +18,7 @@ export async function validateMediaOwnership(
 ): Promise<void> {
   if (mediaIds.length === 0) return
 
-  const url = `${mediaServiceUrl}/api/v1/media/internal/validate-media`
+  const url = `${mediaServiceUrl}/internal/media/validate`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -33,11 +33,8 @@ export async function validateMediaOwnership(
     throw new Error(`Media validation call failed: ${res.status} ${text}`)
   }
 
-  const body = (await res.json()) as { results: Array<{ mediaId: string; valid: boolean; reason: string }> }
-
-  const invalid = body.results.filter((r) => !r.valid)
-  if (invalid.length > 0) {
-    const reasons = invalid.map((r) => `${r.mediaId}: ${r.reason}`).join(', ')
-    throw new ValidationError(`Invalid media references: ${reasons}`)
+  const body = (await res.json()) as { valid: boolean; invalidIds: string[] }
+  if (!body.valid || body.invalidIds.length > 0) {
+    throw new ValidationError(`Invalid media references: ${body.invalidIds.join(', ')}`)
   }
 }

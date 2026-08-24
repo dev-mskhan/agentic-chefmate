@@ -1,4 +1,5 @@
 import type { MediaEvent } from '@chefmate/event-contracts'
+import { isEventProcessed, markEventProcessed } from '@chefmate/event-contracts'
 import { Dish } from '../models/dish.model'
 import { MealPlan } from '../models/meal-plan.model'
 import { ChefProfile } from '../models/chef-profile.model'
@@ -11,7 +12,10 @@ import { ChefProfile } from '../models/chef-profile.model'
  * arrays in sync when a media asset is soft-deleted in the media-service.
  */
 export async function handleMediaEvent(event: MediaEvent): Promise<void> {
-  if (event.type === 'media.deleted') {
+  const eventId = (event as MediaEvent & { eventId: string }).eventId
+  if (await isEventProcessed(eventId)) return
+
+  if (event.type === 'media.deleted' || event.type === 'media.failed') {
     const { mediaId } = event
 
     // Remove from all dishes that reference this mediaId
@@ -32,4 +36,6 @@ export async function handleMediaEvent(event: MediaEvent): Promise<void> {
       { $pull: { portfolioMediaIds: mediaId } },
     )
   }
+
+  await markEventProcessed(eventId)
 }

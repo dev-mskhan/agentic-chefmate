@@ -2,12 +2,14 @@ import { z } from 'zod'
 import { NotFoundError, ForbiddenError } from '@chefmate/errors'
 import { protectedProcedure } from '../trpc'
 import { ChefProfile } from '../../models/chef-profile.model'
+import { validateMediaOwnership } from '../../services/media-validation.service'
 import { publishChefEvent } from '../../services/event.service'
 
 const updateChefProfileInput = z.object({
   displayName: z.string().min(2).max(60).trim().optional(),
   bio:         z.string().max(1000).optional(),
   phone:       z.string().min(7).optional(),
+  portfolioMediaIds: z.array(z.string().min(1)).max(20).optional(),
 })
 
 export const updateChefProfileProcedure = protectedProcedure
@@ -41,6 +43,17 @@ export const updateChefProfileProcedure = protectedProcedure
     if (input.phone !== undefined) {
       updateFields['phone'] = input.phone
       changedFields.push('phone')
+    }
+    if (input.portfolioMediaIds !== undefined) {
+      const portfolioMediaIds = [...new Set(input.portfolioMediaIds)]
+      await validateMediaOwnership(
+        ctx.config.MEDIA_SERVICE_URL!,
+        ctx.config.INTERNAL_SECRET!,
+        portfolioMediaIds,
+        userId,
+      )
+      updateFields['portfolioMediaIds'] = portfolioMediaIds
+      changedFields.push('portfolioMediaIds')
     }
 
     const updated = await ChefProfile.findOneAndUpdate(

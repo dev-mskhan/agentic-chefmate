@@ -11,6 +11,7 @@ import { initEventService, disconnectEventService } from './services/event.servi
 import mongoPlugin from './plugins/mongo'
 import { createStorage } from './storage/storage.factory'
 import { mediaRoutes } from './routes/v1/media.routes'
+import { internalMediaRoutes } from './routes/internal.routes'
 import { toHttpResponse, isDomainError } from '@chefmate/errors'
 
 const logger = createLogger('media-service')
@@ -26,6 +27,7 @@ async function buildApp() {
   })
   await app.register(fastifySwaggerUi, { routePrefix: '/documentation' })
   await app.register(mongoPlugin)
+  await app.register(internalMediaRoutes)
 
   const storage = createStorage(config as MediaConfig)
   await app.register(mediaRoutes, { prefix: '/api/v1/media', storage, config: config as MediaConfig })

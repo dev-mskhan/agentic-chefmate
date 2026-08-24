@@ -147,7 +147,8 @@ services:
       - chefmate
 
   # ─── MinIO (S3-compatible object storage) ───────────────────────────────────
-  minio:    image: minio/minio
+  minio:
+    image: minio/minio
     container_name: chefmate-minio
     restart: unless-stopped
     command: server /data --console-address ":9001"

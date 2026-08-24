@@ -8,6 +8,7 @@ import {
   CONNECT_EVENTS_TOPIC, ConnectEvent,
 } from '@chefmate/event-contracts'
 import { createLogger } from '@chefmate/logger'
+import { EarningsLedger } from '../models/earnings-ledger.model'
 
 const logger = createLogger('payout-service:events')
 
@@ -29,6 +30,7 @@ export async function initEventService(broker: string): Promise<void> {
   // Lazy import handlers to avoid circular deps
   const settlement = await import('./settlement.service')
   const connect    = await import('./connect.service')
+  await EarningsLedger.createIndexes()
 
   await orderConsumer.subscribe<OrderEvent>(ORDER_EVENTS_TOPIC, async (event) => {
     if (event.type === 'order.completed') {

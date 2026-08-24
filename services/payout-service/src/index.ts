@@ -32,10 +32,9 @@ async function buildApp() {
 
 async function start() {
   try {
+    const app = await buildApp()
     await initEventService(config.REDPANDA_BROKER!)
     logger.info('Kafka initialized')
-
-    const app = await buildApp()
     await app.listen({ port: config.PORT, host: '0.0.0.0' })
     logger.info(`payout-service listening on port ${config.PORT}`)
 

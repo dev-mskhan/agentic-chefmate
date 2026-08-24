@@ -11,15 +11,17 @@ export interface TypedProducer {
  * Derives the Kafka partition key from an event payload.
  *
  * Priority order (first truthy value wins):
- *   1. event.userId       — user-scoped events (auth, user, review as customer)
- *   2. event.aggregateId  — generic aggregate root ID (future-proofing)
- *   3. event.chefId       — chef-scoped events
- *   4. event.customerId  — customer-scoped events (payment, subscription, review)
- *   5. event.ownerId     — legacy ownership events
- *   6. event.senderId    — chat events
- *   7. event.accountId   — payment-provider account events
- *   8. event.disputeId   — payment-dispute events
- *   9. event.type        — fallback: no entity ID present on this event shape
+ *   1. event.orderId      — order-scoped events and payment events for an order
+ *   2. event.userId       — user-scoped events (auth, user, review as customer)
+ *   3. event.aggregateId  — generic aggregate root ID (future-proofing)
+ *   4. event.chefId       — chef-scoped events
+ *   5. event.customerId   — customer-scoped events (payment, subscription, review)
+ *   6. event.ownerId      — legacy ownership events
+ *   7. event.senderId     — chat events
+ *   8. event.accountId    — payment-provider account events
+ *   9. event.disputeId    — payment-dispute events
+ *  10. event.paymentId    — payment events without an order ID
+ *  11. event.type        — fallback: no entity ID present on this event shape
  *
  * WHY: Keying by entity ID ensures all events for a given entity land on the
  * same partition, preserving causal ordering (e.g., order.created always
@@ -35,6 +37,7 @@ export interface TypedProducer {
  */
 export function resolveEventKey(event: Record<string, unknown>): string {
   const key =
+    (event['orderId']    as string | undefined) ??
     (event['userId']      as string | undefined) ??
     (event['aggregateId'] as string | undefined) ??
     (event['chefId']      as string | undefined) ??
@@ -43,6 +46,7 @@ export function resolveEventKey(event: Record<string, unknown>): string {
     (event['senderId']    as string | undefined) ??
     (event['accountId']   as string | undefined) ??
     (event['disputeId']   as string | undefined) ??
+    (event['paymentId']  as string | undefined) ??
     (event['type']        as string)
   return key
 }

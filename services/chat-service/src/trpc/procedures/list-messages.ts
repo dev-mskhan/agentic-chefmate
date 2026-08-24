@@ -3,7 +3,7 @@ import { TRPCError } from '@trpc/server'
 import { protectedProcedure } from '../trpc'
 import { ChatThread } from '../../models/thread.model'
 import { Message } from '../../models/message.model'
-import { isParticipant } from '../../services/thread.service'
+import { isParticipant, resolveChefId } from '../../services/thread.service'
 
 export const listMessagesProcedure = protectedProcedure
   .input(z.object({
@@ -14,7 +14,9 @@ export const listMessagesProcedure = protectedProcedure
   .query(async ({ input, ctx }) => {
     const thread = await ChatThread.findById(input.threadId)
     if (!thread) throw new TRPCError({ code: 'NOT_FOUND', message: 'Thread not found' })
-    if (!isParticipant(thread, ctx.principal.userId)) {
+
+    const callerChefId = ctx.principal.role === 'CHEF' ? await resolveChefId(ctx.principal.userId) : undefined
+    if (!isParticipant(thread, ctx.principal.userId, callerChefId)) {
       throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied' })
     }
 

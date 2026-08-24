@@ -12,11 +12,15 @@
     "test:debug": "playwright test --debug"
   },
   "devDependencies": {
-    "@playwright/test": "^1.46.0",
     "@chefmate/event-contracts": "workspace:*",
-    "kafkajs": "^2.2.4",
+    "@playwright/test": "^1.46.0",
+    "@types/node": "^20.14.12",
     "dotenv": "^16.4.5",
-    "typescript": "^5.5.3",
-    "@types/node": "^20.14.12"
+    "kafkajs": "^2.2.4",
+    "socket.io-client": "^4.7.5",
+    "typescript": "^5.5.3"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.3"
   }
 }

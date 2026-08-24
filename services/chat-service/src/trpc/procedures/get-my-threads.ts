@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { protectedProcedure } from '../trpc'
 import { ChatThread } from '../../models/thread.model'
+import { resolveChefId } from '../../services/thread.service'
 
 export const getMyThreadsProcedure = protectedProcedure
   .input(z.object({
@@ -11,10 +12,13 @@ export const getMyThreadsProcedure = protectedProcedure
     const effectiveLimit = Math.min(input.limit, 50)
     const skip = (input.page - 1) * effectiveLimit
 
-    // Filter by role: USER sees threads where they are customer; CHEF sees threads where they are chef
-    const filter = ctx.principal.role === 'USER'
-      ? { customerId: ctx.principal.userId }
-      : { chefId: ctx.principal.userId }
+    let filter: Record<string, unknown> = {}
+    if (ctx.principal.role === 'USER') {
+      filter = { customerId: ctx.principal.userId }
+    } else {
+      const chefProfileId = await resolveChefId(ctx.principal.userId)
+      filter = { $or: [{ chefId: chefProfileId }, { chefId: ctx.principal.userId }] }
+    }
 
     const [threads, total] = await Promise.all([
       ChatThread.find(filter)

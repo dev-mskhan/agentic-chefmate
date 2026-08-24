@@ -1,7 +1,7 @@
 import type { Socket, Server } from 'socket.io'
 import { ChatThread } from '../../models/thread.model'
 import { Message } from '../../models/message.model'
-import { isParticipant, getUnreadCountField } from '../../services/thread.service'
+import { isParticipant, getUnreadCountField, resolveChefId } from '../../services/thread.service'
 import { createLogger } from '@chefmate/logger'
 
 const logger = createLogger('chat-service:mark-read')
@@ -14,7 +14,8 @@ export async function handleMarkRead(
   const { userId, role } = socket.data as { userId: string; role: string }
 
   const thread = await ChatThread.findById(data.threadId)
-  if (!thread || !isParticipant(thread, userId)) {
+  const callerChefId = role === 'CHEF' ? await resolveChefId(userId) : undefined
+  if (!thread || !isParticipant(thread, userId, callerChefId)) {
     socket.emit('error', 'Not a participant')
     return
   }

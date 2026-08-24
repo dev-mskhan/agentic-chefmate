@@ -9,6 +9,7 @@ import mongoPlugin from './plugins/mongo'
 import redisPlugin from './plugins/redis'
 import trpcPlugin  from './plugins/trpc'
 import ioPlugin    from './socket/io.plugin'
+import { chatRoutes } from './routes/v1/chat.routes'
 import { toHttpResponse, isDomainError } from '@chefmate/errors'
 
 const logger = createLogger('chat-service')
@@ -23,6 +24,7 @@ async function buildApp() {
   await app.register(redisPlugin)
   await app.register(trpcPlugin)
   await app.register(ioPlugin)   // must come after redisPlugin (uses fastify.redis)
+  await app.register(chatRoutes, { prefix: '/api/v1/chat' })
 
   app.setErrorHandler((error, _req, reply) => {
     const httpResp = toHttpResponse(error)

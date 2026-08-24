@@ -101,6 +101,13 @@ export default defineConfig({
       testMatch: 'tests/reviews/**/*.spec.ts',
     },
     {
+      // Chat-service tests run through the gateway (GATEWAY_URL),
+      // exercising HTTP APIs, Socket.IO real-time communication, and role authorization.
+      name: 'chat-via-gateway',
+      use: { baseURL: GATEWAY_URL },
+      testMatch: 'tests/chat/**/*.spec.ts',
+    },
+    {
       name: 'gateway',
       use: { baseURL: GATEWAY_URL },
       testMatch: 'tests/gateway/**/*.spec.ts',

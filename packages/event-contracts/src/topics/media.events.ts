@@ -4,7 +4,7 @@ export type MediaEvent =
   | {
       type: 'media.uploaded'
       mediaId: string
-      ownerId: string
+      chefId: string
       ownerType: 'chef' | 'dish' | 'plan'
       mimeType: string
       sizeBytes: number
@@ -14,7 +14,7 @@ export type MediaEvent =
   | {
       type: 'media.ready'
       mediaId: string
-      ownerId: string
+      chefId: string
       thumbnailKey?: string
       createdAt: string
       version: '1'
@@ -22,7 +22,7 @@ export type MediaEvent =
   | {
       type: 'media.failed'
       mediaId: string
-      ownerId: string
+      chefId: string
       reason: string
       createdAt: string
       version: '1'
@@ -30,7 +30,7 @@ export type MediaEvent =
   | {
       type: 'media.deleted'
       mediaId: string
-      ownerId: string
+      chefId: string
       createdAt: string
       version: '1'
     }

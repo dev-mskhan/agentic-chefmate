@@ -57,6 +57,7 @@ export type OrderEvent =
   | {
       type: 'payment.captured'
       orderId: string
+      userId: string
       stripePaymentIntentId: string
       amount: number
       createdAt: string

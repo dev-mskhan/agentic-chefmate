@@ -1,8 +1,11 @@
+import { isEventProcessed, markEventProcessed } from '@chefmate/event-contracts'
 import type { PaymentEvent } from '@chefmate/event-contracts'
 import { deriveNotificationId } from '../utils/idempotency'
 import { getEmailQueue, getInAppQueue } from '../queues/notification.queue'
 
 export async function handlePaymentEvent(event: PaymentEvent): Promise<void> {
+  const eventId = (event as PaymentEvent & { eventId: string }).eventId
+  if (await isEventProcessed(eventId)) return
   const emailQueue = getEmailQueue()
   const inappQueue = getInAppQueue()
 
@@ -58,4 +61,5 @@ export async function handlePaymentEvent(event: PaymentEvent): Promise<void> {
     default:
       break
   }
+  await markEventProcessed(eventId)
 }

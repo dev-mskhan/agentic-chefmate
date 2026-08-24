@@ -4,12 +4,15 @@ import { publishPayoutEvent } from './event.service'
 import { config }         from '../config'
 import { createLogger }   from '@chefmate/logger'
 import type { OrderEvent, PaymentEvent, ConnectEvent } from '@chefmate/event-contracts'
+import { isEventProcessed, markEventProcessed } from '@chefmate/event-contracts'
 
 const logger = createLogger('payout-service:settlement')
 
 export async function handleOrderCompleted(
   event: Extract<OrderEvent, { type: 'order.completed' }>,
 ): Promise<void> {
+  const eventId = (event as typeof event & { eventId: string }).eventId
+  if (await isEventProcessed(eventId)) return
   const idempotencyKey = `${event.orderId}:credit`
 
   // Idempotency guard
@@ -60,11 +63,14 @@ export async function handleOrderCompleted(
     createdAt:        new Date().toISOString(),
     version:          '1',
   })
+  await markEventProcessed(eventId)
 }
 
 export async function handlePaymentRefunded(
   event: Extract<PaymentEvent, { type: 'payment.refunded' }>,
 ): Promise<void> {
+  const eventId = (event as typeof event & { eventId: string }).eventId
+  if (await isEventProcessed(eventId)) return
   const idempotencyKey = `${event.paymentId}:refund`
   const existing = await EarningsLedger.findOne({ idempotencyKey })
   if (existing) { logger.info({ idempotencyKey }, 'Debit already recorded — skipping'); return }
@@ -103,11 +109,14 @@ export async function handlePaymentRefunded(
     createdAt:        new Date().toISOString(),
     version:          '1',
   })
+  await markEventProcessed(eventId)
 }
 
 export async function handlePaymentPartiallyRefunded(
   event: Extract<PaymentEvent, { type: 'payment.partially_refunded' }>,
 ): Promise<void> {
+  const eventId = (event as typeof event & { eventId: string }).eventId
+  if (await isEventProcessed(eventId)) return
   const idempotencyKey = `${event.paymentId}:partial_refund`
   const existing = await EarningsLedger.findOne({ idempotencyKey })
   if (existing) { logger.info({ idempotencyKey }, 'Partial refund debit already recorded — skipping'); return }
@@ -140,11 +149,14 @@ export async function handlePaymentPartiallyRefunded(
     createdAt:        new Date().toISOString(),
     version:          '1',
   })
+  await markEventProcessed(eventId)
 }
 
 export async function handleDisputeCreated(
   event: Extract<ConnectEvent, { type: 'connect.dispute_created' }>,
 ): Promise<void> {
+  const eventId = (event as typeof event & { eventId: string }).eventId
+  if (await isEventProcessed(eventId)) return
   const idempotencyKey = `${event.disputeId}:hold`
   const existing = await EarningsLedger.findOne({ idempotencyKey })
   if (existing) { logger.info({ idempotencyKey }, 'Hold already recorded — skipping'); return }
@@ -178,4 +190,5 @@ export async function handleDisputeCreated(
     createdAt:        new Date().toISOString(),
     version:          '1',
   })
+  await markEventProcessed(eventId)
 }

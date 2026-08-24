@@ -1,3 +1,4 @@
+import { isEventProcessed, markEventProcessed } from '@chefmate/event-contracts'
 import type { PaymentEvent } from '@chefmate/event-contracts'
 import { Order, isValidTransition } from '../models/order.model'
 import { publishOrderEvent } from '../services/event.service'
@@ -6,6 +7,8 @@ import { createLogger } from '@chefmate/logger'
 const logger = createLogger('payment-consumer')
 
 export async function handlePaymentEvent(event: PaymentEvent): Promise<void> {
+  const eventId = (event as PaymentEvent & { eventId: string }).eventId
+  if (await isEventProcessed(eventId)) return
   switch (event.type) {
     case 'payment.succeeded': {
       const order = await Order.findOne({ _id: event.orderId })
@@ -40,4 +43,5 @@ export async function handlePaymentEvent(event: PaymentEvent): Promise<void> {
     default:
       break
   }
+  await markEventProcessed(eventId)
 }

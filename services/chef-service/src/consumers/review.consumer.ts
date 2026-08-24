@@ -1,3 +1,4 @@
+import { isEventProcessed, markEventProcessed } from '@chefmate/event-contracts'
 import type { ReviewEvent } from '@chefmate/event-contracts'
 import { ReviewShadow } from '../models/review-shadow.model'
 import { ChefProfile } from '../models/chef-profile.model'
@@ -96,6 +97,8 @@ async function recalculatePlanAggregate(planId: string): Promise<void> {
 // ─── Main handler ─────────────────────────────────────────────────────────────
 
 export async function handleReviewEvent(event: ReviewEvent): Promise<void> {
+  const eventId = (event as ReviewEvent & { eventId: string }).eventId
+  if (await isEventProcessed(eventId)) return
   if (event.type === 'review.published') {
     // Upsert the shadow document
     await ReviewShadow.findOneAndUpdate(
@@ -118,6 +121,7 @@ export async function handleReviewEvent(event: ReviewEvent): Promise<void> {
     if (event.dishId) await recalculateDishAggregate(event.dishId)
     if (event.planId) await recalculatePlanAggregate(event.planId)
 
+    await markEventProcessed(eventId)
   } else if (event.type === 'review.status_changed') {
     // Update the shadow document status
     await ReviewShadow.findOneAndUpdate(
@@ -130,6 +134,7 @@ export async function handleReviewEvent(event: ReviewEvent): Promise<void> {
       await recalculateChefAggregate(event.chefId)
       if (event.dishId) await recalculateDishAggregate(event.dishId)
       if (event.planId) await recalculatePlanAggregate(event.planId)
+      await markEventProcessed(eventId)
     }
   }
 }

@@ -112,7 +112,7 @@ export async function mediaRoutes(
     void publishMediaEvent({
       type: 'media.uploaded',
       mediaId,
-      ownerId: body.ownerId,
+      chefId: body.ownerId,
       ownerType: body.ownerType,
       mimeType: body.mimeType,
       sizeBytes: body.sizeBytes,
@@ -205,7 +205,7 @@ export async function mediaRoutes(
       void publishMediaEvent({
         type: 'media.ready',
         mediaId,
-        ownerId: asset.ownerId,
+        chefId: asset.ownerId,
         thumbnailKey,
         createdAt: now,
         version: '1',
@@ -216,7 +216,7 @@ export async function mediaRoutes(
       void publishMediaEvent({
         type: 'media.failed',
         mediaId,
-        ownerId: asset.ownerId,
+        chefId: asset.ownerId,
         reason: body.reason ?? 'Upload failed',
         createdAt: now,
         version: '1',
@@ -269,7 +269,7 @@ export async function mediaRoutes(
     void publishMediaEvent({
       type: 'media.deleted',
       mediaId,
-      ownerId: asset.ownerId,
+      chefId: asset.ownerId,
       createdAt: new Date().toISOString(),
       version: '1',
     })

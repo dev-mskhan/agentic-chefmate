@@ -1,10 +1,13 @@
 import type { Queue } from 'bullmq'
+import { isEventProcessed, markEventProcessed } from '@chefmate/event-contracts'
 import type { AuthEvent } from '@chefmate/event-contracts'
 import type { NotificationJob } from '../queues/notification.queue'
 import { deriveNotificationId } from '../utils/idempotency'
 import { getEmailQueue, getInAppQueue } from '../queues/notification.queue'
 
 export async function handleAuthEvent(event: AuthEvent): Promise<void> {
+  const eventId = (event as AuthEvent & { eventId: string }).eventId
+  if (await isEventProcessed(eventId)) return
   const emailQueue = getEmailQueue()
   const inappQueue = getInAppQueue()
 
@@ -95,4 +98,5 @@ export async function handleAuthEvent(event: AuthEvent): Promise<void> {
     default:
       break
   }
+  await markEventProcessed(eventId)
 }

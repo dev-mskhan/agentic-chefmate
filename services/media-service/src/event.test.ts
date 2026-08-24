@@ -10,7 +10,7 @@ describe('MediaEvent contract shape', () => {
     const event: MediaEvent = {
       type: 'media.uploaded',
       mediaId: 'test-id',
-      ownerId: 'owner-id',
+      chefId: 'owner-id',
       ownerType: 'chef',
       mimeType: 'image/jpeg',
       sizeBytes: 1024,
@@ -25,7 +25,7 @@ describe('MediaEvent contract shape', () => {
     const event: MediaEvent = {
       type: 'media.ready',
       mediaId: 'test-id',
-      ownerId: 'owner-id',
+      chefId: 'owner-id',
       createdAt: new Date().toISOString(),
       version: '1',
     }
@@ -36,7 +36,7 @@ describe('MediaEvent contract shape', () => {
     const event: MediaEvent = {
       type: 'media.failed',
       mediaId: 'test-id',
-      ownerId: 'owner-id',
+      chefId: 'owner-id',
       reason: 'Upload timeout',
       createdAt: new Date().toISOString(),
       version: '1',
@@ -49,7 +49,7 @@ describe('MediaEvent contract shape', () => {
     const event: MediaEvent = {
       type: 'media.deleted',
       mediaId: 'test-id',
-      ownerId: 'owner-id',
+      chefId: 'owner-id',
       createdAt: new Date().toISOString(),
       version: '1',
     }

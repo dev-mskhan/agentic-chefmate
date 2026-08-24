@@ -1,9 +1,15 @@
+import { isEventProcessed, markEventProcessed } from '@chefmate/event-contracts'
 import type { ChatEvent } from '@chefmate/event-contracts'
 import { deriveNotificationId } from '../utils/idempotency'
 import { getPushQueue, getInAppQueue } from '../queues/notification.queue'
 
 export async function handleChatEvent(event: ChatEvent): Promise<void> {
-  if (event.type !== 'chat.message_unread') return
+  const eventId = (event as ChatEvent & { eventId: string }).eventId
+  if (await isEventProcessed(eventId)) return
+  if (event.type !== 'chat.message_unread') {
+    await markEventProcessed(eventId)
+    return
+  }
 
   const pushQueue  = getPushQueue()
   const inappQueue = getInAppQueue()
@@ -42,4 +48,5 @@ export async function handleChatEvent(event: ChatEvent): Promise<void> {
     },
     { jobId: inappId },
   )
+  await markEventProcessed(eventId)
 }

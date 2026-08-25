@@ -125,6 +125,11 @@ export default defineConfig({
       testMatch: 'tests/admin/**/*.spec.ts',
     },
     {
+      name: 'journeys-via-gateway',
+      use: { baseURL: GATEWAY_URL },
+      testMatch: 'tests/journeys/**/*.spec.ts',
+    },
+    {
       name: 'gateway',
       use: { baseURL: GATEWAY_URL },
       testMatch: 'tests/gateway/**/*.spec.ts',

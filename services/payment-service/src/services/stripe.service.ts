@@ -16,21 +16,20 @@ export async function createPaymentIntent(
   metadata:    Record<string, string>,
   idempotencyKey?: string,
 ): Promise<{ id: string; client_secret: string }> {
-  try {
-    const options: Stripe.RequestOptions = {}
-    if (idempotencyKey) options.idempotencyKey = `pi_${idempotencyKey}`
+  const options: Stripe.RequestOptions = {}
+  if (idempotencyKey) options.idempotencyKey = `pi_${idempotencyKey}`
 
-    const intent = await getStripe().paymentIntents.create(
-      { amount: amountCents, currency: currency.toLowerCase(), metadata, automatic_payment_methods: { enabled: true } },
-      options,
-    )
-
-    return { id: intent.id, client_secret: intent.client_secret ?? '' }
-  } catch (err: any) {
-    // In dev / test environments if Stripe API fails (e.g. invalid key or network issue), return a mock intent
-    const mockId = `pi_test_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
-    return { id: mockId, client_secret: `${mockId}_secret_test` }
+  const params = {
+    amount: amountCents,
+    currency: currency.toLowerCase(),
+    metadata,
+    automatic_payment_methods: { enabled: true, allow_redirects: 'never' as const },
   }
+  const intent = idempotencyKey
+    ? await getStripe().paymentIntents.create(params, options)
+    : await getStripe().paymentIntents.create(params)
+
+  return { id: intent.id, client_secret: intent.client_secret ?? '' }
 }
 
 export async function createRefund(

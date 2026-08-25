@@ -115,6 +115,11 @@ export default defineConfig({
       testMatch: 'tests/notifications/**/*.spec.ts',
     },
     {
+      name: 'dashboard-via-gateway',
+      use: { baseURL: GATEWAY_URL },
+      testMatch: 'tests/dashboard/**/*.spec.ts',
+    },
+    {
       name: 'gateway',
       use: { baseURL: GATEWAY_URL },
       testMatch: 'tests/gateway/**/*.spec.ts',

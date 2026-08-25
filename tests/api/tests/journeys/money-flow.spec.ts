@@ -3,6 +3,7 @@ import {
   setupPayoutChef,
   setupPayoutCustomer,
   signinPayoutCustomer,
+  setupAdminContext,
   payoutGet,
   type PayoutChef,
   type PayoutCustomer,
@@ -10,14 +11,17 @@ import {
 
 let chef: PayoutChef
 let customer: PayoutCustomer
+let admin: Awaited<ReturnType<typeof setupAdminContext>>
 
 test.beforeAll(async ({ request }) => {
   chef = await setupPayoutChef()
   customer = await setupPayoutCustomer(request, 'journey4')
+  admin = await setupAdminContext()
 })
 
 test.afterAll(async () => {
   await chef?.request?.dispose()
+  await admin?.dispose()
 })
 
 test('Journey 4 — real payment completes an order and credits the chef ledger', async ({ request }) => {
@@ -63,4 +67,26 @@ test('Journey 4 — real payment completes an order and credits the chef ledger'
     const earnings = await payoutGet(chef.request, '/earnings')
     return (earnings.data.entries as any[]).some((entry) => entry.orderId === orderId && entry.type === 'CREDIT')
   }, { timeout: 30_000 }).toBe(true)
+
+  const paymentStatus = await request.get(`/api/v1/payments/status/${orderId}`)
+  expect(paymentStatus.status()).toBe(200)
+  expect((await paymentStatus.json()).status).toBe('SUCCEEDED')
+
+  const balanceBeforeRefund = await payoutGet(chef.request, '/balance')
+  const refund = await admin.post('/api/v1/payments/admin/refund', {
+    data: { orderId, reason: 'Journey 4 refund verification' },
+  })
+  expect(refund.status()).toBe(200)
+
+  await expect.poll(async () => {
+    const earnings = await payoutGet(chef.request, '/earnings')
+    return (earnings.data.entries as any[]).some((entry) => entry.orderId === orderId && entry.type === 'DEBIT')
+  }, { timeout: 30_000 }).toBe(true)
+
+  const balanceAfterRefund = await payoutGet(chef.request, '/balance')
+  expect(balanceAfterRefund.data.availableBalanceCents)
+    .toBeLessThan(balanceBeforeRefund.data.availableBalanceCents)
+
+  const refundedStatus = await request.get(`/api/v1/payments/status/${orderId}`)
+  expect((await refundedStatus.json()).status).toBe('REFUNDED')
 })

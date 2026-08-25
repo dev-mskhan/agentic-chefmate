@@ -35,6 +35,7 @@ export async function enqueueNotification(
   options?: JobsOptions,
 ): Promise<Job<NotificationJob>> {
   const { notificationId, userId, template, data } = job
+  const channelField = job.channel === 'inapp' ? 'inApp' : job.channel
   await Notification.findOneAndUpdate(
     { userId, 'data.notificationId': notificationId },
     {
@@ -46,7 +47,7 @@ export async function enqueueNotification(
         data: { ...data, notificationId },
         expiresAt: new Date(Date.now() + THIRTY_DAYS_MS),
       },
-      $set: { [`channelStatus.${job.channel}`]: { status: 'pending' } },
+      $set: { [`channelStatus.${channelField}`]: { status: 'pending' } },
     },
     { upsert: true, setDefaultsOnInsert: true },
   )

@@ -53,9 +53,13 @@ export default fp(async function proxyPlugin(fastify: FastifyInstance) {
       rewritePrefix: route.prefix,
       preHandler: route.auth ? createAuthVerifyHook(route.roles) : undefined,
       replyOptions: {
-        rewriteRequestHeaders: (_req, headers) => {
+        rewriteRequestHeaders: (req, headers) => {
           const cleaned = { ...headers }
           delete cleaned['x-internal-secret']
+          for (const name of ['x-user-id', 'x-user-role', 'x-user-email']) {
+            const value = req.headers[name]
+            if (value) cleaned[name] = Array.isArray(value) ? value[0] : value
+          }
           return cleaned
         },
       },

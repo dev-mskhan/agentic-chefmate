@@ -198,7 +198,7 @@ export async function handleDisputeCreated(
   if (existing) { logger.info({ idempotencyKey }, 'Hold already recorded — skipping'); return }
 
   // Find chef from payment
-  const creditEntry = await findCreditWithRetry(event.paymentIntentId)
+  const creditEntry = await findCreditWithRetry(event.paymentId ?? event.paymentIntentId)
   if (!creditEntry) throw new Error(`Credit entry not available for dispute ${event.paymentIntentId}`)
 
   let entry
@@ -206,7 +206,7 @@ export async function handleDisputeCreated(
     entry = await EarningsLedger.create({
       chefId:           creditEntry.chefId,
       orderId:          creditEntry.orderId,
-      paymentId:        event.paymentIntentId,
+      paymentId:        event.paymentId ?? event.paymentIntentId,
       type:             'HOLD',
       grossAmountCents: event.amount,
       platformFeeCents: 0,
@@ -226,7 +226,7 @@ export async function handleDisputeCreated(
     type:             'payout.disputed',
     chefId:           creditEntry.chefId,
     orderId:          creditEntry.orderId ?? '',
-    paymentId:        event.paymentIntentId,
+    paymentId:        event.paymentId ?? event.paymentIntentId,
     holdAmountCents:  event.amount,
     currency:         event.currency,
     ledgerEntryId:    (entry._id as { toString(): string }).toString(),

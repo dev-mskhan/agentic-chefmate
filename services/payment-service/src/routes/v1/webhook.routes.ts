@@ -161,11 +161,13 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       const piId = dispute.payment_intent
         ? (typeof dispute.payment_intent === 'string' ? dispute.payment_intent : (dispute.payment_intent as Stripe.PaymentIntent).id)
         : ''
+      const payment = piId ? await Payment.findOne({ stripePaymentIntentId: piId }).select('_id').lean() : null
       await publishConnectEvent({
         type:            'connect.dispute_created',
         disputeId:       dispute.id,
         chargeId,
         paymentIntentId: piId,
+        paymentId: payment?._id?.toString(),
         amount:          dispute.amount,
         currency:        dispute.currency,
         reason:          dispute.reason,

@@ -6,7 +6,7 @@
 import type { FastifyInstance } from 'fastify'
 import { Payment } from '../../models/payment.model'
 import { createPaymentIntent, confirmPaymentIntent } from '../../services/stripe.service'
-import { publishPaymentEvent } from '../../services/event.service'
+import { publishPaymentEvent, publishConnectEvent } from '../../services/event.service'
 import { config } from '../../config'
 import { createLogger } from '@chefmate/logger'
 import { z } from 'zod'
@@ -101,6 +101,7 @@ export async function internalRoutes(fastify: FastifyInstance): Promise<void> {
       'payment_intent.payment_failed',
       'charge.refunded',
       'charge.refunded.partial',
+      'charge.dispute.created',
     ]),
     amountCents: z.number().int().min(1).optional(), // for partial refund
     reason:      z.string().optional(),
@@ -192,6 +193,24 @@ export async function internalRoutes(fastify: FastifyInstance): Promise<void> {
           createdAt: now, version: '1',
         })
         logger.info({ orderId: payment.orderId, partialAmount }, 'Simulated charge.refunded.partial')
+        break
+      }
+
+      case 'charge.dispute.created': {
+        await publishConnectEvent({
+          type: 'connect.dispute_created',
+          eventId: `evt_sim_dispute_${Date.now()}`,
+          disputeId: `dp_sim_${Date.now()}`,
+          chargeId: `ch_sim_${payment._id.toString()}`,
+          paymentIntentId: payment.stripePaymentIntentId ?? '',
+          paymentId: payment._id.toString(),
+          amount: payment.amountCents,
+          currency: payment.currency,
+          reason: input.reason ?? 'fraudulent',
+          createdAt: now,
+          version: '1',
+        })
+        logger.info({ orderId: payment.orderId }, 'Simulated connect.dispute_created')
         break
       }
     }

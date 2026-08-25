@@ -13,7 +13,10 @@ let chef: PayoutChef
 let customer: PayoutCustomer
 let admin: Awaited<ReturnType<typeof setupAdminContext>>
 
+test.setTimeout(120_000)
+
 test.beforeAll(async ({ request }) => {
+  test.setTimeout(120_000)
   chef = await setupPayoutChef()
   customer = await setupPayoutCustomer(request, 'journey4')
   admin = await setupAdminContext()
@@ -89,4 +92,58 @@ test('Journey 4 — real payment completes an order and credits the chef ledger'
 
   const refundedStatus = await request.get(`/api/v1/payments/status/${orderId}`)
   expect((await refundedStatus.json()).status).toBe('REFUNDED')
+
+  const disputeOrder = await request.post('/api/v1/orders/checkout', {
+    data: {
+      chefId: chef.chefId,
+      deliveryDate: '2026-12-26',
+      addressId: customer.addressId,
+      items: [{ dishId: chef.dishId, quantity: 1 }],
+    },
+  })
+  expect(disputeOrder.status()).toBe(201)
+  const disputeOrderBody = await disputeOrder.json()
+  const disputeOrderId = disputeOrderBody.order?._id ?? disputeOrderBody._id
+  const disputePayment = await fetch(
+    `${process.env.PAYMENT_SERVICE_URL ?? 'http://localhost:3008'}/internal/confirm-payment`,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-internal-secret': process.env.INTERNAL_SECRET ?? 'dev-internal-secret-min-16chars!',
+      },
+      body: JSON.stringify({ orderId: disputeOrderId }),
+    },
+  )
+  expect(disputePayment.ok).toBe(true)
+  await expect.poll(async () => {
+    const response = await request.get(`/api/v1/orders/my/${disputeOrderId}`)
+    return (await response.json().catch(() => null))?.status
+  }, { timeout: 30_000 }).toBe('CONFIRMED')
+
+  for (const status of ['PREPARING', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED']) {
+    const response = await chef.request.patch(`/api/v1/orders/${disputeOrderId}/status`, { data: { newStatus: status } })
+    expect(response.status()).toBe(200)
+  }
+  await expect.poll(async () => {
+    const earnings = await payoutGet(chef.request, '/earnings')
+    return (earnings.data.entries as any[]).some((entry) => entry.orderId === disputeOrderId && entry.type === 'CREDIT')
+  }, { timeout: 30_000 }).toBe(true)
+
+  const simulateDispute = await fetch(
+    `${process.env.PAYMENT_SERVICE_URL ?? 'http://localhost:3008'}/internal/webhook/simulate`,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-internal-secret': process.env.INTERNAL_SECRET ?? 'dev-internal-secret-min-16chars!',
+      },
+      body: JSON.stringify({ orderId: disputeOrderId, event: 'charge.dispute.created', reason: 'fraudulent' }),
+    },
+  )
+  expect(simulateDispute.ok).toBe(true)
+  await expect.poll(async () => {
+    const earnings = await payoutGet(chef.request, '/earnings')
+    return (earnings.data.entries as any[]).some((entry) => entry.orderId === disputeOrderId && entry.type === 'HOLD')
+  }, { timeout: 30_000 }).toBe(true)
 })

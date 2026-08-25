@@ -57,7 +57,7 @@ export async function notificationRoutes(fastify: FastifyInstance): Promise<void
 
     const result = await Notification.updateOne(
       { _id: notificationId, userId },
-      { $set: { 'channelStatus.inApp.unread': false } },
+      { $set: { 'channelStatus.inApp.unread': false, readAt: new Date() } },
     )
 
     return reply.code(200).send({

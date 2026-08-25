@@ -7,7 +7,7 @@ export type ConnectEvent =
     }
   | {
       type: 'connect.dispute_created'
-      disputeId: string; chargeId: string; paymentIntentId: string
+      eventId?: string; disputeId: string; chargeId: string; paymentIntentId: string; paymentId?: string
       amount: number; currency: string; reason: string; createdAt: string; version: '1'
     }
   | {

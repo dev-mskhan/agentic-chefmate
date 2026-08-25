@@ -37,7 +37,7 @@ test.describe('Journey 1 -- chef onboarding through the gateway', () => {
     expect(pending.status).toBe(200)
     expect(pending.data.verificationStatus).not.toBe('ACTIVE')
 
-    const admin = await requestFactory.newContext({ baseURL: 'http://localhost:3000' })
+    const admin = await requestFactory.newContext({ baseURL: process.env['GATEWAY_URL'] ?? 'http://localhost:3000' })
     try {
       const adminSignin = await admin.post('/api/v1/auth/trpc/signin', {
         data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },

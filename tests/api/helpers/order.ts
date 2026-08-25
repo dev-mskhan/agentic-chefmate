@@ -79,7 +79,7 @@ export async function signinCustomer(
 /** Set up an active chef with a dish in a SEPARATE Playwright context. */
 export async function setupChefWithDish(): Promise<ChefFixture> {
   const { request: pw } = await import('@playwright/test')
-  const chefRequest = await pw.newContext({ baseURL: 'http://localhost:3000' })
+  const chefRequest = await pw.newContext({ baseURL: process.env['GATEWAY_URL'] ?? 'http://localhost:3000' })
 
   const chef = await setupActiveChef(chefRequest)
 
@@ -238,7 +238,7 @@ const ADMIN_PASSWORD = 'AdminPass123!'
 /** Create a separate Playwright context authenticated as ADMIN. */
 export async function setupAdminContext(): Promise<APIRequestContext> {
   const { request: pw } = await import('@playwright/test')
-  const ctx = await pw.newContext({ baseURL: 'http://localhost:3000' })
+  const ctx = await pw.newContext({ baseURL: process.env['GATEWAY_URL'] ?? 'http://localhost:3000' })
   const signinRes = await ctx.post(`${AUTH_TRPC}/signin`, {
     data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
   })

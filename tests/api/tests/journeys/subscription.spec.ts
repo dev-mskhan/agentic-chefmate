@@ -31,7 +31,7 @@ test('Journey 3 — subscription renewal generates the next order', async ({ req
     addressId: customer.addressId,
     frequency: 'WEEKLY',
   })
-  expect(created.status).toBe(201)
+  expect(created.status, JSON.stringify(created.data)).toBe(201)
   expect(created.data.subscription.status).toBe('ACTIVE')
 
   const subscriptionId = created.data.subscription._id

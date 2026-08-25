@@ -38,7 +38,7 @@ export interface ReviewCustomer {
 
 export async function setupReviewChef(): Promise<ReviewChef> {
   const { request: pw } = await import('@playwright/test')
-  const chefReq = await pw.newContext({ baseURL: 'http://localhost:3000' })
+  const chefReq = await pw.newContext({ baseURL: process.env['GATEWAY_URL'] ?? 'http://localhost:3000' })
 
   const chef = await setupActiveChef(chefReq)
 
@@ -128,7 +128,7 @@ export async function signinReviewCustomer(
 
 export async function setupAdminContext(): Promise<APIRequestContext> {
   const { request: pw } = await import('@playwright/test')
-  const ctx = await pw.newContext({ baseURL: 'http://localhost:3000' })
+  const ctx = await pw.newContext({ baseURL: process.env['GATEWAY_URL'] ?? 'http://localhost:3000' })
   const res = await ctx.post(`${AUTH_TRPC}/signin`, {
     data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
   })

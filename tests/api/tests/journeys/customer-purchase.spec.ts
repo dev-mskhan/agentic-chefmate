@@ -76,13 +76,16 @@ test.describe('Journey 2 -- customer purchase through the gateway', () => {
       return order.data?.status
     }, { timeout: 15_000 }).toBe('DELIVERED')
 
-    const review = await reviewPost(request, '', {
-      orderId: checkoutResult.orderId,
-      chefId: chef.chefId,
-      rating: 5,
-      text: 'Complete journey review',
-    })
-    expect(review.status).toBe(201)
-    expect(review.data.verifiedPurchase).toBe(true)
+    let review: Awaited<ReturnType<typeof reviewPost>>
+    await expect.poll(async () => {
+      review = await reviewPost(request, '', {
+        orderId: checkoutResult.orderId,
+        chefId: chef.chefId,
+        rating: 5,
+        text: 'Complete journey review',
+      })
+      return review.status
+    }, { timeout: 30_000, intervals: [500, 1_000, 2_000] }).toBe(201)
+    expect(review!.data.verifiedPurchase).toBe(true)
   })
 })

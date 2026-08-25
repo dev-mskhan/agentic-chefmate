@@ -122,7 +122,7 @@ export async function setupActiveChef(
   // 3. Admin approves (need ADMIN token — switch context, approve, switch back)
   //    We use a separate admin context to avoid clobbering the chef's cookie.
   const { request: pw } = await import('@playwright/test')
-  const adminCtx = await pw.newContext({ baseURL: 'http://localhost:3000' })
+  const adminCtx = await pw.newContext({ baseURL: process.env['GATEWAY_URL'] ?? 'http://localhost:3000' })
   try {
     const adminSignin = await authPost(adminCtx, 'signin', { email: ADMIN_EMAIL, password: ADMIN_PASSWORD })
     if (adminSignin.status !== 200) {

@@ -55,7 +55,7 @@ export async function signinSubCustomer(
 // ── Chef with plan setup (separate context) ──────────────────────────────
 export async function setupChefWithPlan(): Promise<ChefWithPlan> {
   const { request: pw } = await import('@playwright/test')
-  const chefRequest = await pw.newContext({ baseURL: 'http://localhost:3000' })
+  const chefRequest = await pw.newContext({ baseURL: process.env['GATEWAY_URL'] ?? 'http://localhost:3000' })
   const chef = await setupActiveChef(chefRequest)
 
   // Schedule
@@ -137,7 +137,7 @@ const ADMIN_PASSWORD = 'AdminPass123!'
 
 export async function setupAdminContext(): Promise<APIRequestContext> {
   const { request: pw } = await import('@playwright/test')
-  const ctx = await pw.newContext({ baseURL: 'http://localhost:3000' })
+  const ctx = await pw.newContext({ baseURL: process.env['GATEWAY_URL'] ?? 'http://localhost:3000' })
   await ctx.post(`${AUTH_TRPC}/signin`, { data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD } })
   return ctx
 }

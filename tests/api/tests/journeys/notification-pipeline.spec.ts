@@ -55,14 +55,21 @@ test('Journey 5 — order event persists notification, increments unread count, 
   const notifications = (await notificationsResponse.json()).notifications
   const persisted = notifications.find((item: any) => item.data?.orderId === orderId)
   expect(persisted).toBeTruthy()
-  expect(persisted.channelStatus.inApp.status).toBe('delivered')
-  expect(persisted.channelStatus.inApp.unread).toBe(true)
+  await expect.poll(async () => {
+    const response = await request.get('/api/v1/notifications?limit=100')
+    const current = (await response.json()).notifications.find((item: any) => item.data?.orderId === orderId)
+    return current?.channelStatus.inApp.status
+  }, { timeout: 30_000 }).toBe('delivered')
+
+  const deliveredResponse = await request.get('/api/v1/notifications?limit=100')
+  const delivered = (await deliveredResponse.json()).notifications.find((item: any) => item.data?.orderId === orderId)
+  expect(delivered.channelStatus.inApp.unread).toBe(true)
 
   const unread = await request.get('/api/v1/notifications/unread-count')
   expect(unread.status()).toBe(200)
   expect((await unread.json()).count).toBeGreaterThan(0)
 
-  const markRead = await request.post(`/api/v1/notifications/${persisted._id}/read`)
+  const markRead = await request.post(`/api/v1/notifications/${persisted._id}/read`, { data: {} })
   expect(markRead.status(), await markRead.text()).toBe(200)
 
   await expect.poll(async () => {

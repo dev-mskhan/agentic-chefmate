@@ -15,13 +15,16 @@ export async function callInternalTrpc<T = unknown>(
   internalSecret: string,
 ): Promise<T> {
   const url  = `${baseUrl}/trpc/${procedure}`
-  const body = JSON.stringify({ '0': { json: input } })
+  const body = JSON.stringify(input)
 
   const res = await fetch(url, {
     method:  'POST',
     headers: {
       'Content-Type':      'application/json',
       'x-internal-secret': internalSecret,
+      'x-user-id':         'internal-admin',
+      'x-user-role':       'ADMIN',
+      'x-user-email':      'internal-admin@chefmate.test',
     },
     body,
   })
@@ -40,6 +43,31 @@ export async function callInternalTrpc<T = unknown>(
     logger.error({ procedure, err }, 'Failed to parse cross-service response')
     throw err
   }
+}
+
+async function callInternalTrpcQuery<T = unknown>(
+  baseUrl: string,
+  procedure: string,
+  input: unknown,
+  internalSecret: string,
+): Promise<T> {
+  const url = `${baseUrl}/trpc/${procedure}?input=${encodeURIComponent(JSON.stringify(input))}`
+  const res = await fetch(url, {
+    headers: {
+      'x-internal-secret': internalSecret,
+      'x-user-id': 'internal-admin',
+      'x-user-role': 'ADMIN',
+      'x-user-email': 'internal-admin@chefmate.test',
+    },
+  })
+  const text = await res.text()
+  if (!res.ok) {
+    logger.error({ procedure, status: res.status, body: text }, 'Cross-service query failed')
+    throw new Error(`Cross-service query to ${procedure} failed with status ${res.status}: ${text}`)
+  }
+  const data = JSON.parse(text) as { result?: { data?: T }; error?: { message?: string } }
+  if (data.error) throw new Error(data.error.message ?? 'Unknown tRPC error')
+  return data.result?.data as T
 }
 
 export function callChefService<T = unknown>(
@@ -66,5 +94,5 @@ export function callPayoutService<T = unknown>(
   internalSecret:  string,
   payoutServiceUrl: string,
 ): Promise<T> {
-  return callInternalTrpc<T>(payoutServiceUrl, procedure, input, internalSecret)
+  return callInternalTrpcQuery<T>(payoutServiceUrl, procedure, input, internalSecret)
 }

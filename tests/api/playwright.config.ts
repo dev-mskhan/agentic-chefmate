@@ -120,6 +120,11 @@ export default defineConfig({
       testMatch: 'tests/dashboard/**/*.spec.ts',
     },
     {
+      name: 'admin-via-gateway',
+      use: { baseURL: GATEWAY_URL },
+      testMatch: 'tests/admin/**/*.spec.ts',
+    },
+    {
       name: 'gateway',
       use: { baseURL: GATEWAY_URL },
       testMatch: 'tests/gateway/**/*.spec.ts',

@@ -3,6 +3,9 @@ import * as http from 'http'
 import { appRouter } from '../../trpc/router'
 import { createContext } from '../../trpc/context'
 import { toHttpResponse } from '@chefmate/errors'
+import { config } from '../../config'
+import { getBillingQueue } from '../../queues/subscription.queue'
+import { periodStartKey } from '../../utils/date.utils'
 
 function makeCaller(req: FastifyRequest, res: FastifyReply) {
   return appRouter.createCaller(createContext({ req, res }))
@@ -25,6 +28,21 @@ async function callTrpc<T>(req: FastifyRequest, res: FastifyReply, fn: (c: Retur
 }
 
 export async function subscriptionRoutes(fastify: FastifyInstance): Promise<void> {
+  fastify.post('/internal/test/billing/:subscriptionId', async (req, res) => {
+    if (req.headers['x-internal-secret'] !== config.INTERNAL_SECRET) {
+      return res.code(401).send({ statusCode: 401, message: 'Unauthorized' })
+    }
+    const { subscriptionId } = req.params as { subscriptionId: string }
+    const subscription = await (await import('../../models/subscription.model')).Subscription.findById(subscriptionId)
+    if (!subscription) return res.code(404).send({ statusCode: 404, message: 'Subscription not found' })
+    await getBillingQueue().add(
+      'process-billing',
+      { subscriptionId, periodStart: periodStartKey(subscription.nextBillingDate) },
+      { jobId: `test_sub_billing_${subscriptionId}_${Date.now()}` },
+    )
+    return res.code(202).send({ accepted: true })
+  })
+
   // POST / → createSubscription
   fastify.post('/', async (req, res) => {
     return callTrpc(req, res, (c) => c.createSubscription(req.body as any), 201)

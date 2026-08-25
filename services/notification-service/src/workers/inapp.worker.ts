@@ -6,6 +6,7 @@ import { getBullMQConnection } from '../queues/redis-connection'
 import { Notification } from '../models/notification.model'
 import type { NotificationType } from '../models/notification.model'
 import { config } from '../config'
+import { canNotify } from '../services/user-prefs.service'
 
 const logger = createLogger('notification-inapp-worker').child({ instanceId: config.INSTANCE_ID })
 
@@ -71,6 +72,11 @@ const INAPP_TEMPLATES: Record<string, InAppTemplate> = {
     title:   'Welcome to ChefMate!',
     message: () => 'Your chef profile is set up. Start accepting orders!',
   },
+  'digest-summary': {
+    type:    'CHAT_MESSAGE',
+    title:   'Unread Updates',
+    message: (d) => `You have ${String(d['unreadCount'] ?? 0)} unread notification${Number(d['unreadCount'] ?? 0) === 1 ? '' : 's'}`,
+  },
   'payment-confirmed': {
     type:    'ORDER_ACCEPTED',
     title:   'Payment Confirmed',
@@ -110,6 +116,26 @@ const INAPP_TEMPLATES: Record<string, InAppTemplate> = {
     type:    'ORDER_CANCELLED',
     title:   'Payment Failed',
     message: () => 'Your subscription payment failed. Please update your payment method.',
+  },
+  'subscription-billing-due': {
+    type:    'ORDER_ACCEPTED',
+    title:   'Upcoming Subscription Billing',
+    message: (d) => `Your subscription will be billed soon${d['amountCents'] ? ` (${String(d['amountCents'])} cents)` : ''}`,
+  },
+  'subscription-dish-swapped': {
+    type:    'ORDER_ACCEPTED',
+    title:   'Subscription Dish Updated',
+    message: () => 'Your subscription dish has been updated for the next delivery period',
+  },
+  'payout.completed': {
+    type:    'ORDER_ACCEPTED',
+    title:   'Payout Completed',
+    message: (d) => `Your payout${d['amountCents'] ? ` of ${String(d['amountCents'])} cents` : ''} has completed`,
+  },
+  'payout.failed': {
+    type:    'ORDER_CANCELLED',
+    title:   'Payout Failed',
+    message: (d) => `Your payout failed${d['reason'] ? `: ${String(d['reason'])}` : ''}`,
   },
   'subscription-order-created': {
     type:    'ORDER_ACCEPTED',
@@ -151,6 +177,15 @@ export function startInAppWorker(pubClient: Redis): Worker<NotificationJob> {
     async (job) => {
       const { userId, template, data, notificationId } = job.data
 
+      if (!(await canNotify(userId, 'inapp'))) {
+        logger.info({ userId, template, notificationId }, 'Skipping in-app notification due to user preferences')
+        await Notification.updateOne(
+          { userId, 'data.notificationId': notificationId },
+          { $set: { 'channelStatus.inApp.status': 'skipped' } },
+        )
+        return
+      }
+
       const { type, title, message } = resolveTemplate(template, data)
 
       const saved = await Notification.findOne({ userId, 'data.notificationId': notificationId })
@@ -174,7 +209,7 @@ export function startInAppWorker(pubClient: Redis): Worker<NotificationJob> {
       await pubClient.publish(channel, payload)
       await Notification.updateOne(
         { userId, 'data.notificationId': notificationId },
-        { $set: { 'channelStatus.inApp.status': 'delivered', 'channelStatus.inApp.sentAt': new Date() } },
+        { $set: { 'channelStatus.inApp.status': 'delivered', 'channelStatus.inApp.sentAt': new Date(), 'channelStatus.inApp.unread': true } },
       )
       logger.info({ channel, template, notificationId }, 'In-app notification published')
     },

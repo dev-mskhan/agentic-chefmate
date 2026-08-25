@@ -187,26 +187,6 @@ export async function handleOrderEvent(event: OrderEvent): Promise<void> {
       break
     }
 
-    case 'refund.issued': {
-      // TODO: event.userId is not yet in the refund.issued contract.
-      // Until the contract is updated, this job will be skipped by the
-      // email worker's canNotify / resolveRecipient guard (fails gracefully).
-      // Track: https://github.com/your-org/chefmate/issues/XXX
-      const emailId = deriveNotificationId('refund.issued', event.orderId, 'email')
-      await emailQueue.add(
-        'send-notification',
-        {
-          channel: 'email',
-          template: 'refund-issued',
-          userId: event.userId,
-          notificationId: emailId,
-          data: { orderId: event.orderId, amount: event.amount },
-        },
-        { jobId: emailId },
-      )
-      break
-    }
-
     default:
       break
   }

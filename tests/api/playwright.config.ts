@@ -108,6 +108,13 @@ export default defineConfig({
       testMatch: 'tests/chat/**/*.spec.ts',
     },
     {
+      // Notification pipeline tests inject domain events into real Kafka,
+      // while every user-facing HTTP request goes through the gateway.
+      name: 'notification-via-gateway',
+      use: { baseURL: GATEWAY_URL },
+      testMatch: 'tests/notifications/**/*.spec.ts',
+    },
+    {
       name: 'gateway',
       use: { baseURL: GATEWAY_URL },
       testMatch: 'tests/gateway/**/*.spec.ts',

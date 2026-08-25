@@ -9,6 +9,7 @@ import { forgotPasswordProcedure } from './procedures/forgot-password'
 import { resetPasswordProcedure } from './procedures/reset-password'
 import { resendVerificationProcedure } from './procedures/resend-verification'
 import { getMeProcedure } from './procedures/get-me'
+import { getUserContactProcedure } from './procedures/get-user-contact'
 
 export { router, publicProcedure, protectedProcedure, protectedRefreshProcedure, internalProcedure } from './trpc'
 
@@ -23,6 +24,7 @@ export const appRouter = router({
   resetPassword: resetPasswordProcedure,
   resendVerification: resendVerificationProcedure,
   me: getMeProcedure,
+  getUserContact: getUserContactProcedure,
 })
 
 export type AppRouter = typeof appRouter

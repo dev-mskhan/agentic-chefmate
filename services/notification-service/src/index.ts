@@ -16,8 +16,9 @@ import {
   NOTIFICATION_EVENTS_TOPIC,
   PAYMENT_EVENTS_TOPIC,
   SUBSCRIPTION_EVENTS_TOPIC,
+  PAYOUT_EVENTS_TOPIC,
 } from '@chefmate/event-contracts'
-import type { AuthEvent, OrderEvent, ChefEvent, ChatEvent, NotificationEvent, PaymentEvent, SubscriptionEvent } from '@chefmate/event-contracts'
+import type { AuthEvent, OrderEvent, ChefEvent, ChatEvent, NotificationEvent, PaymentEvent, SubscriptionEvent, PayoutEvent } from '@chefmate/event-contracts'
 import { closeAllQueues } from './queues/notification.queue'
 import { handleAuthEvent } from './consumers/auth.consumer'
 import { handleOrderEvent } from './consumers/order.consumer'
@@ -26,6 +27,7 @@ import { handleChatEvent } from './consumers/chat.consumer'
 import { handleNotificationFailedEvent } from './consumers/notification-failure.consumer'
 import { handlePaymentEvent } from './consumers/payment.consumer'
 import { handleSubscriptionEvent } from './consumers/subscription.consumer'
+import { handlePayoutEvent } from './consumers/payout.consumer'
 import { startEmailWorker } from './workers/email.worker'
 import { startPushWorker } from './workers/push.worker'
 import { startInAppWorker } from './workers/inapp.worker'
@@ -34,6 +36,7 @@ import { initNotificationEventService, disconnectNotificationEventService } from
 import { initWebPush } from './services/web-push.service'
 import { notificationRoutes } from './routes/v1/notification.routes'
 import { startNotificationPresence } from './services/presence.service'
+import { startNotificationCron } from './cron/scheduler'
 
 const logger = createLogger('notification-service').child({ instanceId: config.INSTANCE_ID })
 
@@ -51,7 +54,9 @@ async function start() {
 
   // ── Redis pub/sub client for the in-app worker ────────────────────────────
   const pubClient = new Redis(config.REDIS_URL!, { maxRetriesPerRequest: null })
+  const cronRedis = new Redis(config.REDIS_URL!, { maxRetriesPerRequest: null })
   const stopPresence = startNotificationPresence(pubClient, config.INSTANCE_ID!)
+  const stopCron = startNotificationCron(cronRedis)
 
   // ── BullMQ workers (per-channel queues) ───────────────────────────────────
   const emailWorker = startEmailWorker()
@@ -74,6 +79,7 @@ async function start() {
   const failureConsumer = createConsumer(kafka, 'notification-service-failures')
   const paymentConsumer = createConsumer(kafka, 'notification-service-payments')
   const subscriptionConsumer = createConsumer(kafka, 'notification-service-subscriptions')
+  const payoutConsumer  = createConsumer(kafka, 'notification-service-payouts')
 
   await Promise.all([
     authConsumer.connect(),
@@ -83,6 +89,7 @@ async function start() {
     failureConsumer.connect(),
     paymentConsumer.connect(),
     subscriptionConsumer.connect(),
+    payoutConsumer.connect(),
   ])
 
   await authConsumer.subscribe<AuthEvent>(AUTH_EVENTS_TOPIC, (e) => handleAuthEvent(e))
@@ -95,8 +102,9 @@ async function start() {
   )
   await paymentConsumer.subscribe<PaymentEvent>(PAYMENT_EVENTS_TOPIC, (e) => handlePaymentEvent(e))
   await subscriptionConsumer.subscribe<SubscriptionEvent>(SUBSCRIPTION_EVENTS_TOPIC, (e) => handleSubscriptionEvent(e))
+  await payoutConsumer.subscribe<PayoutEvent>(PAYOUT_EVENTS_TOPIC, (e) => handlePayoutEvent(e))
 
-  logger.info('All 7 Kafka consumers connected and listening')
+  logger.info('All 8 Kafka consumers connected and listening')
 
   // ── Fastify HTTP Server ──────────────────────────────────────────────────
   const server = Fastify({ logger: false, trustProxy: true })
@@ -123,11 +131,14 @@ async function start() {
       failureConsumer.disconnect(),
       paymentConsumer.disconnect(),
       subscriptionConsumer.disconnect(),
+      payoutConsumer.disconnect(),
       emailWorker.close(),
       pushWorker.close(),
       inappWorker.close(),
       pubClient.quit(),
+      cronRedis.quit(),
       stopPresence(),
+      stopCron(),
       disconnectNotificationEventService(),
       closeAllQueues(),
     ])

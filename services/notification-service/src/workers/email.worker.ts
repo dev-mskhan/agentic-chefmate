@@ -7,6 +7,7 @@ import { getBullMQConnection } from '../queues/redis-connection'
 import { createLogger } from '@chefmate/logger'
 import { PermanentNotificationError } from '../utils/errors'
 import { withCircuitBreaker } from '../utils/circuit-breaker'
+import { canNotify, getUserEmail } from '../services/user-prefs.service'
 import { verifyEmailTemplate } from '../templates/email/verify-email'
 import { resetPasswordTemplate } from '../templates/email/reset-password'
 import { welcomeChefTemplate } from '../templates/email/welcome-chef'
@@ -18,6 +19,11 @@ import { paymentFailedTemplate }    from '../templates/email/payment-failed'
 import { subscriptionActivatedTemplate } from '../templates/email/subscription-activated'
 import { subscriptionCancelledTemplate }  from '../templates/email/subscription-cancelled'
 import { subscriptionPastDueTemplate }    from '../templates/email/subscription-past-due'
+import { orderCancelledTemplate } from '../templates/email/order-cancelled'
+import { refundIssuedTemplate } from '../templates/email/refund-issued'
+import { chefApprovedTemplate } from '../templates/email/chef-approved'
+import { accountSuspendedTemplate } from '../templates/email/account-suspended'
+import { subscriptionBillingDueTemplate } from '../templates/email/subscription-billing-due'
 
 const logger = createLogger('notification-email-worker').child({ instanceId: config.INSTANCE_ID })
 
@@ -85,6 +91,16 @@ function renderTemplate(
       return subscriptionCancelledTemplate(data as unknown as Parameters<typeof subscriptionCancelledTemplate>[0])
     case 'subscription-past-due':
       return subscriptionPastDueTemplate(data as unknown as Parameters<typeof subscriptionPastDueTemplate>[0])
+    case 'order-cancelled':
+      return orderCancelledTemplate(data as unknown as Parameters<typeof orderCancelledTemplate>[0])
+    case 'refund-issued':
+      return refundIssuedTemplate(data as unknown as Parameters<typeof refundIssuedTemplate>[0])
+    case 'chef-approved':
+      return chefApprovedTemplate()
+    case 'account-suspended':
+      return accountSuspendedTemplate(data as unknown as Parameters<typeof accountSuspendedTemplate>[0])
+    case 'subscription-billing-due':
+      return subscriptionBillingDueTemplate(data as unknown as Parameters<typeof subscriptionBillingDueTemplate>[0])
 
     default:
       return null
@@ -99,10 +115,19 @@ export function startEmailWorker(): Worker<NotificationJob> {
     async (job) => {
       const { template, data, notificationId, userId } = job.data
 
+      if (!(await canNotify(userId, 'email'))) {
+        logger.info({ userId, template, notificationId }, 'Skipping email notification due to user preferences')
+        await Notification.updateOne(
+          { userId, 'data.notificationId': notificationId },
+          { $set: { 'channelStatus.email.status': 'skipped' } },
+        )
+        return
+      }
+
       // ── Validate recipient ─────────────────────────────────────────────────
       // The email address must be present in job data. If it's missing, this
       // is a permanent data error — retrying will never produce the email.
-      const toEmail = data['email'] as string | undefined
+      const toEmail = (data['email'] as string | undefined) ?? await getUserEmail(userId)
       if (!toEmail) {
         throw new PermanentNotificationError(
           `No email address in job data for template '${template}' (userId: ${userId}). ` +

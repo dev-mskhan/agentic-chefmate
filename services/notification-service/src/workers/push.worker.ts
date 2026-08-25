@@ -8,6 +8,7 @@ import { sendWebPush } from '../services/web-push.service'
 import { PermanentNotificationError } from '../utils/errors'
 import { withCircuitBreaker } from '../utils/circuit-breaker'
 import { config } from '../config'
+import { canNotify } from '../services/user-prefs.service'
 
 const logger = createLogger('notification-push-worker').child({ instanceId: config.INSTANCE_ID })
 
@@ -17,9 +18,22 @@ export function startPushWorker(): Worker<NotificationJob> {
     async (job) => {
       const { userId, template, notificationId, data } = job.data
 
+      if (!(await canNotify(userId, 'push'))) {
+        logger.info({ userId, template, notificationId }, 'Skipping push notification due to user preferences')
+        await Notification.updateOne(
+          { userId, 'data.notificationId': notificationId },
+          { $set: { 'channelStatus.push.status': 'skipped' } },
+        )
+        return
+      }
+
       // Graceful dev fallback — no VAPID keys configured
       if (!config.VAPID_PUBLIC_KEY || !config.VAPID_PRIVATE_KEY) {
         logger.warn({ userId, template }, 'VAPID keys not configured — skipping push notification')
+        await Notification.updateOne(
+          { userId, 'data.notificationId': notificationId },
+          { $set: { 'channelStatus.push.status': 'skipped' } },
+        )
         return
       }
 
@@ -27,6 +41,10 @@ export function startPushWorker(): Worker<NotificationJob> {
 
       if (subscriptions.length === 0) {
         logger.info({ userId, template }, 'No push subscriptions found for user — skipping')
+        await Notification.updateOne(
+          { userId, 'data.notificationId': notificationId },
+          { $set: { 'channelStatus.push.status': 'skipped' } },
+        )
         return
       }
 

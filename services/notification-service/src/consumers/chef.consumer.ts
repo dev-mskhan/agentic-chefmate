@@ -1,8 +1,12 @@
+import { isEventProcessed, markEventProcessed } from '@chefmate/event-contracts'
 import type { ChefEvent } from '@chefmate/event-contracts'
 import { deriveNotificationId } from '../utils/idempotency'
 import { getEmailQueue, getPushQueue, getInAppQueue } from '../queues/notification.queue'
 
 export async function handleChefEvent(event: ChefEvent): Promise<void> {
+  const eventId = (event as ChefEvent & { eventId: string }).eventId
+  if (await isEventProcessed(eventId)) return
+
   const emailQueue = getEmailQueue()
   const pushQueue  = getPushQueue()
   const inappQueue = getInAppQueue()
@@ -85,4 +89,5 @@ export async function handleChefEvent(event: ChefEvent): Promise<void> {
     default:
       break
   }
+  await markEventProcessed(eventId)
 }

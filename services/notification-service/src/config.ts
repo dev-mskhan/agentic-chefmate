@@ -10,6 +10,9 @@ const notifEnvSchema = baseEnvSchema.extend({
   MONGODB_URI:      z.string().url(),
   REDIS_URL:        z.string().url().default('redis://localhost:6379'),
   REDPANDA_BROKER:  z.string().default('localhost:9092'),
+  USER_SERVICE_URL:  z.string().url().default('http://localhost:3002'),
+  AUTH_SERVICE_URL:  z.string().url().default('http://localhost:3001'),
+  INTERNAL_SECRET:   z.string().min(16).default('dev-internal-secret-32-characters!!'),
 
   // ── Gmail SMTP ──────────────────────────────────────────────────────────────
   SMTP_HOST:        z.string().default('smtp.gmail.com'),

@@ -15,6 +15,7 @@ export type NotificationChannelStatus = 'pending' | 'delivered' | 'failed' | 'sk
 export interface IChannelStatus {
   status: NotificationChannelStatus
   sentAt?: Date
+  unread?: boolean
 }
 
 export interface INotification extends Document {
@@ -42,9 +43,9 @@ const NotificationSchema = new Schema<INotification>(
     message:      { type: String, required: true },
     data:         { type: Schema.Types.Mixed, default: {} },
     channelStatus: {
-      inApp: { status: { type: String, enum: ['pending', 'delivered', 'failed', 'skipped'], default: 'skipped' }, sentAt: Date },
-      email: { status: { type: String, enum: ['pending', 'delivered', 'failed', 'skipped'], default: 'skipped' }, sentAt: Date },
-      push: { status: { type: String, enum: ['pending', 'delivered', 'failed', 'skipped'], default: 'skipped' }, sentAt: Date },
+      inApp: { status: { type: String, enum: ['pending', 'delivered', 'failed', 'skipped'], default: 'skipped' }, sentAt: Date, unread: { type: Boolean, default: false } },
+      email: { status: { type: String, enum: ['pending', 'delivered', 'failed', 'skipped'], default: 'skipped' }, sentAt: Date, unread: { type: Boolean, default: false } },
+      push: { status: { type: String, enum: ['pending', 'delivered', 'failed', 'skipped'], default: 'skipped' }, sentAt: Date, unread: { type: Boolean, default: false } },
     },
     readAt:       { type: Date },
     expiresAt:    { type: Date },

@@ -7,7 +7,11 @@ dist/
 scripts/
 .kiro
 .antigravity
-.frontend
+.frontend/*
+!.frontend/PLAN.md
+!.frontend/tasks.md
+.agents
+.claude
 TEST_WORKFLOW_MEMORY.md
 .vscode
 # RSA key files — never commit these

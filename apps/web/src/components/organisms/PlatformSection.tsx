@@ -1,6 +1,6 @@
 export function PlatformSection() {
   return (
-    <section id="our-story" className="mx-auto grid max-w-[1500px] scroll-mt-24 gap-12 px-4 py-20 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-20 lg:px-12 lg:py-28 2xl:px-16">
+    <section className="mx-auto grid max-w-[1500px] gap-12 px-4 py-20 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-20 lg:px-12 lg:py-28 2xl:px-16">
       <div className="grid grid-cols-2 gap-3">
         <img className="h-64 w-full rounded-[1.6rem] object-cover sm:h-80" src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=800&q=80" alt="Chef preparing a fresh meal in a home kitchen" loading="lazy" />
         <img className="mt-12 h-64 w-full rounded-[1.6rem] object-cover sm:h-80" src="https://images.unsplash.com/photo-1556761223-4c4282c73f77?auto=format&fit=crop&w=800&q=80" alt="Friends sharing food around a dinner table" loading="lazy" />

@@ -1,8 +1,7 @@
 # ChefMate Frontend Task Tracker
 
 Update `status` only after the task's full scope and phase exit criteria are
-complete. Keep this file synchronized with the numbered tasks in
-`.frontend/PLAN.md`.
+complete. Every task also uses the acceptance checklist in PLAN.md section 0.6.
 
 Status values: `pending`, `in_progress`, `done`, `blocked`
 
@@ -10,72 +9,72 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 
 | ID | Task | Status | Depends on |
 | --- | --- | --- | --- |
-| P1-T1 | Replace Vite starter with app entry, requested folders, providers, router, error boundary, and responsive baseline | done | - |
-| P1-T2 | Configure Tailwind and Warm Hearth tokens, typography, focus, and reduced-motion defaults | done | P1-T1 |
-| P1-T3 | Build accessible atomic components and their loading/error/disabled states | done | P1-T2 |
-| P1-T4 | Build shared molecules, organisms, and role shell templates | done | P1-T3 |
+| P1-T1 | Replace the Vite starter with the required app structure, entry, providers, router, error boundary, and responsive baseline | done | - |
+| P1-T2 | Configure Tailwind and Warm Hearth tokens, typography, focus states, and reduced motion | done | P1-T1 |
+| P1-T3 | Build accessible atoms and their loading, error, and disabled states | done | P1-T2 |
+| P1-T4 | Build PublicShell, AuthShell, shared organisms, and page primitives | in_progress | P1-T3 |
 
-## Phase 2 - Auth-free product experience
+## Phase 2 - Auth-free public product experience
 
 | ID | Task | Status | Depends on |
 | --- | --- | --- | --- |
-| P2-T1 | Preserve backend-compatible contracts and create deterministic public fixtures/repository adapters | done | P1-T1 |
-| P2-T2 | Build and wire the complete Warm Hearth landing experience to real routes and section destinations | done | P2-T1 |
-| P2-T3 | Build public chef, dish, and meal-plan discovery with URL filters and all result states | in_progress | P2-T2 |
-| P2-T4 | Build public chef, dish, and meal-plan detail pages with demo favorites and related content | pending | P2-T3 |
-| P2-T5 | Build one-chef cart and dummy checkout preview with backend-shaped pricing and confirmation states | pending | P2-T4 |
+| P2-T1 | Author exact backend-shaped JSON fixtures plus mock and API service seams for chefs, dishes, meal plans, and reviews | pending | P1-T4 |
+| P2-T2 | Build the landing page with COPY.md-safe product copy, intact Warm Hearth design, and only real destinations | pending | P2-T1 |
+| P2-T3 | Build public discovery for chefs, dishes, and meal plans with URL filters, pagination, and all result states | pending | P2-T2 |
+| P2-T4 | Build public detail pages with reviews, media, availability, related content, and optimistic favorites | pending | P2-T3 |
+| P2-T5 | Build one-chef cart and checkout preview with address, coupons, pricing, payment placeholder, idempotency, and confirmation | pending | P2-T4 |
 
 ## Phase 3 - Customer identity and user-service experience
 
 | ID | Task | Status | Depends on |
 | --- | --- | --- | --- |
-| P3-T1 | Add deterministic demo identity, lazy public/protected role routing, guards, forbidden, and not-found pages | pending | P2-T5 |
-| P3-T2 | Build customer overview, orders, and order timelines with backend-shaped snapshots and statuses | pending | P3-T1 |
-| P3-T3 | Build subscriptions, payments, favorites, profile, addresses, preferences, and notifications | pending | P3-T2 |
-| P3-T4 | Build customer chat/thread views and unread states with gateway-ready message contracts | pending | P3-T3 |
-| P3-T5 | Add RTK Query mock/gateway seams and Zustand stores for cart, favorites, demo auth, and transient UI state | pending | P3-T4 |
+| P3-T1 | Build auth pages with AuthShell, fixture-backed identity, guards, forbidden, and not-found pages | pending | P2-T5 |
+| P3-T2 | Build orders and order timelines with backend-shaped snapshots and every order status | pending | P3-T1 |
+| P3-T3 | Build subscriptions, favorites, profile, addresses, dietary preferences, and settings | pending | P3-T2 |
+| P3-T4 | Build notification center, read states, category preferences, empty, and offline states | pending | P3-T3 |
+| P3-T5 | Wire RTK Query to services/mock and Zustand stores for cart, favorites, and auth/session state | pending | P3-T4 |
 
 ## Phase 4 - Chef Calm Kitchen
 
 | ID | Task | Status | Depends on |
 | --- | --- | --- | --- |
-| P4-T1 | Build espresso chef shell and role-safe navigation | pending | P3-T1 |
+| P4-T1 | Build ChefShell, responsive navigation, notifications, and CHEF-safe routing | pending | P3-T1 |
 | P4-T2 | Build chef onboarding, profile, verification, service area, portfolio, and public preview | pending | P4-T1 |
-| P4-T3 | Build dish and meal-plan management with canonical fields and statuses | pending | P4-T2 |
-| P4-T4 | Build schedule, availability, orders, customer context, and chat | pending | P4-T3 |
-| P4-T5 | Build chef dashboards, earnings including holds/releases, payouts, and notifications | pending | P4-T4 |
+| P4-T3 | Build dish and meal-plan CRUD with canonical fields, metadata, and statuses | pending | P4-T2 |
+| P4-T4 | Build schedule, capacity, incoming orders, order transitions, customer context, and chat entry | pending | P4-T3 |
+| P4-T5 | Build chef analytics, earnings, and payouts for all ledger and payout states | pending | P4-T4 |
 
 ## Phase 5 - Admin operations
 
 | ID | Task | Status | Depends on |
 | --- | --- | --- | --- |
-| P5-T1 | Build neutral admin shell and role-safe navigation | pending | P3-T1 |
-| P5-T2 | Build admin operational overview, metrics, activity, and health placeholders | pending | P5-T1 |
-| P5-T3 | Build user/chef management and verification/moderation queues | pending | P5-T2 |
+| P5-T1 | Build AdminShell, navigation, breadcrumbs, search, and ADMIN-safe routing | pending | P3-T1 |
+| P5-T2 | Build admin overview, metrics, activity, health placeholders, and date filters | pending | P5-T1 |
+| P5-T3 | Build user and chef management, verification, moderation, detail views, and status actions | pending | P5-T2 |
 | P5-T4 | Build order, payout, coupon, review, notification, and DLQ operations | pending | P5-T3 |
 
 ## Phase 6 - Motion, media, and performance hardening
 
 | ID | Task | Status | Depends on |
 | --- | --- | --- | --- |
-| P6-T1 | Add shared GSAP primitives and landing ScrollTrigger lifecycle | pending | P2-T2 |
-| P6-T2 | Add landing choreography, parallax, pinned sections, stats, and fallbacks | pending | P6-T1 |
-| P6-T3 | Add restrained dashboard chart draw-ins and stat tick-ups | pending | P4-T5, P5-T2 |
-| P6-T4 | Optimize route chunks, media, fonts, selectors, caches, and long lists | pending | P6-T2, P6-T3 |
+| P6-T1 | Build shared motion primitives and landing ScrollTrigger lifecycle | pending | P2-T2 |
+| P6-T2 | Apply marketing choreography, parallax, pinned sections, stats, and reduced-motion fallbacks | pending | P6-T1 |
+| P6-T3 | Apply restrained chart draw-ins and stat tick-ups to dashboard surfaces | pending | P4-T5, P5-T2 |
+| P6-T4 | Optimize chunks, images, fonts, selectors, caches, long lists, and prefetching | pending | P6-T2, P6-T3 |
 
 ## Phase 7 - Gateway integration and release validation
 
 | ID | Task | Status | Depends on |
 | --- | --- | --- | --- |
-| P7-T1 | Add configuration-driven gateway base query while retaining demo mode | pending | P3-T5 |
-| P7-T2 | Map RTK Query contracts to gateway REST/tRPC procedures | pending | P7-T1 |
-| P7-T3 | Add session revalidation, auth errors, request metadata, normalized errors, and signed media lifecycle | pending | P7-T2 |
-| P7-T4 | Complete build/lint, route, parity, responsive, accessibility, reduced-motion, and Impeccable validation | pending | P7-T3 |
+| P7-T1 | Swap mock data for the configured gateway while retaining internal local mock mode | pending | P3-T5 |
+| P7-T2 | Map service functions and RTK Query contracts to gateway REST/tRPC procedures | pending | P7-T1 |
+| P7-T3 | Add session revalidation, auth errors, request metadata, normalized errors, and signed media refresh | pending | P7-T2 |
+| P7-T4 | Run build, lint, route, model parity, responsive, keyboard, reduced-motion, and COPY.md validation | pending | P7-T3 |
 
 ## Current execution
 
-- Current phase: Phase 2 - Auth-free product experience
-- Active task: `P2-T3`
-- Completed tasks: `P1-T1`, `P1-T2`, `P1-T3`, `P1-T4`, `P2-T1`, `P2-T2`
-- Next tasks: build public discovery with backend-shaped result rows, URL filters,
-  pagination, loading, empty, and recoverable-error states.
+- Current phase: Phase 1 - Foundation and design system
+- Active task: `P1-T4`
+- Completed tasks: `P1-T1`, `P1-T2`, `P1-T3`
+- Next tasks: finish `PublicShell` and `AuthShell`, then author exact
+  backend-shaped fixtures before rebuilding the auth-free public experience.

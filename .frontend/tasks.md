@@ -20,9 +20,9 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 | ID | Task | Status | Depends on |
 | --- | --- | --- | --- |
 | P2-T1 | Define backend-compatible domain types, enums, status mapping, formatting, and validation | done | P1-T1 |
-| P2-T2 | Create deterministic mock repositories and fixtures for all backend domains | in_progress | P2-T1 |
-| P2-T3 | Add RTK Query mock/gateway seams and Zustand client-only stores | pending | P2-T2 |
-| P2-T4 | Add lazy public/protected role routing, guards, forbidden, and not-found pages | pending | P2-T3 |
+| P2-T2 | Create deterministic mock repositories and fixtures for all backend domains | done | P2-T1 |
+| P2-T3 | Add RTK Query mock/gateway seams and Zustand client-only stores | done | P2-T2 |
+| P2-T4 | Add lazy public/protected role routing, guards, forbidden, and not-found pages | done | P2-T3 |
 
 ## Phase 3 — Customer-first experience
 
@@ -74,7 +74,6 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 ## Current execution
 
 - Current phase: Phase 2 — Contracts, mocks, and navigation
-- Active tasks: `P2-T2`
-- Completed tasks: `P1-T1`, `P1-T2`, `P1-T3`, `P1-T4`, `P2-T1`, `P3-T1`
-- Next tasks: finish deterministic mock repositories and fixtures, then add the
-  RTK Query/Zustand seams and role-aware route structure.
+- Active tasks: none
+- Completed tasks: `P1-T1`, `P1-T2`, `P1-T3`, `P1-T4`, `P2-T1`, `P2-T2`, `P2-T3`, `P2-T4`, `P3-T1`
+- Next tasks: build chef, dish, and meal-plan discovery with complete URL filter state.

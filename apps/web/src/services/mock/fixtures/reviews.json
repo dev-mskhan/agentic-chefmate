@@ -1,0 +1,38 @@
+[
+  {
+    "id": "review-smoky-karahi-001",
+    "customerId": "customer-mariam-khan",
+    "chefId": "chef-ayesha-khan",
+    "dishId": "dish-smoky-karahi",
+    "orderId": "order-mariam-001",
+    "rating": 5,
+    "comment": "The karahi arrived warm and tasted fresh.",
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-25T10:00:00.000Z",
+    "updatedAt": "2026-08-25T10:00:00.000Z"
+  },
+  {
+    "id": "review-lemon-rice-001",
+    "customerId": "customer-ali-raza",
+    "chefId": "chef-hamza-malik",
+    "dishId": "dish-lemon-rice",
+    "orderId": "order-ali-001",
+    "rating": 4,
+    "comment": "The rice was light and well seasoned.",
+    "status": "PENDING",
+    "createdAt": "2026-08-24T10:00:00.000Z",
+    "updatedAt": "2026-08-24T10:00:00.000Z"
+  },
+  {
+    "id": "review-hidden-001",
+    "customerId": "customer-mariam-khan",
+    "chefId": "chef-ayesha-khan",
+    "dishId": "dish-archived-daal",
+    "orderId": "order-mariam-002",
+    "rating": 3,
+    "comment": "The dish was not available when I ordered.",
+    "status": "HIDDEN",
+    "createdAt": "2026-07-20T10:00:00.000Z",
+    "updatedAt": "2026-07-21T10:00:00.000Z"
+  }
+]

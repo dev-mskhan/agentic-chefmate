@@ -1,0 +1,42 @@
+[
+  {
+    "id": "chef-ayesha-khan",
+    "userId": "user-ayesha-khan",
+    "displayName": "Ayesha Khan",
+    "bio": "Punjabi home cooking with seasonal ingredients.",
+    "phone": "+92-300-5550101",
+    "cuisineSpecialties": ["Punjabi", "Home cooking"],
+    "verificationStatus": "VERIFIED",
+    "accountState": "ACTIVE",
+    "serviceArea": {
+      "city": "Lahore",
+      "areas": ["Gulberg", "Model Town"],
+      "radiusKm": 12
+    },
+    "portfolioMediaIds": ["media-ayesha-kitchen-01"],
+    "averageRating": 4.9,
+    "totalReviews": 128,
+    "createdAt": "2026-01-12T09:00:00.000Z",
+    "updatedAt": "2026-08-24T12:00:00.000Z"
+  },
+  {
+    "id": "chef-hamza-malik",
+    "userId": "user-hamza-malik",
+    "displayName": "Hamza Malik",
+    "bio": "Karachi-inspired comfort food and charcoal cooking.",
+    "phone": "+92-301-5550102",
+    "cuisineSpecialties": ["Karachi", "Coastal"],
+    "verificationStatus": "PENDING",
+    "accountState": "PENDING",
+    "serviceArea": {
+      "city": "Karachi",
+      "areas": ["Clifton", "DHA"],
+      "radiusKm": 10
+    },
+    "portfolioMediaIds": ["media-hamza-kitchen-01"],
+    "averageRating": 4.8,
+    "totalReviews": 94,
+    "createdAt": "2026-02-08T09:00:00.000Z",
+    "updatedAt": "2026-08-23T12:00:00.000Z"
+  }
+]

@@ -16,7 +16,7 @@ export function CitySection() {
       </div>
       <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {cities.map((city, index) => (
-          <Link key={city.name} to="/discover" aria-label={`Discover food in ${city.name}`} className={`group relative overflow-hidden rounded-[1.6rem] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta ${index % 2 ? 'mt-8 max-sm:mt-0' : ''}`}>
+          <Link key={city.name} to={`/discover?city=${encodeURIComponent(city.name)}`} aria-label={`Discover food in ${city.name}`} className={`group relative overflow-hidden rounded-[1.6rem] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta ${index % 2 ? 'mt-8 max-sm:mt-0' : ''}`}>
             <img className="aspect-[4/5] w-full object-cover transition-transform duration-700 group-hover:scale-105" src={city.image} alt={`${city.name} food discovery`} loading="lazy" />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-charcoal/75 to-transparent px-5 pb-5 pt-14"><span className="font-display text-3xl text-cream">{city.name}</span></div>
           </Link>

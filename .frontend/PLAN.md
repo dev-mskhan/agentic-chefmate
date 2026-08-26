@@ -2,10 +2,17 @@
 
 ## Scope
 
-Build a dummy, fully navigable frontend for **customer, chef, and admin**
-experiences, with the customer purchase journey first. Backend integration is
-deferred, but every mock contract must preserve backend field names,
-relationships, enum values, pagination concepts, loading states, and errors.
+Build the actual ChefMate product experience in stages, using deterministic
+dummy content until the UI is approved. The dummy content must mirror the
+exact field names, relationships, enum values, pagination concepts, loading
+states, empty states, and recoverable errors returned by the backend. Pages
+must be implemented as real product surfaces, not mock-data demos; gateway
+integration is deferred until the corresponding UI contracts are approved.
+
+The first implementation track is auth-free: landing, discovery, public chef,
+dish, and meal-plan pages, plus the cart and checkout preview. User-service
+pages that require identity are built afterward, with dashboard patterns used
+only where the product actually calls for a dashboard.
 
 Primary references:
 
@@ -100,37 +107,42 @@ the intended architecture and acceptance criteria.
 **Exit criteria:** no starter UI; clean build; keyboard-usable responsive
 shells; typed lazy routes with Suspense fallbacks.
 
-### Phase 2 — Contracts, mocks, and navigation
+### Phase 2 — Auth-free product experience
 
-1. `[P2-T1]` Add domain types, enum constants, status mapping, formatting, and
-   validation utilities from backend models.
-2. `[P2-T2]` Add deterministic mock repositories/fixtures for every domain, including
-   loading, empty, pagination, and recoverable error states.
-3. `[P2-T3]` Add RTK Query with a mock base query and a gateway base-query seam using
-   `credentials: include`; add Zustand for cart and transient UI state.
-4. `[P2-T4]` Add public/protected role-aware routing, guards, forbidden/not-found pages,
-   and route-level lazy imports.
+1. `[P2-T1]` Preserve backend-compatible domain/API contracts and create deterministic
+   fixtures and repository adapters for every public result used by the UI.
+2. `[P2-T2]` Build the complete Warm Hearth landing and wire every CTA, navigation item,
+   preview card, and section anchor to a real route or destination.
+3. `[P2-T3]` Build public discovery for chefs, dishes, and meal plans with URL-backed
+   filters, backend-shaped result rows, pagination, loading, empty, and recoverable
+   error states.
+4. `[P2-T4]` Build public chef, dish, and meal-plan detail pages with reviews, media,
+   availability, related content, and favorites represented as demo UI state.
+5. `[P2-T5]` Build the one-chef cart and checkout preview with delivery details, coupon
+   validation, pricing preview, payment placeholder, idempotency display, and
+   confirmation using dummy results.
 
-**Exit criteria:** every route opens in mock mode; roles are deterministic;
-components do not import fixture modules or service URLs directly.
+**Exit criteria:** a visitor can navigate from landing to discovery, inspect public
+content, add compatible items to a cart, and complete a dummy checkout preview.
+Every visible result and state is shaped like the backend response; no page
+depends on a live service or auth.
 
-### Phase 3 — Customer-first experience
+### Phase 3 — Customer identity and user-service experience
 
-1. `[P3-T1]` Build Warm Hearth landing: hero/photo stack, sticky nav, how-it-works reel,
-   dish/chef preview, stats, chef spotlight, testimonial, and final CTA.
-2. `[P3-T2]` Build chef, dish, and meal-plan discovery with URL filters for geo, cuisine,
-   dietary, allergen, price, rating, category, occasion, availability,
-   pagination, and empty states.
-3. `[P3-T3]` Build chef/dish/meal-plan detail, reviews, media gallery, availability,
-   and favorites.
-4. `[P3-T4]` Build one-chef cart, delivery date/address, coupon validation, pricing
-   preview, checkout review, payment placeholder, idempotency, confirmation.
-5. `[P3-T5]` Build customer shell pages: overview, orders/timeline, subscriptions and
-   pause/resume/skip/swap/cancel, payments, favorites, profile/addresses/
-   preferences, notifications, and chat.
+1. `[P3-T1]` Add lazy public/protected role-aware routing, deterministic demo identity,
+   guards, forbidden/not-found pages, and route-level lazy imports.
+2. `[P3-T2]` Build the customer overview only where useful as a dashboard, plus orders
+   and order timeline using backend-shaped snapshots and statuses.
+3. `[P3-T3]` Build subscriptions with pause/resume/skip/swap/cancel states, payments,
+   favorites, profile, addresses, dietary preferences, and notifications.
+4. `[P3-T4]` Build customer chat/thread views and unread states with a gateway-ready
+   message contract.
+5. `[P3-T5]` Add RTK Query mock/gateway seams with `credentials: include` and Zustand
+   stores for cart, favorites, auth demo state, and transient UI state.
 
-**Exit criteria:** a visitor can discover, inspect, cart, mock-checkout, and
-track an order/subscription using backend-shaped data.
+**Exit criteria:** a deterministic demo customer can sign in through the UI,
+review and manage user-service data, and return safely to public pages without
+changing page contracts.
 
 ### Phase 4 — Chef Calm Kitchen
 

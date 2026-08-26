@@ -12,8 +12,8 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 | --- | --- | --- | --- |
 | P1-T1 | Replace Vite starter with app entry, requested folders, providers, router, error boundary, and responsive baseline | done | — |
 | P1-T2 | Configure Tailwind and Warm Hearth tokens, typography, focus, and reduced-motion defaults | done | P1-T1 |
-| P1-T3 | Build accessible atomic components and their loading/error/disabled states | pending | P1-T2 |
-| P1-T4 | Build shared molecules, organisms, and role shell templates | pending | P1-T3 |
+| P1-T3 | Build accessible atomic components and their loading/error/disabled states | done | P1-T2 |
+| P1-T4 | Build shared molecules, organisms, and role shell templates | done | P1-T3 |
 
 ## Phase 2 — Contracts, mocks, and navigation
 
@@ -73,8 +73,8 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 
 ## Current execution
 
-- Current phase: Phase 1 / Phase 2 foundation overlap
+- Current phase: Phase 2 — Contracts, mocks, and navigation
 - Active tasks: `P2-T2`
-- Completed tasks: `P1-T1`, `P1-T2`, `P2-T1`, `P3-T1`
-- Next tasks: create deterministic mock repositories and fixtures, then add the
+- Completed tasks: `P1-T1`, `P1-T2`, `P1-T3`, `P1-T4`, `P2-T1`, `P3-T1`
+- Next tasks: finish deterministic mock repositories and fixtures, then add the
   RTK Query/Zustand seams and role-aware route structure.

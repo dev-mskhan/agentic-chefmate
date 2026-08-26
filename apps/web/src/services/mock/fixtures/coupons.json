@@ -1,0 +1,4 @@
+[
+  { "id": "coupon-welcome-table", "code": "WELCOME10", "description": "10% off orders over PKR 2,000", "discountType": "PERCENTAGE", "discountValue": 10, "maxDiscountAmount": 600, "minOrderAmount": 2000, "chefId": null, "isActive": true },
+  { "id": "coupon-ayesha-table", "code": "AYESHA300", "description": "PKR 300 off an Ayesha Khan order over PKR 2,000", "discountType": "FIXED_AMOUNT", "discountValue": 300, "minOrderAmount": 2000, "chefId": "chef-ayesha-khan", "isActive": true }
+]

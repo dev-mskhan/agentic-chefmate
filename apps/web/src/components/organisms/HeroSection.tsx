@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
-import { Button } from '../atoms/Button'
+import { Link } from 'react-router-dom'
 
 function getPakistanTime() {
   const now = new Date()
@@ -18,9 +18,9 @@ function getPakistanTime() {
     hour12: true,
   }).format(now)
 
-  if (hour < 12) return { periodLabel: 'Good morning', note: 'Start with something made slowly.', timeLabel }
-  if (hour < 17) return { periodLabel: 'Good afternoon', note: 'There is still time to set the table.', timeLabel }
-  return { periodLabel: 'Good evening', note: 'Good food tastes better when you know who made it.', timeLabel }
+  if (hour < 12) return { periodLabel: 'Good morning', note: 'Choose a meal made slowly.', timeLabel }
+  if (hour < 17) return { periodLabel: 'Good afternoon', note: 'Choose dinner from a local chef.', timeLabel }
+  return { periodLabel: 'Good evening', note: 'Order food from a chef you can trust.', timeLabel }
 }
 
 const heroCards = [
@@ -106,11 +106,11 @@ export function HeroSection() {
   return (
     <section ref={heroRef} className="relative mx-auto grid max-w-[1500px] gap-12 px-4 pb-20 pt-12 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-20 lg:px-12 lg:pb-24 lg:pt-20 2xl:px-16">
       <div className="relative z-10 max-w-2xl">
-        <h1 className="hero-title max-w-[12ch] font-display text-[clamp(3.6rem,2.5rem+4.5vw,7.5rem)] leading-[0.88] tracking-[-0.045em]">Good food. <em className="text-terracotta">Close to your home.</em></h1>
-        <p className="hero-copy mt-7 max-w-xl text-lg leading-8 text-charcoal-70">Meet independent chefs across Pakistan, discover food with a point of view, and bring something worth gathering around home.</p>
+        <h1 className="hero-title max-w-[12ch] font-display text-[clamp(3.6rem,2.5rem+4.5vw,7.5rem)] leading-[0.88] tracking-[-0.045em]">Good food. <em className="text-terracotta">Made near you.</em></h1>
+        <p className="hero-copy mt-7 max-w-xl text-lg leading-8 text-charcoal-70">Meet independent chefs, discover fresh menus, and order home-cooked food for your next meal.</p>
         <div className="hero-actions mt-8 flex flex-wrap gap-3">
-          <Button onClick={() => document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth' })}>Start exploring</Button>
-          <Button variant="secondary">Cook with us</Button>
+          <Link to="/discover" className="inline-flex min-h-11 items-center justify-center rounded-pill bg-terracotta px-5 text-sm font-semibold text-cream transition-colors hover:bg-terracotta-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta">Start exploring</Link>
+          <Link to="/discover?type=chefs" className="inline-flex min-h-11 items-center justify-center rounded-pill border border-charcoal/20 bg-transparent px-5 text-sm font-semibold text-charcoal transition-colors hover:border-terracotta hover:text-terracotta focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta">Find a chef</Link>
         </div>
         <p className="hero-search-hint mt-8 text-sm text-charcoal-70"><span className="mr-2 inline-block h-2 w-2 rounded-full bg-sage" />Search chefs by city, then find the dish that brings the table together.</p>
       </div>

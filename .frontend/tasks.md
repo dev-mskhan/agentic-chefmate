@@ -18,11 +18,11 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 
 | ID | Task | Status | Depends on |
 | --- | --- | --- | --- |
-| P2-T1 | Author exact backend-shaped JSON fixtures plus mock and API service seams for chefs, dishes, meal plans, and reviews | in_progress | P1-T4 |
-| P2-T2 | Build the landing page with COPY.md-safe product copy, intact Warm Hearth design, and only real destinations | pending | P2-T1 |
-| P2-T3 | Build public discovery for chefs, dishes, and meal plans with URL filters, pagination, and all result states | pending | P2-T2 |
-| P2-T4 | Build public detail pages with reviews, media, availability, related content, and optimistic favorites | pending | P2-T3 |
-| P2-T5 | Build one-chef cart and checkout preview with address, coupons, pricing, payment placeholder, idempotency, and confirmation | pending | P2-T4 |
+| P2-T1 | Author exact backend-shaped JSON fixtures plus mock and API service seams for chefs, dishes, meal plans, and reviews | done | P1-T4 |
+| P2-T2 | Build the landing page with COPY.md-safe product copy, intact Warm Hearth design, and only real destinations | done | P2-T1 |
+| P2-T3 | Build public discovery for chefs, dishes, and meal plans with URL filters, pagination, and all result states | done | P2-T2 |
+| P2-T4 | Build public detail pages with reviews, media, availability, related content, and optimistic favorites | done | P2-T3 |
+| P2-T5 | Build one-chef cart and checkout preview with address, coupons, pricing, payment placeholder, idempotency, and confirmation | done | P2-T4 |
 
 ## Phase 3 - Customer identity and user-service experience
 
@@ -74,7 +74,8 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 ## Current execution
 
 - Current phase: Phase 2 - Auth-free public product experience
-- Active task: `P2-T1`
-- Completed tasks: `P1-T1`, `P1-T2`, `P1-T3`, `P1-T4`
-- Next tasks: author exact backend-shaped JSON fixtures and service seams,
-  then rebuild the public landing, discovery, detail, cart, and checkout flow.
+- Active task: none (Phase 2 complete)
+- Completed tasks: `P1-T1`, `P1-T2`, `P1-T3`, `P1-T4`, `P2-T1`, `P2-T2`,
+  `P2-T3`, `P2-T4`, `P2-T5`
+- Phase 2 complete: public landing, discovery, detail, cart, checkout, and
+  confirmation routes are wired with fixture-backed service seams.

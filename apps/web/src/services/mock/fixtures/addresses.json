@@ -1,0 +1,4 @@
+[
+  { "id": "address-gulberg-home", "customerId": "customer-mariam-khan", "label": "Home", "line1": "24 Main Boulevard", "area": "Gulberg III", "city": "Lahore", "postalCode": "54660", "isDefault": true },
+  { "id": "address-model-town", "customerId": "customer-mariam-khan", "label": "Work", "line1": "8 Link Road", "area": "Model Town", "city": "Lahore", "postalCode": "54700", "isDefault": false }
+]

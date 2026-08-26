@@ -1,7 +1,7 @@
 const steps = [
-  ['Find your person', 'Search by neighborhood, craving, or the kind of table you want to set.'],
-  ['Choose your moment', 'Pick a dish or a recurring plan, then make the details yours.'],
-  ['Gather well', 'Your chef prepares it with care and brings a little warmth to your door.'],
+  ['Find a chef', 'Search by city and choose a chef with menus you like.'],
+  ['Choose your food', 'Pick a dish or meal plan and select your delivery details.'],
+  ['Receive your order', 'Your chef prepares the food and delivers it on the selected date.'],
 ]
 
 export function HowItWorksSection() {

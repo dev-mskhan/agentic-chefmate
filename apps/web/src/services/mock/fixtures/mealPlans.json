@@ -3,37 +3,19 @@
     "id": "plan-sunday-dastarkhwan",
     "chefId": "chef-ayesha-khan",
     "name": "The Sunday Dastarkhwan",
-    "description": "A weekly menu for a table of four.",
+    "description": "A weekly menu with smoky karahi, daal, and rice for a table of four.",
     "type": "SUBSCRIPTION",
     "frequency": "WEEKLY",
     "status": "ACTIVE",
     "tiers": [
-      {
-        "id": "tier-sunday-four",
-        "name": "Table for four",
-        "servings": 4,
-        "price": 8400,
-        "currency": "PKR"
-      }
+      { "name": "Table for four", "description": "A complete Sunday meal.", "dishIds": ["dish-smoky-karahi"], "portionsPerDish": 4, "priceOverride": 8400, "notes": "Delivered on Sunday" }
     ],
     "basePrice": 8400,
     "currency": "PKR",
-    "availabilityRules": {
-      "advanceOrderDays": 3,
-      "deliveryDays": ["SUNDAY"]
-    },
-    "pauseRules": {
-      "allowed": true,
-      "minimumPauseDays": 7
-    },
-    "skipRules": {
-      "allowed": true,
-      "minimumNoticeDays": 3
-    },
-    "swapRules": {
-      "allowed": true,
-      "swapWindowDays": 3
-    },
+    "availabilityRules": { "startDate": "2026-08-30", "availableDays": ["SUN"], "maxSubscribers": 30 },
+    "pauseRules": { "allowPause": true, "maxPauseDays": 30 },
+    "skipRules": { "allowSkip": true, "minNoticeHours": 72 },
+    "swapRules": { "allowSwap": true, "swapWindowHours": 72 },
     "mediaIds": ["media-sunday-plan"],
     "averageRating": 4.8,
     "totalReviews": 22,
@@ -49,32 +31,14 @@
     "frequency": null,
     "status": "DRAFT",
     "tiers": [
-      {
-        "id": "tier-weeknight-two",
-        "name": "Table for two",
-        "servings": 2,
-        "price": 4200,
-        "currency": "PKR"
-      }
+      { "name": "Table for two", "description": "A simple weeknight meal.", "dishIds": ["dish-lemon-rice"], "portionsPerDish": 2, "priceOverride": 4200 }
     ],
     "basePrice": 4200,
     "currency": "PKR",
-    "availabilityRules": {
-      "advanceOrderDays": 2,
-      "deliveryDays": ["TUESDAY", "THURSDAY"]
-    },
-    "pauseRules": {
-      "allowed": false,
-      "minimumPauseDays": 0
-    },
-    "skipRules": {
-      "allowed": false,
-      "minimumNoticeDays": 0
-    },
-    "swapRules": {
-      "allowed": false,
-      "swapWindowDays": 0
-    },
+    "availabilityRules": { "availableDays": ["TUE", "THU"], "maxSubscribers": 12 },
+    "pauseRules": { "allowPause": false },
+    "skipRules": { "allowSkip": false },
+    "swapRules": { "allowSwap": false },
     "mediaIds": ["media-weeknight-plan"],
     "averageRating": 4.5,
     "totalReviews": 8,
@@ -90,36 +54,41 @@
     "frequency": "MONTHLY",
     "status": "ARCHIVED",
     "tiers": [
-      {
-        "id": "tier-feast-six",
-        "name": "Table for six",
-        "servings": 6,
-        "price": 12600,
-        "currency": "PKR"
-      }
+      { "name": "Table for six", "description": "A larger seasonal spread.", "dishIds": ["dish-archived-daal"], "portionsPerDish": 6, "priceOverride": 12600 }
     ],
     "basePrice": 12600,
     "currency": "PKR",
-    "availabilityRules": {
-      "advanceOrderDays": 5,
-      "deliveryDays": ["FRIDAY"]
-    },
-    "pauseRules": {
-      "allowed": true,
-      "minimumPauseDays": 14
-    },
-    "skipRules": {
-      "allowed": true,
-      "minimumNoticeDays": 5
-    },
-    "swapRules": {
-      "allowed": false,
-      "swapWindowDays": 0
-    },
+    "availabilityRules": { "endDate": "2026-06-30", "availableDays": ["FRI"], "maxSubscribers": 20 },
+    "pauseRules": { "allowPause": true, "maxPauseDays": 30 },
+    "skipRules": { "allowSkip": true, "minNoticeHours": 120 },
+    "swapRules": { "allowSwap": false },
     "mediaIds": ["media-festival-feast"],
     "averageRating": 4.4,
     "totalReviews": 11,
     "createdAt": "2026-01-20T09:00:00.000Z",
     "updatedAt": "2026-06-20T12:00:00.000Z"
+  },
+  {
+    "id": "plan-paused-family",
+    "chefId": "chef-ayesha-khan",
+    "name": "Family Lunch Rotation",
+    "description": "A recurring family menu paused until the next season.",
+    "type": "SUBSCRIPTION",
+    "frequency": "BIWEEKLY",
+    "status": "PAUSED",
+    "tiers": [
+      { "name": "Table for four", "description": "Four generous portions.", "dishIds": ["dish-smoky-karahi"], "portionsPerDish": 4, "priceOverride": 7600 }
+    ],
+    "basePrice": 7600,
+    "currency": "PKR",
+    "availabilityRules": { "availableDays": ["SAT"], "maxSubscribers": 20 },
+    "pauseRules": { "allowPause": true, "maxPauseDays": 30 },
+    "skipRules": { "allowSkip": true, "minNoticeHours": 72 },
+    "swapRules": { "allowSwap": true, "swapWindowHours": 72 },
+    "mediaIds": ["media-family-plan"],
+    "averageRating": 4.6,
+    "totalReviews": 10,
+    "createdAt": "2026-02-01T09:00:00.000Z",
+    "updatedAt": "2026-08-15T12:00:00.000Z"
   }
 ]

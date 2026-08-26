@@ -1,0 +1,12 @@
+[
+  { "id": "media-ayesha-kitchen-01", "type": "IMAGE", "url": "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1200&q=85", "altText": "Ayesha preparing food in her kitchen" },
+  { "id": "media-hamza-kitchen-01", "type": "IMAGE", "url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=85", "altText": "Hamza preparing a meal" },
+  { "id": "media-smoky-karahi", "type": "IMAGE", "url": "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85", "altText": "Smoky chicken karahi" },
+  { "id": "media-lemon-rice", "type": "IMAGE", "url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85", "altText": "Lemon herb rice" },
+  { "id": "media-smoked-daal", "type": "IMAGE", "url": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=85", "altText": "Smoked yellow daal" },
+  { "id": "media-sunday-plan", "type": "IMAGE", "url": "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85", "altText": "A weekly family meal" },
+  { "id": "media-weeknight-plan", "type": "IMAGE", "url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85", "altText": "A weeknight meal" },
+  { "id": "media-festival-feast", "type": "IMAGE", "url": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=85", "altText": "A seasonal feast" }
+  ,{ "id": "media-inactive-sabzi", "type": "IMAGE", "url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85", "altText": "Charred seasonal vegetables" }
+  ,{ "id": "media-family-plan", "type": "IMAGE", "url": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=85", "altText": "A family meal plan" }
+]

@@ -4,13 +4,11 @@ import { ChefStorySection } from '../components/organisms/ChefStorySection'
 import { HeroSection } from '../components/organisms/HeroSection'
 import { HowItWorksSection } from '../components/organisms/HowItWorksSection'
 import { PlatformSection } from '../components/organisms/PlatformSection'
-import { SiteFooter } from '../components/organisms/SiteFooter'
-import { StickyNav } from '../components/organisms/StickyNav'
+import { PublicShell } from '../components/templates/PublicShell'
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen overflow-hidden bg-cream text-charcoal">
-      <StickyNav />
+    <PublicShell navigation={[{ label: 'Discover', href: '/discover' }, { label: 'Chefs', href: '/discover?type=chefs' }, { label: 'Dishes', href: '/discover?type=dishes' }, { label: 'Meal plans', href: '/discover?type=meal-plans' }, { label: 'Cart', href: '/cart' }]}>
       <main>
         <HeroSection />
         <DiscoverySection />
@@ -19,7 +17,6 @@ export function LandingPage() {
         <HowItWorksSection />
         <ChefStorySection />
       </main>
-      <SiteFooter />
-    </div>
+    </PublicShell>
   )
 }

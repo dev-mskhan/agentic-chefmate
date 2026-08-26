@@ -3,9 +3,11 @@ import { Button } from '../atoms/Button'
 
 export function StickyNav({ navigation }: { navigation?: readonly { label: string; href: string }[] }) {
   const links = navigation ?? [
-    { label: 'Discover', href: '#discover' },
-    { label: 'How it works', href: '#how-it-works' },
-    { label: 'Our chefs', href: '#chefs' },
+    { label: 'Discover', href: '/discover' },
+    { label: 'Chefs', href: '/discover?type=chefs' },
+    { label: 'Dishes', href: '/discover?type=dishes' },
+    { label: 'Meal plans', href: '/discover?type=meal-plans' },
+    { label: 'Cart', href: '/cart' },
   ]
 
   return (
@@ -22,8 +24,7 @@ export function StickyNav({ navigation }: { navigation?: readonly { label: strin
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" className="hidden sm:inline-flex">Sign in</Button>
-          <Button onClick={() => document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth' })}>Find a chef</Button>
+          <Button onClick={() => window.location.assign('/discover?type=chefs')}>Find a chef</Button>
         </div>
       </nav>
     </header>

@@ -6,10 +6,36 @@
     "dishId": "dish-smoky-karahi",
     "orderId": "order-mariam-001",
     "rating": 5,
-    "comment": "The karahi arrived warm and tasted fresh.",
+    "text": "The karahi arrived warm and tasted fresh.",
+    "verifiedPurchase": true,
     "status": "PUBLISHED",
     "createdAt": "2026-08-25T10:00:00.000Z",
     "updatedAt": "2026-08-25T10:00:00.000Z"
+  },
+  {
+    "id": "review-sunday-plan-001",
+    "customerId": "customer-mariam-khan",
+    "chefId": "chef-ayesha-khan",
+    "planId": "plan-sunday-dastarkhwan",
+    "orderId": "order-mariam-plan-001",
+    "rating": 5,
+    "text": "The weekly menu made Sunday lunch simple.",
+    "verifiedPurchase": true,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-18T10:00:00.000Z",
+    "updatedAt": "2026-08-18T10:00:00.000Z"
+  },
+  {
+    "id": "review-chef-ayesha-001",
+    "customerId": "customer-ali-raza",
+    "chefId": "chef-ayesha-khan",
+    "orderId": "order-ali-chef-001",
+    "rating": 5,
+    "text": "The food arrived on time and the portions were generous.",
+    "verifiedPurchase": true,
+    "status": "PUBLISHED",
+    "createdAt": "2026-08-12T10:00:00.000Z",
+    "updatedAt": "2026-08-12T10:00:00.000Z"
   },
   {
     "id": "review-lemon-rice-001",
@@ -18,7 +44,8 @@
     "dishId": "dish-lemon-rice",
     "orderId": "order-ali-001",
     "rating": 4,
-    "comment": "The rice was light and well seasoned.",
+    "text": "The rice was light and well seasoned.",
+    "verifiedPurchase": true,
     "status": "PENDING",
     "createdAt": "2026-08-24T10:00:00.000Z",
     "updatedAt": "2026-08-24T10:00:00.000Z"
@@ -30,7 +57,8 @@
     "dishId": "dish-archived-daal",
     "orderId": "order-mariam-002",
     "rating": 3,
-    "comment": "The dish was not available when I ordered.",
+    "text": "The dish was not available when I ordered.",
+    "verifiedPurchase": true,
     "status": "HIDDEN",
     "createdAt": "2026-07-20T10:00:00.000Z",
     "updatedAt": "2026-07-21T10:00:00.000Z"

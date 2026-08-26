@@ -3,7 +3,7 @@ import { userProcedure } from '../trpc'
 import { Subscription } from '../../models/subscription.model'
 
 export const getMySubscriptionsProcedure = userProcedure
-  .input(z.object({ status: z.enum(['ACTIVE', 'PAUSED', 'CANCELLED', 'EXPIRED']).optional() }))
+  .input(z.object({ status: z.enum(['PENDING', 'ACTIVE', 'PAUSED', 'CANCELLED', 'PAST_DUE', 'COMPLETED']).optional() }))
   .query(async ({ ctx, input }) => {
     const userId = ctx.principal.userId
     const matchFilter: Record<string, unknown> = { customerId: userId }

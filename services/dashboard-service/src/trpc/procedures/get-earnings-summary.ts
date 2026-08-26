@@ -8,7 +8,7 @@ export const getEarningsSummaryProcedure = chefProcedure
     const chefId = ctx.principal.userId
     const { from, to } = resolveDateRange(input)
 
-    const [creditResult, debitResult, availableResult, pendingResult, transferredResult] = await Promise.all([
+    const [creditResult, debitResult, availableResult, pendingResult, transferredResult, heldResult, releasedResult] = await Promise.all([
       // 1. Total credited (CREDIT, date-filtered)
       EarningsLedger.aggregate([
         { $match: { chefId, type: 'CREDIT', createdAt: { $gte: from, $lte: to } } },
@@ -23,19 +23,43 @@ export const getEarningsSummaryProcedure = chefProcedure
 
       // 3. Available balance (all-time)
       EarningsLedger.aggregate([
-        { $match: { chefId, status: 'AVAILABLE' } },
-        { $group: { _id: null, total: { $sum: { $divide: ['$netAmountCents', 100] } } } },
+        { $match: { chefId, status: { $in: ['AVAILABLE', 'PENDING'] } } },
+        {
+          $group: {
+            _id: null,
+            total: {
+              $sum: {
+                $cond: [
+                  { $or: [{ $eq: ['$type', 'CREDIT'] }, { $eq: ['$type', 'HOLD_RELEASE'] }] },
+                  { $cond: [{ $eq: ['$status', 'AVAILABLE'] }, '$netAmountCents', 0] },
+                  { $cond: [{ $eq: ['$type', 'DEBIT'] }, { $multiply: ['$netAmountCents', -1] }, { $multiply: ['$netAmountCents', -1] }] },
+                ],
+              },
+            },
+          },
+        },
+        { $project: { total: { $divide: ['$total', 100] } } },
       ]),
 
       // 4. Pending balance (all-time)
       EarningsLedger.aggregate([
-        { $match: { chefId, status: 'PENDING' } },
+        { $match: { chefId, status: 'PENDING', type: 'CREDIT' } },
         { $group: { _id: null, total: { $sum: { $divide: ['$netAmountCents', 100] } } } },
       ]),
 
       // 5. Transferred balance (all-time)
       EarningsLedger.aggregate([
         { $match: { chefId, status: 'TRANSFERRED' } },
+        { $group: { _id: null, total: { $sum: { $divide: ['$netAmountCents', 100] } } } },
+      ]),
+
+      EarningsLedger.aggregate([
+        { $match: { chefId, type: 'HOLD', createdAt: { $gte: from, $lte: to } } },
+        { $group: { _id: null, total: { $sum: { $divide: ['$netAmountCents', 100] } } } },
+      ]),
+
+      EarningsLedger.aggregate([
+        { $match: { chefId, type: 'HOLD_RELEASE', createdAt: { $gte: from, $lte: to } } },
         { $group: { _id: null, total: { $sum: { $divide: ['$netAmountCents', 100] } } } },
       ]),
     ])
@@ -46,5 +70,7 @@ export const getEarningsSummaryProcedure = chefProcedure
       available: availableResult[0]?.total ?? 0,
       pending: pendingResult[0]?.total ?? 0,
       transferred: transferredResult[0]?.total ?? 0,
+      held: heldResult[0]?.total ?? 0,
+      holdReleased: releasedResult[0]?.total ?? 0,
     }
   })

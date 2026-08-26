@@ -42,8 +42,22 @@ export const getDashboardOverviewProcedure = chefProcedure
 
       // 4. Available balance (all-time, status AVAILABLE)
       EarningsLedger.aggregate([
-        { $match: { chefId, status: 'AVAILABLE' } },
-        { $group: { _id: null, balance: { $sum: { $divide: ['$netAmountCents', 100] } } } },
+        { $match: { chefId, status: { $in: ['AVAILABLE', 'PENDING'] } } },
+        {
+          $group: {
+            _id: null,
+            balanceCents: {
+              $sum: {
+                $cond: [
+                  { $and: [{ $eq: ['$status', 'AVAILABLE'] }, { $in: ['$type', ['CREDIT', 'HOLD_RELEASE']] }] },
+                  '$netAmountCents',
+                  { $cond: [{ $eq: ['$type', 'DEBIT'] }, { $multiply: ['$netAmountCents', -1] }, { $multiply: ['$netAmountCents', -1] }] },
+                ],
+              },
+            },
+          },
+        },
+        { $project: { balance: { $divide: ['$balanceCents', 100] } } },
       ]),
 
       // 5. Active subscriptions

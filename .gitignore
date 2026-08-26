@@ -2,6 +2,7 @@ node_modules/
 dist/
 .env
 .env*
+!services/**/.env.example
 .turbo
 scripts/
 .kiro

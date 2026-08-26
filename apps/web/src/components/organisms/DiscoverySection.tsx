@@ -1,25 +1,26 @@
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { Button } from '../atoms/Button'
 
 type SearchMode = 'chefs' | 'dishes' | 'meal-plans'
-interface DiscoveryItem { name: string; meta: string; price: string; image: string }
+interface DiscoveryItem { name: string; meta: string; price: string; image: string; href: string }
 
 const discoveryData: Record<SearchMode, DiscoveryItem[]> = {
   chefs: [
-    { name: 'Ayesha Khan', meta: 'Lahore · Punjabi home cooking', price: '4.9', image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=900&q=80' },
-    { name: 'Hamza Malik', meta: 'Karachi · Coastal spice kitchen', price: '4.8', image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=900&q=80' },
-    { name: 'Sara Ahmed', meta: 'Islamabad · Seasonal vegetable craft', price: '4.9', image: 'https://images.unsplash.com/photo-1556761223-4c4282c73f77?auto=format&fit=crop&w=900&q=80' },
+    { name: 'Ayesha Khan', meta: 'Lahore · Punjabi home cooking', price: '4.9', image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=900&q=80', href: '/chefs/ayesha-khan' },
+    { name: 'Hamza Malik', meta: 'Karachi · Coastal spice kitchen', price: '4.8', image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=900&q=80', href: '/chefs/hamza-malik' },
+    { name: 'Sara Ahmed', meta: 'Islamabad · Seasonal vegetable craft', price: '4.9', image: 'https://images.unsplash.com/photo-1556761223-4c4282c73f77?auto=format&fit=crop&w=900&q=80', href: '/chefs/sara-ahmed' },
   ],
   dishes: [
-    { name: 'Smoky karahi', meta: 'Ayesha Khan · Lahore', price: 'PKR 2,400', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=900&q=80' },
-    { name: 'Sea salt pulao', meta: 'Hamza Malik · Karachi', price: 'PKR 2,800', image: 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=80' },
-    { name: 'Garden daal', meta: 'Sara Ahmed · Islamabad', price: 'PKR 1,900', image: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=900&q=80' },
+    { name: 'Smoky karahi', meta: 'Ayesha Khan · Lahore', price: 'PKR 2,400', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=900&q=80', href: '/dishes/smoky-karahi' },
+    { name: 'Sea salt pulao', meta: 'Hamza Malik · Karachi', price: 'PKR 2,800', image: 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=80', href: '/dishes/sea-salt-pulao' },
+    { name: 'Garden daal', meta: 'Sara Ahmed · Islamabad', price: 'PKR 1,900', image: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=900&q=80', href: '/dishes/garden-daal' },
   ],
   'meal-plans': [
-    { name: 'The Sunday Dastarkhwan', meta: 'Weekly · Serves 2–4', price: 'PKR 8,400', image: 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=80' },
-    { name: 'Seasonal Bazaar', meta: 'Biweekly · Fresh local menu', price: 'PKR 11,000', image: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=900&q=80' },
-    { name: 'The Family Hearth', meta: 'Monthly · Serves 4–6', price: 'PKR 16,800', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=900&q=80' },
+    { name: 'The Sunday Dastarkhwan', meta: 'Weekly · Serves 2–4', price: 'PKR 8,400', image: 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=80', href: '/plans/sunday-dastarkhwan' },
+    { name: 'Seasonal Bazaar', meta: 'Biweekly · Fresh local menu', price: 'PKR 11,000', image: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=900&q=80', href: '/plans/seasonal-bazaar' },
+    { name: 'The Family Hearth', meta: 'Monthly · Serves 4–6', price: 'PKR 16,800', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=900&q=80', href: '/plans/family-hearth' },
   ],
 }
 
@@ -53,7 +54,7 @@ export function DiscoverySection() {
           <Button type="submit" className="min-h-14 px-7">Search</Button>
         </form>
         <div className="mt-7 grid gap-3 sm:grid-cols-3" aria-live="polite">
-          {results.map((item) => <article key={item.name} className="dish-card overflow-hidden rounded-2xl bg-cream text-charcoal"><div className="aspect-[16/10] overflow-hidden"><img className="h-full w-full object-cover" src={item.image} alt={item.name} loading="lazy" /></div><div className="p-4"><div className="flex items-start justify-between gap-3"><h3 className="font-semibold">{item.name}</h3><span className="shrink-0 text-sm font-semibold text-terracotta">{item.price}</span></div><p className="mt-1 text-sm text-charcoal-70">{item.meta}</p></div></article>)}
+          {results.map((item) => <Link key={item.name} to={item.href} className="dish-card group block overflow-hidden rounded-2xl bg-cream text-charcoal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-saffron"><div className="aspect-[16/10] overflow-hidden"><img className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" src={item.image} alt={item.name} loading="lazy" /></div><div className="p-4"><div className="flex items-start justify-between gap-3"><h3 className="font-semibold">{item.name}</h3><span className="shrink-0 text-sm font-semibold text-terracotta">{item.price}</span></div><p className="mt-1 text-sm text-charcoal-70">{item.meta}</p></div></Link>)}
           {results.length === 0 && <p className="rounded-2xl bg-cream/10 p-5 text-sm text-cream/75 sm:col-span-3">No matches yet. Try a nearby city, a broader dish, or a different plan.</p>}
         </div>
       </div>

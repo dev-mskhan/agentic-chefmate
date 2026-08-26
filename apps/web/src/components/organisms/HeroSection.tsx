@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
-import { Button } from '../atoms/Button'
+import { Link } from 'react-router-dom'
 
 function getPakistanTime() {
   const now = new Date()
@@ -109,8 +109,8 @@ export function HeroSection() {
         <h1 className="hero-title max-w-[12ch] font-display text-[clamp(3.6rem,2.5rem+4.5vw,7.5rem)] leading-[0.88] tracking-[-0.045em]">Good food. <em className="text-terracotta">Close to your home.</em></h1>
         <p className="hero-copy mt-7 max-w-xl text-lg leading-8 text-charcoal-70">Meet independent chefs across Pakistan, discover food with a point of view, and bring something worth gathering around home.</p>
         <div className="hero-actions mt-8 flex flex-wrap gap-3">
-          <Button onClick={() => document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth' })}>Start exploring</Button>
-          <Button variant="secondary">Cook with us</Button>
+          <Link to="/discover" className="inline-flex min-h-11 items-center justify-center rounded-pill bg-terracotta px-5 text-sm font-semibold text-cream transition-colors hover:bg-terracotta-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta">Start exploring</Link>
+          <Link to="/signup" className="inline-flex min-h-11 items-center justify-center rounded-pill border border-charcoal/20 bg-transparent px-5 text-sm font-semibold text-charcoal transition-colors hover:border-terracotta hover:text-terracotta focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta">Cook with us</Link>
         </div>
         <p className="hero-search-hint mt-8 text-sm text-charcoal-70"><span className="mr-2 inline-block h-2 w-2 rounded-full bg-sage" />Search chefs by city, then find the dish that brings the table together.</p>
       </div>

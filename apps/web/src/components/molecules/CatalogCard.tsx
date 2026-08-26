@@ -16,14 +16,14 @@ export function CatalogCard({ href, image, title, description, meta, price, stat
   eyebrow?: string
 }) {
   return (
-    <Link to={href} className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-charcoal/10 bg-cream shadow-sm transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-terracotta/30 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta">
-      <div className="relative aspect-[4/3] overflow-hidden bg-cream-dim">
-        <img src={image} alt={title} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
-        {eyebrow && <span className="absolute left-4 top-4 rounded-pill bg-cream/90 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-charcoal">{eyebrow}</span>}
+    <Link to={href} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal/10 bg-cream shadow-sm transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-terracotta/30 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta">
+      <div className="relative aspect-[5/3] overflow-hidden bg-cream-dim">
+        <img src={image} alt={title} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+        {eyebrow && <span className="absolute left-3 top-3 rounded-pill bg-cream/90 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-charcoal">{eyebrow}</span>}
       </div>
-      <div className="flex flex-1 flex-col p-5 sm:p-6">
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="font-display text-[1.65rem] leading-tight tracking-[-0.02em]">{title}</h3>
+          <h3 className="font-display text-[1.45rem] leading-tight tracking-[-0.02em]">{title}</h3>
           {price && <span className="shrink-0 text-sm font-semibold tabular-nums text-terracotta">{price}</span>}
         </div>
         <p className="mt-3 line-clamp-2 text-sm leading-6 text-charcoal-70">{description}</p>

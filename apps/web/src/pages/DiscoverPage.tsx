@@ -60,12 +60,82 @@ const fallbackImages: Record<string, string> = {
   'media-family-plan': 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=85',
 }
 
-function formatCategory(category: string) {
-  return category.replaceAll('_', ' ').toLowerCase().replace(/^\w/, (letter) => letter.toUpperCase())
+function asRecord(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === 'object' ? value as Record<string, unknown> : {}
+}
+
+function asText(value: unknown, fallback: string) {
+  return typeof value === 'string' && value.trim() ? value : fallback
+}
+
+function asNumber(value: unknown, fallback: number) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
+}
+
+function asTextList(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0) : []
+}
+
+function formatCategory(category: unknown) {
+  const normalized = asText(category, 'Dish category')
+  return normalized.replaceAll('_', ' ').toLowerCase().replace(/^\w/, (letter) => letter.toUpperCase())
+}
+
+function normalizeChef(record: ChefRecord) {
+  const chef = asRecord(record)
+  const serviceArea = asRecord(chef.serviceArea)
+  return {
+    id: asText(chef.id, 'chef'),
+    displayName: asText(chef.displayName, 'Local chef'),
+    bio: asText(chef.bio, 'Home-cooked food prepared to order.'),
+    city: asText(serviceArea.city, 'Nearby'),
+    areas: asTextList(serviceArea.areas),
+    mediaId: asTextList(chef.portfolioMediaIds)[0] ?? '',
+    rating: asNumber(chef.averageRating, 0),
+    reviewCount: asNumber(chef.totalReviews, 0),
+    specialties: asTextList(chef.cuisineSpecialties),
+  }
+}
+
+function normalizeDish(record: DishRecord) {
+  const dish = asRecord(record)
+  const availability = asRecord(dish.availability)
+  return {
+    id: asText(dish.id, 'dish'),
+    name: asText(dish.name ?? dish.title, 'Dish'),
+    description: asText(dish.description, 'Prepared by a local chef.'),
+    price: asNumber(dish.price, 0),
+    currency: asText(dish.currency, 'PKR'),
+    category: formatCategory(dish.category),
+    cuisine: asText(dish.cuisine, 'Home cooking'),
+    portionInfo: asText(dish.portionInfo, 'Portion details on the dish page'),
+    dietaryTags: asTextList(dish.dietaryTags),
+    mediaId: asTextList(dish.mediaIds)[0] ?? '',
+    rating: asNumber(dish.averageRating, 0),
+    reviewCount: asNumber(dish.totalReviews, 0),
+    available: dish.status === 'ACTIVE' && availability.isAvailable === true,
+  }
+}
+
+function normalizePlan(record: MealPlanRecord) {
+  const plan = asRecord(record)
+  const availabilityRules = asRecord(plan.availabilityRules)
+  return {
+    id: asText(plan.id, 'plan'),
+    name: asText(plan.name ?? plan.title, 'Meal plan'),
+    description: asText(plan.description, 'A meal plan prepared by a local chef.'),
+    price: asNumber(plan.basePrice, 0),
+    currency: asText(plan.currency, 'PKR'),
+    frequency: asText(plan.frequency, 'One-off'),
+    availableDays: asTextList(availabilityRules.availableDays),
+    mediaId: asTextList(plan.mediaIds)[0] ?? '',
+    rating: asNumber(plan.averageRating, 0),
+    reviewCount: asNumber(plan.totalReviews, 0),
+  }
 }
 
 function LoadingCards() {
-  return <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((item) => <div key={item} className="overflow-hidden rounded-[1.75rem] border border-charcoal/10 bg-cream"><Skeleton className="aspect-[4/3] rounded-none" /><div className="space-y-3 p-5 sm:p-6"><Skeleton className="h-7 w-2/3" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-1/2" /></div></div>)}</div>
+  return <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((item) => <div key={item} className="overflow-hidden rounded-2xl border border-charcoal/10 bg-cream"><Skeleton className="aspect-[5/3] rounded-none" /><div className="space-y-3 p-4 sm:p-5"><Skeleton className="h-7 w-2/3" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-1/2" /></div></div>)}</div>
 }
 
 export function DiscoverPage() {
@@ -95,7 +165,7 @@ export function DiscoverPage() {
         .then(async ([chefs, dishes, plans]) => {
           if (!active) return
           setCatalog({ chefs, dishes, plans })
-          const mediaIds = [...chefs.data.flatMap((chef) => chef.portfolioMediaIds), ...dishes.data.flatMap((dish) => dish.mediaIds), ...plans.data.flatMap((plan) => plan.mediaIds)]
+          const mediaIds = [...chefs.data.flatMap((chef) => { const mediaId = normalizeChef(chef).mediaId; return mediaId ? [mediaId] : [] }), ...dishes.data.flatMap((dish) => { const mediaId = normalizeDish(dish).mediaId; return mediaId ? [mediaId] : [] }), ...plans.data.flatMap((plan) => { const mediaId = normalizePlan(plan).mediaId; return mediaId ? [mediaId] : [] })]
           const mediaRows = await getMediaByIds(mediaIds)
           if (active) setMedia(Object.fromEntries(mediaRows.map((item) => [item.id, item])))
         })
@@ -124,16 +194,18 @@ export function DiscoverPage() {
   const totalResults = activeResults.reduce((sum, result) => sum + (result?.pageInfo.total ?? 0), 0)
 
   function renderChef(chef: ChefRecord) {
-    return <CatalogCard key={chef.id} href={`/chefs/${chef.id}`} image={imageFor(chef.portfolioMediaIds[0])} title={chef.displayName} description={chef.bio} meta={`${chef.serviceArea.city} / ${chef.serviceArea.areas.join(', ')}`} rating={chef.averageRating} reviewCount={chef.totalReviews} tags={chef.cuisineSpecialties} eyebrow="Chef" status="Available for orders" />
+    const normalized = normalizeChef(chef)
+    return <CatalogCard key={normalized.id} href={`/chefs/${normalized.id}`} image={imageFor(normalized.mediaId)} title={normalized.displayName} description={normalized.bio} meta={`${normalized.city}${normalized.areas.length ? ` / ${normalized.areas.join(', ')}` : ''}`} rating={normalized.rating} reviewCount={normalized.reviewCount} tags={normalized.specialties} eyebrow="Chef" status="Available for orders" />
   }
 
   function renderDish(dish: DishRecord) {
-    const available = dish.status === 'ACTIVE' && dish.availability.isAvailable
-    return <CatalogCard key={dish.id} href={`/dishes/${dish.id}`} image={imageFor(dish.mediaIds[0])} title={dish.name} description={dish.description} meta={`${dish.cuisine} / ${formatCategory(dish.category)} / ${dish.portionInfo}`} price={`${dish.currency} ${dish.price.toLocaleString()}`} rating={dish.averageRating} reviewCount={dish.totalReviews} tags={dish.dietaryTags} eyebrow="Dish" status={available ? 'Available to order' : 'Not available'} statusTone={available ? 'success' : 'warning'} />
+    const normalized = normalizeDish(dish)
+    return <CatalogCard key={normalized.id} href={`/dishes/${normalized.id}`} image={imageFor(normalized.mediaId)} title={normalized.name} description={normalized.description} meta={`${normalized.cuisine} / ${normalized.category} / ${normalized.portionInfo}`} price={`${normalized.currency} ${normalized.price.toLocaleString()}`} rating={normalized.rating} reviewCount={normalized.reviewCount} tags={normalized.dietaryTags} eyebrow="Dish" status={normalized.available ? 'Available to order' : 'Not available'} statusTone={normalized.available ? 'success' : 'warning'} />
   }
 
   function renderPlan(plan: MealPlanRecord) {
-    return <CatalogCard key={plan.id} href={`/plans/${plan.id}`} image={imageFor(plan.mediaIds[0])} title={plan.name} description={plan.description} meta={`${plan.frequency ?? 'One-off'} / ${plan.availabilityRules.availableDays.join(', ')}`} price={`${plan.currency} ${plan.basePrice.toLocaleString()}`} rating={plan.averageRating} reviewCount={plan.totalReviews} eyebrow="Meal plan" status="Accepting orders" />
+    const normalized = normalizePlan(plan)
+    return <CatalogCard key={normalized.id} href={`/plans/${normalized.id}`} image={imageFor(normalized.mediaId)} title={normalized.name} description={normalized.description} meta={`${normalized.frequency}${normalized.availableDays.length ? ` / ${normalized.availableDays.join(', ')}` : ''}`} price={`${normalized.currency} ${normalized.price.toLocaleString()}`} rating={normalized.rating} reviewCount={normalized.reviewCount} eyebrow="Meal plan" status="Accepting orders" />
   }
 
   function renderModeCards(mode: Mode, result: Catalog['chefs'] | Catalog['dishes'] | Catalog['plans']) {

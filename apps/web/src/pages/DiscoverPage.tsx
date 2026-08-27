@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
+import { SearchX, SlidersHorizontal } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Button } from '../components/atoms/Button'
 import { EmptyState } from '../components/atoms/EmptyState'
 import { Skeleton } from '../components/atoms/Skeleton'
 import { CatalogCard } from '../components/molecules/CatalogCard'
 import { Pagination } from '../components/molecules/Pagination'
-import { ThemedSelect, type ThemedSelectOption } from '../components/molecules/ThemedSelect'
 import { PageContainer } from '../components/templates/PageContainer'
 import { PublicShell } from '../components/templates/PublicShell'
 import {
@@ -33,21 +33,74 @@ const modes: Array<{ value: Mode; label: string; heading: string; description: s
   { value: 'meal-plans', label: 'Meal plans', heading: 'Meal plans for the week', description: 'Plan a few meals ahead with a local chef.' },
 ]
 
-const cityOptions: readonly ThemedSelectOption[] = [
+const cityOptions = [
   { value: '', label: 'All cities' },
   { value: 'Lahore', label: 'Lahore' },
   { value: 'Karachi', label: 'Karachi' },
 ]
 
-const categoryOptions: readonly ThemedSelectOption[] = [
+const categoryOptions = [
   { value: '', label: 'All categories' },
   { value: 'MAIN_COURSE', label: 'Main course' },
   { value: 'SIDE', label: 'Side' },
 ]
 
-const statusOptions: readonly ThemedSelectOption[] = [
-  { value: '', label: 'All availability' },
-  { value: 'ACTIVE', label: 'Available now' },
+const cuisineOptions = [
+  { value: '', label: 'All cuisines' },
+  { value: 'Punjabi', label: 'Punjabi' },
+  { value: 'Home cooking', label: 'Home cooking' },
+  { value: 'Karachi', label: 'Karachi' },
+  { value: 'Coastal', label: 'Coastal' },
+]
+
+const dietaryOptions = [
+  { value: '', label: 'All dietary tags' },
+  { value: 'HALAL', label: 'Halal' },
+  { value: 'VEGETARIAN', label: 'Vegetarian' },
+]
+
+const occasionOptions = [
+  { value: '', label: 'All occasions' },
+  { value: 'FAMILY', label: 'Family' },
+  { value: 'WEEKNIGHT', label: 'Weeknight' },
+  { value: 'MEAL_PREP', label: 'Meal prep' },
+]
+
+const dayOptions = [
+  { value: '', label: 'Any day' },
+  { value: 'MON', label: 'Monday' },
+  { value: 'TUE', label: 'Tuesday' },
+  { value: 'WED', label: 'Wednesday' },
+  { value: 'THU', label: 'Thursday' },
+  { value: 'FRI', label: 'Friday' },
+  { value: 'SAT', label: 'Saturday' },
+  { value: 'SUN', label: 'Sunday' },
+]
+
+const ratingOptions = [
+  { value: '', label: 'Any rating' },
+  { value: '4', label: '4.0 and above' },
+  { value: '4.5', label: '4.5 and above' },
+  { value: '4.8', label: '4.8 and above' },
+]
+
+const planTypeOptions = [
+  { value: '', label: 'All plan types' },
+  { value: 'SUBSCRIPTION', label: 'Subscription' },
+  { value: 'ONE_OFF', label: 'One-off' },
+]
+
+const frequencyOptions = [
+  { value: '', label: 'All frequencies' },
+  { value: 'WEEKLY', label: 'Weekly' },
+  { value: 'BIWEEKLY', label: 'Every two weeks' },
+  { value: 'MONTHLY', label: 'Monthly' },
+]
+
+const chefOptions = [
+  { value: '', label: 'All chefs' },
+  { value: 'chef-ayesha-khan', label: 'Ayesha Khan' },
+  { value: 'chef-hamza-malik', label: 'Hamza Malik' },
 ]
 
 const fallbackImages: Record<string, string> = {
@@ -138,6 +191,31 @@ function LoadingCards() {
   return <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((item) => <div key={item} className="overflow-hidden rounded-2xl border border-charcoal/10 bg-cream"><Skeleton className="aspect-[5/3] rounded-none" /><div className="space-y-3 p-4 sm:p-5"><Skeleton className="h-7 w-2/3" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-1/2" /></div></div>)}</div>
 }
 
+function FilterRadios({ label, value, options, onChange, disabled = false }: { label: string; value: string; options: readonly { value: string; label: string }[]; onChange: (value: string) => void; disabled?: boolean }) {
+  return <fieldset className={`grid gap-2 ${disabled ? 'opacity-45' : ''}`} disabled={disabled}>
+    <legend className="text-xs font-semibold uppercase tracking-[0.12em] text-charcoal-70">{label}</legend>
+    <div className="grid gap-1">
+      {options.map((option) => <label key={option.value} className="flex min-h-9 cursor-pointer items-center gap-2 rounded-lg px-2 text-sm text-charcoal transition-colors hover:bg-cream hover:text-terracotta has-[:checked]:bg-cream has-[:checked]:font-semibold has-[:checked]:text-charcoal">
+        <input type="radio" name={label} value={option.value} checked={value === option.value} onChange={() => onChange(option.value)} className="h-3.5 w-3.5 accent-terracotta" />
+        <span>{option.label}</span>
+      </label>)}
+    </div>
+  </fieldset>
+}
+
+function FilterChecks({ label, value, options, onChange, disabled = false }: { label: string; value: string; options: readonly { value: string; label: string }[]; onChange: (value: string) => void; disabled?: boolean }) {
+  const selected = value.split(',').filter(Boolean)
+  return <fieldset className={`grid gap-2 ${disabled ? 'opacity-45' : ''}`} disabled={disabled}>
+    <legend className="text-xs font-semibold uppercase tracking-[0.12em] text-charcoal-70">{label}</legend>
+    <div className="grid gap-1">
+      {options.map((option) => <label key={option.value} className="flex min-h-9 cursor-pointer items-center gap-2 rounded-lg px-2 text-sm text-charcoal transition-colors hover:bg-cream hover:text-terracotta has-[:checked]:bg-cream has-[:checked]:font-semibold">
+        <input type="checkbox" checked={selected.includes(option.value)} onChange={() => onChange(option.value)} className="h-3.5 w-3.5 rounded accent-terracotta" />
+        <span>{option.label}</span>
+      </label>)}
+    </div>
+  </fieldset>
+}
+
 export function DiscoverPage() {
   const [params, setParams] = useSearchParams()
   const rawType = params.get('type')
@@ -147,6 +225,17 @@ export function DiscoverPage() {
   const city = params.get('city') ?? ''
   const category = params.get('category') ?? ''
   const status = params.get('status') ?? ''
+  const cuisine = params.get('cuisine') ?? ''
+  const dietaryTag = params.get('dietaryTag') ?? ''
+  const occasion = params.get('occasion') ?? ''
+  const excludeAllergen = params.get('excludeAllergen') ?? ''
+  const minPrice = params.get('minPrice') ?? ''
+  const maxPrice = params.get('maxPrice') ?? ''
+  const minRating = params.get('minRating') ?? ''
+  const availableDay = params.get('availableDay') ?? ''
+  const chefId = params.get('chefId') ?? ''
+  const planType = params.get('planType') ?? ''
+  const frequency = params.get('frequency') ?? ''
   const page = Number(params.get('page') ?? '1') || 1
   const [search, setSearch] = useState(query)
   const [catalog, setCatalog] = useState<Catalog | null>(null)
@@ -154,13 +243,21 @@ export function DiscoverPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [reloadKey, setReloadKey] = useState(0)
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   useEffect(() => {
     let active = true
     const timer = window.setTimeout(() => {
       setLoading(true)
       setError(false)
-      const filters = { query, city: city || undefined, category: category || undefined, status: status || undefined, page, pageSize: 3 }
+      const filters = {
+        query, city: city || undefined, category: category || undefined, status: status || undefined,
+        cuisine: cuisine || undefined, dietaryTag: dietaryTag || undefined, occasion: occasion || undefined,
+        excludeAllergen: excludeAllergen || undefined, minPrice: minPrice ? Number(minPrice) : undefined,
+        maxPrice: maxPrice ? Number(maxPrice) : undefined, minRating: minRating ? Number(minRating) : undefined,
+        availableDay: availableDay || undefined, chefId: chefId || undefined, planType: planType || undefined,
+        frequency: frequency || undefined, page, pageSize: 3,
+      }
       Promise.all([discoverChefs(filters), discoverDishes(filters), discoverMealPlans(filters)])
         .then(async ([chefs, dishes, plans]) => {
           if (!active) return
@@ -177,7 +274,7 @@ export function DiscoverPage() {
         })
     }, 0)
     return () => { active = false; window.clearTimeout(timer) }
-  }, [category, city, page, query, reloadKey, status])
+  }, [availableDay, category, chefId, city, cuisine, dietaryTag, excludeAllergen, frequency, maxPrice, minPrice, minRating, occasion, page, planType, query, reloadKey, status])
 
   const navigation = useMemo(() => modes.map((mode) => ({ label: mode.label, href: `/discover?type=${mode.value}` })), [])
   const update = (next: Record<string, string>) => {
@@ -185,6 +282,11 @@ export function DiscoverPage() {
     Object.entries(next).forEach(([key, value]) => value ? nextParams.set(key, value) : nextParams.delete(key))
     if (!('page' in next)) nextParams.delete('page')
     setParams(nextParams)
+  }
+  const toggleMulti = (key: string, value: string) => {
+    const selected = (params.get(key) ?? '').split(',').filter(Boolean)
+    const next = selected.includes(value) ? selected.filter((item) => item !== value) : [...selected, value]
+    update({ [key]: next.join(',') })
   }
   const imageFor = (mediaId: string) => media[mediaId]?.url ?? fallbackImages[mediaId] ?? fallbackImages['media-sunday-plan']
   const activeResults = visibleModes.map((mode) => catalog?.[mode.value === 'meal-plans' ? 'plans' : mode.value])
@@ -230,18 +332,54 @@ export function DiscoverPage() {
           {modes.map((mode) => <Link key={mode.value} to={`/discover?type=${mode.value}`} className={`rounded-pill px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta ${requestedType === mode.value ? 'bg-terracotta text-cream' : 'bg-cream-dim text-charcoal-70 hover:text-charcoal'}`}>{mode.label}</Link>)}
         </nav>
 
-        <form className="mt-6 grid gap-4 rounded-[1.5rem] border border-charcoal/10 bg-cream-dim/60 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_190px_190px_190px_auto] lg:items-end" onSubmit={(event) => { event.preventDefault(); update({ q: search }) }}>
-          <label className="grid gap-2 text-sm font-medium">Search<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search chefs, dishes, or plans" className="min-h-12 rounded-xl border border-charcoal/15 bg-cream px-4 outline-none transition-colors placeholder:text-charcoal-70/60 focus:border-terracotta focus:ring-2 focus:ring-terracotta/15" /></label>
-          <ThemedSelect label="City" value={city} options={cityOptions} onChange={(value) => update({ city: value })} />
-          <ThemedSelect label="Category" value={category} options={categoryOptions} onChange={(value) => update({ category: value })} disabled={Boolean(requestedType && requestedType !== 'dishes')} />
-          <ThemedSelect label="Availability" value={status} options={statusOptions} onChange={(value) => update({ status: value })} />
-          <Button type="submit" className="min-h-12">Search</Button>
-        </form>
+        <div className="mt-6 grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-10 lg:items-start">
+          <div className="min-w-0 lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)] lg:self-start lg:overflow-hidden">
+            <label className="grid gap-2 text-sm font-medium">Search<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Chefs, dishes, plans" className="min-h-11 rounded-xl border border-charcoal/15 bg-cream px-3 text-sm outline-none placeholder:text-charcoal-70/60 focus:border-terracotta focus:ring-2 focus:ring-terracotta/15" /></label>
+            <button type="button" className="mt-3 flex min-h-11 w-full items-center justify-between rounded-xl border border-charcoal/10 bg-cream-dim/70 px-4 text-sm font-semibold lg:hidden" aria-expanded={filtersOpen} onClick={() => setFiltersOpen((open) => !open)}><span className="flex items-center gap-2 text-terracotta"><SlidersHorizontal size={16} aria-hidden="true" /> Filters</span><span aria-hidden="true" className={`h-2.5 w-2.5 rotate-45 border-b-2 border-r-2 border-terracotta transition-transform ${filtersOpen ? 'rotate-[225deg]' : '-translate-y-1'}`} /></button>
 
-        <div className="mt-14" aria-live="polite">
+            {/*
+              Outer wrapper owns the SHAPE: rounded corners, border, background,
+              and `overflow-hidden`. Because it doesn't scroll itself, its
+              overflow-hidden clips everything inside it — including the inner
+              form's native scrollbar — to the rounded rect. This is what fixes
+              the bottom-right corner getting cut off by a square scrollbar.
+              Visibility toggling (mobile open/close) also lives here so a
+              closed panel takes up no space, same as before.
+            */}
+            <div
+              className={`${filtersOpen ? 'block' : 'hidden'} mt-3 h-[28rem] overflow-hidden rounded-[1.5rem] border border-charcoal/10 bg-cream-dim/60 lg:block lg:h-[calc(100%_-_4.5rem)]`}
+            >
+              {/* Inner element owns the SCROLL: it's the one with overflow-y-auto,
+                  full height/width of the wrapper, and the custom scrollbar class. */}
+              <form
+                className="filter-scrollbar grid h-full min-w-0 gap-5 overflow-y-auto overflow-x-hidden p-4 sm:grid-cols-2 sm:p-5 lg:block lg:space-y-5"
+                onSubmit={(event) => { event.preventDefault(); update({ q: search }); setFiltersOpen(false) }}
+              >
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-terracotta sm:col-span-2 lg:mb-2"><SlidersHorizontal size={15} aria-hidden="true" /> Filters</div>
+                <FilterRadios label="City" value={city} options={cityOptions} onChange={(value) => update({ city: value })} />
+                <FilterChecks label="Cuisine" value={cuisine} options={cuisineOptions.filter((option) => option.value)} onChange={(value) => toggleMulti('cuisine', value)} />
+                <FilterChecks label="Available day" value={availableDay} options={dayOptions.filter((option) => option.value)} onChange={(value) => toggleMulti('availableDay', value)} />
+                <FilterRadios label="Rating" value={minRating} options={ratingOptions} onChange={(value) => update({ minRating: value })} />
+                <FilterRadios label="Category" value={category} options={categoryOptions} onChange={(value) => update({ category: value })} disabled={Boolean(requestedType && requestedType !== 'dishes')} />
+                <FilterChecks label="Dietary" value={dietaryTag} options={dietaryOptions.filter((option) => option.value)} onChange={(value) => toggleMulti('dietaryTag', value)} disabled={Boolean(requestedType && requestedType !== 'dishes')} />
+                <FilterChecks label="Occasion" value={occasion} options={occasionOptions.filter((option) => option.value)} onChange={(value) => toggleMulti('occasion', value)} disabled={Boolean(requestedType && requestedType !== 'dishes')} />
+                <FilterRadios label="Chef" value={chefId} options={chefOptions} onChange={(value) => update({ chefId: value })} disabled={Boolean(requestedType === 'chefs')} />
+                <FilterRadios label="Plan type" value={planType} options={planTypeOptions} onChange={(value) => update({ planType: value })} disabled={Boolean(requestedType && requestedType !== 'meal-plans')} />
+                <FilterRadios label="Frequency" value={frequency} options={frequencyOptions} onChange={(value) => update({ frequency: value })} disabled={Boolean(requestedType && requestedType !== 'meal-plans')} />
+                <div className="grid grid-cols-1 gap-3 sm:col-span-2">
+                  <label className="grid min-w-0 gap-2 text-xs font-semibold uppercase tracking-[0.1em] text-charcoal-70">Min price<input inputMode="numeric" value={minPrice} onChange={(event) => update({ minPrice: event.target.value.replace(/\D/g, '') })} placeholder="0" className="min-h-10 min-w-0 w-full rounded-xl border border-charcoal/15 bg-cream px-3 text-sm font-normal normal-case tracking-normal outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/15" disabled={Boolean(requestedType === 'chefs')} /></label>
+                  <label className="grid min-w-0 gap-2 text-xs font-semibold uppercase tracking-[0.1em] text-charcoal-70">Max price<input inputMode="numeric" value={maxPrice} onChange={(event) => update({ maxPrice: event.target.value.replace(/\D/g, '') })} placeholder="No limit" className="min-h-10 min-w-0 w-full rounded-xl border border-charcoal/15 bg-cream px-3 text-sm font-normal normal-case tracking-normal outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/15" disabled={Boolean(requestedType === 'chefs')} /></label>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-charcoal-70 sm:col-span-2 lg:items-start"><input value={excludeAllergen} onChange={(event) => update({ excludeAllergen: event.target.value })} placeholder="Exclude allergen, e.g. nuts" className="min-h-10 min-w-0 flex-1 rounded-xl border border-charcoal/15 bg-cream px-3 outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/15" disabled={Boolean(requestedType && requestedType !== 'dishes')} /></label>
+                <div className="flex gap-2 sm:col-span-2"><Button type="submit" className="min-h-10 flex-1"><SearchX size={16} aria-hidden="true" /> Search</Button><Button type="button" variant="secondary" className="min-h-10" onClick={() => { setSearch(''); update({ q: '', city: '', category: '', status: '', cuisine: '', dietaryTag: '', occasion: '', excludeAllergen: '', minPrice: '', maxPrice: '', minRating: '', availableDay: '', chefId: '', planType: '', frequency: '' }) }}>Clear</Button></div>
+              </form>
+            </div>
+          </div>
+
+          <div className="min-w-0" aria-live="polite">
           {loading && <div className="grid gap-14">{visibleModes.map((mode) => <section key={mode.value}><Skeleton className="h-10 w-48" /><div className="mt-5"><LoadingCards /></div></section>)}</div>}
           {!loading && error && <div className="rounded-[1.5rem] border border-rust/30 bg-rust/10 p-6"><h2 className="font-display text-3xl">Results are not available</h2><p className="mt-2 max-w-lg text-sm leading-6 text-charcoal-70">We could not load the catalog. Try again in a moment.</p><Button className="mt-5" onClick={() => setReloadKey((key) => key + 1)}>Try again</Button></div>}
-          {!loading && !error && !hasResults && <EmptyState title="No results found" description="Try a different city, category, availability, or search term." action={<Button variant="secondary" onClick={() => { setSearch(''); update({ q: '', city: '', category: '', status: '' }) }}>Clear filters</Button>} />}
+          {!loading && !error && !hasResults && <EmptyState icon={SearchX} title="No results found" description="Try a different city, cuisine, availability, or search term." action={<Button variant="secondary" onClick={() => { setSearch(''); update({ q: '', city: '', category: '', status: '', cuisine: '', dietaryTag: '', occasion: '', excludeAllergen: '', minPrice: '', maxPrice: '', minRating: '', availableDay: '', chefId: '', planType: '', frequency: '' }) }}>Clear filters</Button>} />}
           {!loading && !error && catalog && hasResults && <div className="grid gap-16">
             {visibleModes.map((mode) => {
               const result = catalog[mode.value === 'meal-plans' ? 'plans' : mode.value]
@@ -251,12 +389,13 @@ export function DiscoverPage() {
                   <div><h2 className="font-display text-4xl leading-none tracking-[-0.025em]">{mode.heading}</h2><p className="mt-3 max-w-xl text-sm leading-6 text-charcoal-70">{mode.description}</p></div>
                   <p className="text-sm text-charcoal-70">{result.pageInfo.total} {mode.label.toLowerCase()}</p>
                 </div>
-                <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">{renderModeCards(mode.value, result)}</div>
+                <div className="mt-6 grid max-w-[1080px] gap-5 md:grid-cols-2 lg:grid-cols-3">{renderModeCards(mode.value, result)}</div>
               </section>
             })}
             {(hasNext || currentPage > 1) && <Pagination page={currentPage} hasNext={hasNext} onPrevious={() => update({ page: String(Math.max(1, page - 1)) })} onNext={() => update({ page: String(page + 1) })} />}
             <p className="text-sm text-charcoal-70">{totalResults} results across the catalog</p>
           </div>}
+        </div>
         </div>
       </PageContainer>
     </PublicShell>

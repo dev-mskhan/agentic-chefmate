@@ -25,6 +25,17 @@ export interface PublicSearchFilters {
   pageSize?: number
   city?: string
   category?: string
+  cuisine?: string
+  dietaryTag?: string
+  occasion?: string
+  excludeAllergen?: string
+  minPrice?: number
+  maxPrice?: number
+  minRating?: number
+  availableDay?: string
+  chefId?: string
+  planType?: string
+  frequency?: string
   status?: string
   type?: 'chefs' | 'dishes' | 'meal-plans'
 }
@@ -93,13 +104,33 @@ function search<T>(records: readonly T[], filters: PublicSearchFilters): T[] {
   return records.filter((record) => JSON.stringify(record).toLowerCase().includes(query))
 }
 
+function chefFor(chefId: string) {
+  return chefs.find((chef) => chef.id === chefId)
+}
+
+function filterValues(value?: string) {
+  return value?.split(',').map((item) => item.trim().toLowerCase()).filter(Boolean) ?? []
+}
+
+function includesFilter(values: readonly string[], filter?: string) {
+  const selected = filterValues(filter)
+  return selected.length === 0 || selected.some((item) => values.some((value) => value.toLowerCase() === item))
+}
+
+function matchesChef(chefId: string, filters: PublicSearchFilters) {
+  const chef = chefFor(chefId)
+  if (!chef || chef.accountState !== 'ACTIVE') return false
+  if (filters.city && chef.serviceArea.city.toLowerCase() !== filters.city.toLowerCase()) return false
+  if (filters.chefId && chef.id !== filters.chefId) return false
+  if (!includesFilter(chef.cuisineSpecialties, filters.cuisine)) return false
+  if (filters.minRating !== undefined && chef.averageRating < filters.minRating) return false
+  return true
+}
+
 export async function discoverChefs(filters: PublicSearchFilters = {}): Promise<ListResponse<ChefRecord>> {
   await wait()
   if (filters.query === '__error') throw new Error('Catalog unavailable')
-  const records = search(chefs, filters).filter((chef) => {
-    if (!filters.city) return true
-    return chef.serviceArea.city.toLowerCase() === filters.city.toLowerCase()
-  }).filter((chef) => chef.accountState === 'ACTIVE')
+  const records = search(chefs, filters).filter((chef) => matchesChef(chef.id, filters))
   return paginate(records, filters)
 }
 
@@ -107,7 +138,15 @@ export async function discoverDishes(filters: PublicSearchFilters = {}): Promise
   await wait()
   if (filters.query === '__error') throw new Error('Catalog unavailable')
   const records = search(dishes, filters).filter((dish) => {
+    if (!matchesChef(dish.chefId, filters)) return false
     if (filters.category && dish.category !== filters.category) return false
+    if (!includesFilter(dish.dietaryTags as readonly string[], filters.dietaryTag)) return false
+    if (!includesFilter(dish.occasionTags as readonly string[], filters.occasion)) return false
+    if (filters.excludeAllergen && (dish.allergens as readonly string[]).includes(filters.excludeAllergen)) return false
+    if (filters.minPrice !== undefined && dish.price < filters.minPrice) return false
+    if (filters.maxPrice !== undefined && dish.price > filters.maxPrice) return false
+    if (filters.minRating !== undefined && dish.averageRating < filters.minRating) return false
+    if (!includesFilter(dish.availability.availableDays as readonly string[], filters.availableDay)) return false
     if (filters.status && dish.status !== filters.status) return false
     return dish.status === 'ACTIVE'
   })
@@ -118,6 +157,13 @@ export async function discoverMealPlans(filters: PublicSearchFilters = {}): Prom
   await wait()
   if (filters.query === '__error') throw new Error('Catalog unavailable')
   const records = search(mealPlans, filters).filter((plan) => {
+    if (!matchesChef(plan.chefId, filters)) return false
+    if (filters.planType && plan.type !== filters.planType) return false
+    if (filters.frequency && plan.frequency !== filters.frequency) return false
+    if (filters.minPrice !== undefined && plan.basePrice < filters.minPrice) return false
+    if (filters.maxPrice !== undefined && plan.basePrice > filters.maxPrice) return false
+    if (filters.minRating !== undefined && plan.averageRating < filters.minRating) return false
+    if (!includesFilter(plan.availabilityRules.availableDays as readonly string[], filters.availableDay)) return false
     if (filters.status && plan.status !== filters.status) return false
     return plan.status === 'ACTIVE'
   })

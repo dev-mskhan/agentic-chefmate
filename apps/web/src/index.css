@@ -50,6 +50,17 @@ body { margin: 0; min-width: 320px; }
 * { box-sizing: border-box; }
 h1, h2, h3, h4, h5, h6 { max-width: 34ch; text-wrap: balance; }
 .tabular-number { min-width: 4ch; font-variant-numeric: tabular-nums; }
+.filter-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 85, 44, 0.7) rgba(243, 233, 216, 0.8);
+  scrollbar-gutter: stable;
+}
+.filter-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.filter-scrollbar::-webkit-scrollbar-track { margin-block: 12px; border-radius: 999px; background: rgba(243, 233, 216, 0.8); }
+.filter-scrollbar::-webkit-scrollbar-thumb { border: 1px solid rgba(243, 233, 216, 0.8); border-radius: 999px; background: rgba(201, 85, 44, 0.7); }
+.filter-scrollbar::-webkit-scrollbar-thumb:hover { background: #c9552c; }
+.filter-scrollbar::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+.filter-scrollbar::-webkit-scrollbar-corner { background: transparent; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

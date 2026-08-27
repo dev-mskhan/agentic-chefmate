@@ -8,7 +8,7 @@ import { PublicShell } from '../components/templates/PublicShell'
 
 export function LandingPage() {
   return (
-    <PublicShell navigation={[{ label: 'Discover', href: '/discover' }, { label: 'Chefs', href: '/discover?type=chefs' }, { label: 'Dishes', href: '/discover?type=dishes' }, { label: 'Meal plans', href: '/discover?type=meal-plans' }, { label: 'Cart', href: '/cart' }]}>
+    <PublicShell navigation={[{ label: 'Discover', href: '/discover' }, { label: 'Chefs', href: '/discover?type=chefs' }, { label: 'Dishes', href: '/discover?type=dishes' }, { label: 'Meal plans', href: '/discover?type=meal-plans' }, { label: 'Basket', href: '/cart' }]}>
       <main>
         <HeroSection />
         <DiscoverySection />

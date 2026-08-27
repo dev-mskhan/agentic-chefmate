@@ -7,7 +7,7 @@ export function StickyNav({ navigation }: { navigation?: readonly { label: strin
     { label: 'Chefs', href: '/discover?type=chefs' },
     { label: 'Dishes', href: '/discover?type=dishes' },
     { label: 'Meal plans', href: '/discover?type=meal-plans' },
-    { label: 'Cart', href: '/cart' },
+    { label: 'Basket', href: '/cart' },
   ]
 
   return (
@@ -24,6 +24,7 @@ export function StickyNav({ navigation }: { navigation?: readonly { label: strin
           ))}
         </div>
         <div className="flex items-center gap-2">
+          <Link to="/auth/sign-in" className="inline-flex rounded-pill px-3 py-2 text-sm font-semibold text-charcoal-70 transition-colors hover:bg-cream-dim hover:text-charcoal sm:px-4">Sign in</Link>
           <Button onClick={() => window.location.assign('/discover?type=chefs')}>Find a chef</Button>
         </div>
       </nav>

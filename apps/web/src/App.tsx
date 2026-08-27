@@ -10,8 +10,14 @@ const ChefDetailPage = lazy(() => import('./pages/DetailPages').then(({ ChefDeta
 const DishDetailPage = lazy(() => import('./pages/DetailPages').then(({ DishDetailPage: page }) => ({ default: page })))
 const MealPlanDetailPage = lazy(() => import('./pages/DetailPages').then(({ MealPlanDetailPage: page }) => ({ default: page })))
 const CartPage = lazy(() => import('./pages/CartPage').then(({ CartPage: page }) => ({ default: page })))
-const CheckoutPage = lazy(() => import('./pages/CheckoutPage').then(({ CheckoutPage: page }) => ({ default: page })))
-const ConfirmationPage = lazy(() => import('./pages/CheckoutPage').then(({ ConfirmationPage: page }) => ({ default: page })))
+
+// Customer Checkout & Confirmation Flow
+const CheckoutPage = lazy(() =>
+  import('./pages/customer/CheckoutPage').then(({ CheckoutPage: page }) => ({ default: page })),
+)
+const OrderConfirmationPage = lazy(() =>
+  import('./pages/customer/OrderConfirmationPage').then(({ OrderConfirmationPage: page }) => ({ default: page })),
+)
 
 function App() {
   return (
@@ -25,7 +31,8 @@ function App() {
           <Route path="/plans/:planId" element={<MealPlanDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/checkout/confirmation" element={<ConfirmationPage />} />
+          <Route path="/orders/:orderId" element={<OrderConfirmationPage />} />
+          <Route path="/checkout/confirmation" element={<OrderConfirmationPage />} />
           <Route path="*" element={<LandingPage />} />
         </Routes>
       </Suspense>

@@ -101,6 +101,8 @@ const chefOptions = [
   { value: '', label: 'All chefs' },
   { value: 'chef-ayesha-khan', label: 'Ayesha Khan' },
   { value: 'chef-hamza-malik', label: 'Hamza Malik' },
+  { value: 'chef-sana-javed', label: 'Sana Javed' },
+  { value: 'chef-mariam-raza', label: 'Mariam Raza' },
 ]
 
 const fallbackImages: Record<string, string> = {
@@ -111,6 +113,25 @@ const fallbackImages: Record<string, string> = {
   'media-sunday-plan': 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85',
   'media-weeknight-plan': 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85',
   'media-family-plan': 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=85',
+  'media-sana-kitchen-01': 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1200&q=85',
+  'media-mariam-kitchen-01': 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=85',
+}
+
+const fallbackImageSets: Record<string, string[]> = {
+  'media-smoky-karahi': [
+    'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85',
+    'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=1200&q=85',
+    'https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?auto=format&fit=crop&w=1200&q=85',
+  ],
+  'media-sunday-plan': [
+    'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85',
+    'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85',
+    'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=85',
+  ],
+  'media-weeknight-plan': [
+    'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85',
+    'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=85',
+  ],
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -163,6 +184,7 @@ function normalizeDish(record: DishRecord) {
     cuisine: asText(dish.cuisine, 'Home cooking'),
     portionInfo: asText(dish.portionInfo, 'Portion details on the dish page'),
     dietaryTags: asTextList(dish.dietaryTags),
+    mediaIds: asTextList(dish.mediaIds),
     mediaId: asTextList(dish.mediaIds)[0] ?? '',
     rating: asNumber(dish.averageRating, 0),
     reviewCount: asNumber(dish.totalReviews, 0),
@@ -181,6 +203,7 @@ function normalizePlan(record: MealPlanRecord) {
     currency: asText(plan.currency, 'PKR'),
     frequency: asText(plan.frequency, 'One-off'),
     availableDays: asTextList(availabilityRules.availableDays),
+    mediaIds: asTextList(plan.mediaIds),
     mediaId: asTextList(plan.mediaIds)[0] ?? '',
     rating: asNumber(plan.averageRating, 0),
     reviewCount: asNumber(plan.totalReviews, 0),
@@ -262,7 +285,7 @@ export function DiscoverPage() {
         .then(async ([chefs, dishes, plans]) => {
           if (!active) return
           setCatalog({ chefs, dishes, plans })
-          const mediaIds = [...chefs.data.flatMap((chef) => { const mediaId = normalizeChef(chef).mediaId; return mediaId ? [mediaId] : [] }), ...dishes.data.flatMap((dish) => { const mediaId = normalizeDish(dish).mediaId; return mediaId ? [mediaId] : [] }), ...plans.data.flatMap((plan) => { const mediaId = normalizePlan(plan).mediaId; return mediaId ? [mediaId] : [] })]
+          const mediaIds = [...chefs.data.flatMap((chef) => { const mediaId = normalizeChef(chef).mediaId; return mediaId ? [mediaId] : [] }), ...dishes.data.flatMap((dish) => normalizeDish(dish).mediaIds), ...plans.data.flatMap((plan) => normalizePlan(plan).mediaIds)]
           const mediaRows = await getMediaByIds(mediaIds)
           if (active) setMedia(Object.fromEntries(mediaRows.map((item) => [item.id, item])))
         })
@@ -289,6 +312,7 @@ export function DiscoverPage() {
     update({ [key]: next.join(',') })
   }
   const imageFor = (mediaId: string) => media[mediaId]?.url ?? fallbackImages[mediaId] ?? fallbackImages['media-sunday-plan']
+  const imagesFor = (mediaId: string) => Array.from(new Set([media[mediaId]?.url, ...(fallbackImageSets[mediaId] ?? []), fallbackImages[mediaId]].filter((value): value is string => Boolean(value))))
   const activeResults = visibleModes.map((mode) => catalog?.[mode.value === 'meal-plans' ? 'plans' : mode.value])
   const hasResults = activeResults.some((result) => Boolean(result?.data.length))
   const hasNext = activeResults.some((result) => Boolean(result?.pageInfo.hasNextPage))
@@ -302,12 +326,12 @@ export function DiscoverPage() {
 
   function renderDish(dish: DishRecord) {
     const normalized = normalizeDish(dish)
-    return <CatalogCard key={normalized.id} href={`/dishes/${normalized.id}`} image={imageFor(normalized.mediaId)} title={normalized.name} description={normalized.description} meta={`${normalized.cuisine} / ${normalized.category} / ${normalized.portionInfo}`} price={`${normalized.currency} ${normalized.price.toLocaleString()}`} rating={normalized.rating} reviewCount={normalized.reviewCount} tags={normalized.dietaryTags} eyebrow="Dish" status={normalized.available ? 'Available to order' : 'Not available'} statusTone={normalized.available ? 'success' : 'warning'} />
+    return <CatalogCard key={normalized.id} href={`/dishes/${normalized.id}`} image={imageFor(normalized.mediaId)} images={imagesFor(normalized.mediaId)} title={normalized.name} description={normalized.description} meta={`${normalized.cuisine} / ${normalized.category} / ${normalized.portionInfo}`} price={`${normalized.currency} ${normalized.price.toLocaleString()}`} rating={normalized.rating} reviewCount={normalized.reviewCount} tags={normalized.dietaryTags} eyebrow="Dish" status={normalized.available ? 'Available to order' : 'Not available'} statusTone={normalized.available ? 'success' : 'warning'} />
   }
 
   function renderPlan(plan: MealPlanRecord) {
     const normalized = normalizePlan(plan)
-    return <CatalogCard key={normalized.id} href={`/plans/${normalized.id}`} image={imageFor(normalized.mediaId)} title={normalized.name} description={normalized.description} meta={`${normalized.frequency}${normalized.availableDays.length ? ` / ${normalized.availableDays.join(', ')}` : ''}`} price={`${normalized.currency} ${normalized.price.toLocaleString()}`} rating={normalized.rating} reviewCount={normalized.reviewCount} eyebrow="Meal plan" status="Accepting orders" />
+    return <CatalogCard key={normalized.id} href={`/plans/${normalized.id}`} image={imageFor(normalized.mediaId)} images={imagesFor(normalized.mediaId)} title={normalized.name} description={normalized.description} meta={`${normalized.frequency}${normalized.availableDays.length ? ` / ${normalized.availableDays.join(', ')}` : ''}`} price={`${normalized.currency} ${normalized.price.toLocaleString()}`} rating={normalized.rating} reviewCount={normalized.reviewCount} eyebrow="Meal plan" status="Accepting orders" />
   }
 
   function renderModeCards(mode: Mode, result: Catalog['chefs'] | Catalog['dishes'] | Catalog['plans']) {

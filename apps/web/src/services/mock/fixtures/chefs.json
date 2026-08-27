@@ -38,5 +38,45 @@
     "totalReviews": 94,
     "createdAt": "2026-02-08T09:00:00.000Z",
     "updatedAt": "2026-08-23T12:00:00.000Z"
+  },
+  {
+    "id": "chef-sana-javed",
+    "userId": "user-sana-javed",
+    "displayName": "Sana Javed",
+    "bio": "Slow-cooked Punjabi classics, bright chutneys, and thoughtful family portions.",
+    "phone": "+92-302-5550103",
+    "cuisineSpecialties": ["Punjabi", "Home cooking"],
+    "verificationStatus": "VERIFIED",
+    "accountState": "ACTIVE",
+    "serviceArea": {
+      "city": "Lahore",
+      "areas": ["Johar Town", "Garden Town"],
+      "radiusKm": 11
+    },
+    "portfolioMediaIds": ["media-sana-kitchen-01"],
+    "averageRating": 4.7,
+    "totalReviews": 61,
+    "createdAt": "2026-03-14T09:00:00.000Z",
+    "updatedAt": "2026-08-25T12:00:00.000Z"
+  },
+  {
+    "id": "chef-mariam-raza",
+    "userId": "user-mariam-raza",
+    "displayName": "Mariam Raza",
+    "bio": "Lahore comfort food with seasonal produce, generous spice, and a lighter finish.",
+    "phone": "+92-303-5550104",
+    "cuisineSpecialties": ["Home cooking", "Punjabi"],
+    "verificationStatus": "VERIFIED",
+    "accountState": "ACTIVE",
+    "serviceArea": {
+      "city": "Lahore",
+      "areas": ["DHA", "Bahria Town"],
+      "radiusKm": 14
+    },
+    "portfolioMediaIds": ["media-mariam-kitchen-01"],
+    "averageRating": 4.8,
+    "totalReviews": 73,
+    "createdAt": "2026-04-04T09:00:00.000Z",
+    "updatedAt": "2026-08-26T12:00:00.000Z"
   }
 ]

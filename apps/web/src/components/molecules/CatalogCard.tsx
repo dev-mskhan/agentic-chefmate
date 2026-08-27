@@ -1,9 +1,11 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Badge } from '../atoms/Badge'
 
-export function CatalogCard({ href, image, title, description, meta, price, status = 'Available', statusTone = 'success', rating, reviewCount, tags = [], eyebrow }: {
+export function CatalogCard({ href, image, images, title, description, meta, price, status = 'Available', statusTone = 'success', rating, reviewCount, tags = [], eyebrow }: {
   href: string
   image: string
+  images?: readonly string[]
   title: string
   description: string
   meta: string
@@ -15,6 +17,15 @@ export function CatalogCard({ href, image, title, description, meta, price, stat
   tags?: string[]
   eyebrow?: string
 }) {
+  const sources = Array.from(new Set([image, ...(images ?? [])].filter(Boolean)))
+  const [activeImage, setActiveImage] = useState(0)
+
+  useEffect(() => {
+    if (sources.length < 2) return
+    const timer = window.setInterval(() => setActiveImage((index) => (index + 1) % sources.length), 4500)
+    return () => window.clearInterval(timer)
+  }, [sources.length])
+
   return (
     <Link
       to={href}
@@ -22,7 +33,7 @@ export function CatalogCard({ href, image, title, description, meta, price, stat
     >
       <div className="relative aspect-[5/3] overflow-hidden bg-cream-dim">
         <img
-          src={image}
+          src={sources[activeImage] ?? image}
           alt={title}
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
@@ -47,6 +58,20 @@ export function CatalogCard({ href, image, title, description, meta, price, stat
             {rating.toFixed(1)}
             <span className="font-normal text-cream/70">({reviewCount ?? 0})</span>
           </span>
+        )}
+        {sources.length > 1 && (
+          <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5" aria-label={`${title} images`}>
+            {sources.map((source, index) => (
+              <button
+                key={`${source}-${index}`}
+                type="button"
+                aria-label={`Show image ${index + 1} of ${sources.length}`}
+                aria-pressed={activeImage === index}
+                onClick={(event) => { event.preventDefault(); event.stopPropagation(); setActiveImage(index) }}
+                className={`h-2 w-2 rounded-full border border-cream/80 transition-colors focus-visible:outline-2 focus-visible:outline-terracotta ${activeImage === index ? 'bg-cream' : 'bg-cream/45'}`}
+              />
+            ))}
+          </div>
         )}
       </div>
 

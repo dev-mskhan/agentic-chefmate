@@ -13,6 +13,7 @@ import {
 import { PublicShell } from '../../components/templates/PublicShell'
 import { PageContainer } from '../../components/templates/PageContainer'
 import { Button } from '../../components/atoms/Button'
+import { Dropdown } from '../../components/atoms/Dropdown'
 import { Input } from '../../components/atoms/Input'
 import { Skeleton } from '../../components/atoms/Skeleton'
 import {
@@ -225,22 +226,22 @@ export function ProfilePage() {
                 <label className="block text-xs font-semibold text-charcoal" htmlFor="prof-spice">
                   Preferred Spice Level
                 </label>
-                <select
-                  id="prof-spice"
+                <Dropdown
                   value={profile.spiceLevel}
-                  onChange={(e) =>
+                  onChange={(val) =>
                     setProfile({
                       ...profile,
-                      spiceLevel: e.target.value as UserProfileRecord['spiceLevel'],
+                      spiceLevel: val as UserProfileRecord['spiceLevel'],
                     })
                   }
-                  className="w-full rounded-pill border border-charcoal/15 bg-cream-dim px-4 py-2.5 text-xs font-semibold text-charcoal outline-none focus:border-terracotta"
-                >
-                  <option value="MILD">Mild (Gentle & fragrant)</option>
-                  <option value="MEDIUM">Medium (Balanced traditional spice)</option>
-                  <option value="SPICY">Spicy (Authentic desi heat)</option>
-                  <option value="EXTRA_SPICY">Extra Spicy (Fiery)</option>
-                </select>
+                  ariaLabel="Preferred spice level"
+                  options={[
+                    { value: 'MILD', label: 'Mild (Gentle & fragrant)' },
+                    { value: 'MEDIUM', label: 'Medium (Balanced traditional spice)' },
+                    { value: 'SPICY', label: 'Spicy (Authentic heat)' },
+                    { value: 'EXTRA_SPICY', label: 'Extra Spicy (Fiery)' },
+                  ]}
+                />
               </div>
             </div>
           </section>

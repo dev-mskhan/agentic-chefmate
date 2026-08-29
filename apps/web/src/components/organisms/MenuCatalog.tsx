@@ -17,26 +17,37 @@ export function MenuCatalog({ dishes, plans }: MenuCatalogProps) {
   const [activeTab, setActiveTab] = useState<'all' | 'dishes' | 'plans'>('all')
 
   const tabs = [
-    { key: 'all' as const, label: `All (${dishes.length + plans.length})` },
+    { key: 'all' as const, label: `All Menu Items (${dishes.length + plans.length})` },
     { key: 'dishes' as const, label: `Dishes (${dishes.length})` },
     { key: 'plans' as const, label: `Meal Plans (${plans.length})` },
   ]
 
+  const showDishes = activeTab === 'all' || activeTab === 'dishes'
+  const showPlans = activeTab === 'all' || activeTab === 'plans'
+
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="font-display text-3xl text-charcoal">Menu</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span className="text-xs font-semibold uppercase tracking-wider text-terracotta block">
+            Cooked to Order
+          </span>
+          <h2 className="font-display text-2xl sm:text-3xl text-charcoal font-bold mt-0.5">
+            Full Kitchen Menu
+          </h2>
+        </div>
 
-        <div className="flex items-center gap-1.5 rounded-pill bg-cream-dim p-1 text-xs font-semibold">
+        {/* Tab pills */}
+        <div className="flex flex-wrap items-center gap-1.5 rounded-2xl sm:rounded-pill bg-cream-dim p-1.5 text-xs font-semibold border border-charcoal/10">
           {tabs.map(({ key, label }) => (
             <button
               key={key}
               type="button"
               onClick={() => setActiveTab(key)}
-              className={`rounded-pill px-4 py-2 transition-all ${
+              className={`rounded-pill px-3.5 py-1.5 transition-all text-xs font-semibold ${
                 activeTab === key
                   ? 'bg-terracotta text-cream shadow-sm'
-                  : 'text-charcoal-70 hover:text-charcoal'
+                  : 'text-charcoal-70 hover:text-charcoal hover:bg-cream/60'
               }`}
             >
               {label}
@@ -45,8 +56,8 @@ export function MenuCatalog({ dishes, plans }: MenuCatalogProps) {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {(activeTab === 'all' || activeTab === 'dishes') &&
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {showDishes &&
           dishes.map((dish) => (
             <CatalogCard
               key={dish.id}
@@ -60,11 +71,12 @@ export function MenuCatalog({ dishes, plans }: MenuCatalogProps) {
               rating={dish.averageRating}
               reviewCount={dish.totalReviews}
               tags={dish.dietaryTags}
-              eyebrow="Dish"
+              eyebrow="Single Dish"
               status="Available for order"
             />
           ))}
-        {(activeTab === 'all' || activeTab === 'plans') &&
+
+        {showPlans &&
           plans.map((plan) => (
             <CatalogCard
               key={plan.id}
@@ -73,15 +85,21 @@ export function MenuCatalog({ dishes, plans }: MenuCatalogProps) {
               images={fallbackImages}
               title={plan.name}
               description={plan.description}
-              meta={`${plan.frequency ?? 'One-off'} · ${plan.availabilityRules.availableDays.join(', ')}`}
+              meta={`${plan.frequency ?? 'Weekly'} · ${plan.availabilityRules.availableDays.join(', ')}`}
               price={`${plan.currency} ${plan.basePrice.toLocaleString()}`}
               rating={plan.averageRating}
               reviewCount={plan.totalReviews}
-              eyebrow="Meal plan"
-              status="Accepting orders"
+              eyebrow="Recurring Meal Plan"
+              status="Accepting subscribers"
             />
           ))}
       </div>
+
+      {showDishes && dishes.length === 0 && showPlans && plans.length === 0 && (
+        <div className="rounded-3xl bg-cream border border-charcoal/10 p-8 text-center text-xs text-charcoal-70">
+          No menu items currently available for this category.
+        </div>
+      )}
     </section>
   )
 }

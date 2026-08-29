@@ -209,7 +209,7 @@ export function ChefDetailPage() {
         profileImage={gallery[1] ?? fallbackChefAlt}
       />
 
-      <PageContainer className="pb-24 space-y-16">
+      <PageContainer className="pt-6 sm:pt-10 pb-24 space-y-10 sm:space-y-14">
         {/* Offer banner (molecule) */}
         <PromotionalBanner
           code="WELCOME10"

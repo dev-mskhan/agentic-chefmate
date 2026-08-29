@@ -7,7 +7,7 @@ import {
   Package,
   RefreshCw,
   SlidersHorizontal,
-  User,
+  ChefHat,
   ChevronDown,
   Sparkles,
 } from 'lucide-react'
@@ -176,20 +176,35 @@ export function UserMenuDropdown({
             </Link>
           </div>
 
-          {/* Role specific quick-switch link */}
-          {user.role === 'CHEF' && (
-            <div className="border-t border-charcoal/10 pt-1 mt-1">
+          {/* Role specific quick-switch link or onboarding CTA */}
+          <div className="border-t border-charcoal/10 pt-1 mt-1">
+            {user.role === 'CHEF' ? (
               <Link
                 to="/chef"
                 role="menuitem"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-terracotta hover:bg-terracotta-10 transition-colors"
               >
-                <User size={16} />
-                Switch to Chef Workspace
+                <ChefHat size={16} />
+                Calm Kitchen Workspace
               </Link>
-            </div>
-          )}
+            ) : (
+              <Link
+                to="/chef/onboarding"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-bold text-terracotta bg-terracotta-10/70 hover:bg-terracotta-10 transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <ChefHat size={16} />
+                  Cook with ChefMate
+                </span>
+                <span className="text-[9px] uppercase tracking-wider bg-terracotta text-cream px-1.5 py-0.5 rounded-pill">
+                  Join
+                </span>
+              </Link>
+            )}
+          </div>
 
           {/* Logout Action */}
           <div className="border-t border-charcoal/10 pt-1 mt-1">

@@ -1,0 +1,154 @@
+{
+  "profile": {
+    "id": "chef-ayesha-khan",
+    "userId": "user-ayesha-khan",
+    "displayName": "Ayesha Khan",
+    "kitchenName": "Ayesha's Lahore Dastarkhwan",
+    "bio": "Specializing in slow-cooked traditional Punjabi dishes, aromatic karahis, and authentic earthenware dum recipes passed down from my grandmother.",
+    "cuisineSpecialties": ["Punjabi", "Karachi", "Mughlai"],
+    "serviceArea": {
+      "city": "Lahore",
+      "areas": ["Gulberg III", "Model Town", "DHA Phase 5", "Faisal Town"],
+      "radiusKm": 15
+    },
+    "verificationStatus": "ACTIVE",
+    "accountState": "ACTIVE",
+    "averageRating": 4.9,
+    "totalReviews": 128,
+    "completedOrders": 420
+  },
+  "metrics": {
+    "grossEarnings": 348500,
+    "availableBalance": 46800,
+    "pendingEarnings": 12400,
+    "heldFunds": 0,
+    "activeOrdersCount": 3,
+    "completedOrdersCount": 420,
+    "dailyCapacity": 15,
+    "ordersToday": 6,
+    "revenueTimeline": [
+      { "date": "Mon", "revenue": 14200, "orders": 4 },
+      { "date": "Tue", "revenue": 21500, "orders": 6 },
+      { "date": "Wed", "revenue": 18400, "orders": 5 },
+      { "date": "Thu", "revenue": 26000, "orders": 7 },
+      { "date": "Fri", "revenue": 38500, "orders": 11 },
+      { "date": "Sat", "revenue": 42000, "orders": 12 },
+      { "date": "Sun", "revenue": 34000, "orders": 9 }
+    ]
+  },
+  "incomingOrders": [
+    {
+      "id": "order-1001",
+      "customerName": "Tariq Mahmood",
+      "customerPhone": "+92-300-5550199",
+      "deliveryAddress": "House 42, Street 8, Block J, Gulberg III, Lahore",
+      "status": "PREPARING",
+      "deliveryDate": "2026-08-30",
+      "items": [
+        {
+          "dishId": "dish-smoky-karahi",
+          "name": "Smoky chicken karahi",
+          "quantity": 2,
+          "price": 2400
+        }
+      ],
+      "total": 4520,
+      "currency": "PKR",
+      "paymentMethod": "STRIPE",
+      "paymentStatus": "PAID",
+      "customerNote": "Please keep spices medium and send fresh coriander garnish.",
+      "createdAt": "2026-08-29T09:15:00.000Z"
+    },
+    {
+      "id": "order-1003",
+      "customerName": "Tariq Mahmood",
+      "customerPhone": "+92-300-5550199",
+      "deliveryAddress": "House 42, Street 8, Block J, Gulberg III, Lahore",
+      "status": "CONFIRMED",
+      "deliveryDate": "2026-09-02",
+      "items": [
+        {
+          "dishId": "dish-lahori-mutton-kunna",
+          "name": "Slow-claypot mutton kunna",
+          "quantity": 1,
+          "price": 3600
+        }
+      ],
+      "total": 3800,
+      "currency": "PKR",
+      "paymentMethod": "STRIPE",
+      "paymentStatus": "PAID",
+      "createdAt": "2026-08-28T16:00:00.000Z"
+    },
+    {
+      "id": "order-1006",
+      "customerName": "Zainab Ali",
+      "customerPhone": "+92-321-9876543",
+      "deliveryAddress": "Apartment 4B, Sector Y, DHA Phase 3, Lahore",
+      "status": "PENDING",
+      "deliveryDate": "2026-08-30",
+      "items": [
+        {
+          "dishId": "dish-smoky-karahi",
+          "name": "Smoky chicken karahi",
+          "quantity": 1,
+          "price": 2400
+        }
+      ],
+      "total": 2600,
+      "currency": "PKR",
+      "paymentMethod": "COD",
+      "paymentStatus": "COD_PENDING",
+      "customerNote": "Please deliver sharp at 7:30 PM.",
+      "createdAt": "2026-08-29T10:30:00.000Z"
+    }
+  ],
+  "schedule": {
+    "weeklyDays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    "dailyCapacity": 15,
+    "leadTimeHours": 4,
+    "blackoutDates": ["2026-09-15", "2026-09-16"],
+    "deliveryHours": {
+      "lunch": "12:00 PM - 03:00 PM",
+      "dinner": "06:30 PM - 10:00 PM"
+    }
+  },
+  "ledger": [
+    {
+      "id": "led-501",
+      "type": "CREDIT",
+      "description": "Order #order-1002 payout credit",
+      "amount": 1600,
+      "currency": "PKR",
+      "status": "SETTLED",
+      "createdAt": "2026-08-26T14:00:00.000Z"
+    },
+    {
+      "id": "led-502",
+      "type": "DEBIT",
+      "description": "Direct bank payout transfer",
+      "amount": 25000,
+      "currency": "PKR",
+      "status": "COMPLETED",
+      "createdAt": "2026-08-25T10:00:00.000Z"
+    },
+    {
+      "id": "led-503",
+      "type": "HOLD",
+      "description": "Temporary delivery dispute review",
+      "amount": 2200,
+      "currency": "PKR",
+      "status": "RELEASED",
+      "createdAt": "2026-08-19T14:00:00.000Z"
+    },
+    {
+      "id": "led-504",
+      "type": "HOLD_RELEASE",
+      "description": "Released dispute funds for Order #order-1005",
+      "amount": 2200,
+      "currency": "PKR",
+      "status": "COMPLETED",
+      "createdAt": "2026-08-21T11:00:00.000Z"
+    }
+  ]
+}

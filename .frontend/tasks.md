@@ -32,17 +32,17 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 | P3-T2 | Build orders and order timelines with backend-shaped snapshots and every order status | done | P3-T1 |
 | P3-T3 | Build subscriptions, favorites, profile, addresses, dietary preferences, and settings | done | P3-T2 |
 | P3-T4 | Build notification center, read states, category preferences, empty, and offline states | done | P3-T3 |
-| P3-T5 | Wire RTK Query to services/mock and Zustand stores for cart, favorites, and auth/session state | in_progress | P3-T4 |
+| P3-T5 | Wire RTK Query to services/mock and Zustand stores for cart, favorites, and auth/session state | done | P3-T4 |
 
 ## Phase 4 - Chef Calm Kitchen
 
 | ID | Task | Status | Depends on |
 | --- | --- | --- | --- |
-| P4-T1 | Build ChefShell, responsive navigation, notifications, and CHEF-safe routing | pending | P3-T1 |
-| P4-T2 | Build chef onboarding, profile, verification, service area, portfolio, and public preview | pending | P4-T1 |
-| P4-T3 | Build dish and meal-plan CRUD with canonical fields, metadata, and statuses | pending | P4-T2 |
-| P4-T4 | Build schedule, capacity, incoming orders, order transitions, customer context, and chat entry | pending | P4-T3 |
-| P4-T5 | Build chef analytics, earnings, and payouts for all ledger and payout states | pending | P4-T4 |
+| P4-T1 | Build ChefShell, responsive navigation, notifications, and CHEF-safe routing | done | P3-T1 |
+| P4-T2 | Build chef onboarding, profile, verification, service area, portfolio, and public preview | done | P4-T1 |
+| P4-T3 | Build dish and meal-plan CRUD with canonical fields, metadata, and statuses | done | P4-T2 |
+| P4-T4 | Build schedule, capacity, incoming orders, order transitions, customer context, and chat entry | done | P4-T3 |
+| P4-T5 | Build chef analytics, earnings, and payouts for all ledger and payout states | done | P4-T4 |
 
 ## Phase 5 - Admin operations
 
@@ -73,8 +73,9 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 
 ## Current execution
 
-- Current phase: Phase 3 - Customer identity and user-service experience
-- Active task: P3-T5 (Wiring stores & RTK query caching)
+- Current phase: Phase 4 - Chef Calm Kitchen complete, ready for Phase 5 (Admin operations)
+- Active task: none
 - Completed tasks: `P1-T1`, `P1-T2`, `P1-T3`, `P1-T4`, `P2-T1`, `P2-T2`,
-  `P2-T3`, `P2-T4`, `P2-T5`, `P3-T1`, `P3-T2`, `P3-T3`, `P3-T4`
-- Phase 3 foundation complete: Auth pages (AuthShell split-screen), User Profile dropdown in StickyNav, Orders timeline & tracking, Subscriptions management, Profile & Food Preferences, Notifications Center, and Saved Favorites are fully wired with exact backend-compatible fixture models.
+  `P2-T3`, `P2-T4`, `P2-T5`, `P3-T1`, `P3-T2`, `P3-T3`, `P3-T4`, `P3-T5`,
+  `P4-T1`, `P4-T2`, `P4-T3`, `P4-T4`, `P4-T5`
+- Phase 4 complete: Chef Calm Kitchen is live with dark espresso `ChefShell`, 7-step onboarding wizard, full dish/plan CRUD, schedule & capacity limits, live order queue with status transitions, Recharts analytics, ledger transactions, bank payouts, and customer reviews.

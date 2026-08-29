@@ -11,7 +11,7 @@ import { writeCart } from '../../services/cart'
 
 export function OrderConfirmationPage() {
   const { orderId } = useParams<{ orderId: string }>()
-  const targetId = orderId || 'ord-SAMPLE'
+  const targetId = orderId || 'ord-101'
 
   const [order, setOrder] = useState<OrderStatusDetails | null>(null)
   const [loading, setLoading] = useState(true)

@@ -8,7 +8,12 @@ export interface CartItem {
 export interface LocalCart {
   chefId: string
   items: CartItem[]
+  deliveryDate?: string
+  addressId?: string
+  couponCode?: string
 }
+
+export type CartState = LocalCart
 
 const cartKey = 'chefmate-cart'
 
@@ -21,10 +26,18 @@ export function readCart(): LocalCart | null {
   }
 }
 
+export function getCart(): LocalCart {
+  return readCart() || { chefId: '', items: [] }
+}
+
 export function writeCart(cart: LocalCart | null) {
   if (cart) window.localStorage.setItem(cartKey, JSON.stringify(cart))
   else window.localStorage.removeItem(cartKey)
   window.dispatchEvent(new Event('chefmate-cart-updated'))
+}
+
+export function clearCart() {
+  writeCart(null)
 }
 
 export function addToCart(
@@ -34,7 +47,7 @@ export function addToCart(
 ): { success: boolean; conflict?: boolean; existingChefId?: string } {
   const current = readCart()
 
-  if (current && current.chefId !== chefId && current.items.length > 0 && !forceReplace) {
+  if (current && current.chefId && current.chefId !== chefId && current.items.length > 0 && !forceReplace) {
     return { success: false, conflict: true, existingChefId: current.chefId }
   }
 
@@ -44,6 +57,27 @@ export function addToCart(
   else cart.items.push({ dishId, quantity: 1 })
   writeCart(cart)
   return { success: true }
+}
+
+export function removeFromCart(dishId: string) {
+  const current = readCart()
+  if (!current) return
+  current.items = current.items.filter((item) => item.dishId !== dishId)
+  writeCart(current)
+}
+
+export function updateCartItemQuantity(dishId: string, quantity: number) {
+  const current = readCart()
+  if (!current) return
+  if (quantity <= 0) {
+    removeFromCart(dishId)
+    return
+  }
+  const item = current.items.find((entry) => entry.dishId === dishId)
+  if (item) {
+    item.quantity = quantity
+    writeCart(current)
+  }
 }
 
 export function toCheckoutInput(

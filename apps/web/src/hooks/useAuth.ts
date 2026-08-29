@@ -16,5 +16,6 @@ export function useAuth() {
     role: user?.role ?? null,
     logout: logoutUser,
     loginFixture: loginFixtureUser,
+    switchRole: loginFixtureUser,
   }
 }

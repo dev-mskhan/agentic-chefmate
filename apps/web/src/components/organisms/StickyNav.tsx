@@ -60,6 +60,12 @@ export function StickyNav({
               {link.label}
             </Link>
           ))}
+          <Link
+            to="/chef/onboarding"
+            className="transition-colors text-terracotta font-semibold hover:text-terracotta-dark"
+          >
+            Cook with us
+          </Link>
         </div>
 
         {/* Right Actions Cluster */}
@@ -169,6 +175,17 @@ export function StickyNav({
                 {link.label}
               </Link>
             ))}
+
+            <Link
+              to="/chef/onboarding"
+              onClick={() => setMenuOpen(false)}
+              className="rounded-xl bg-terracotta-10 px-3 py-2.5 text-sm font-bold text-terracotta hover:bg-terracotta-10/80 border border-terracotta/20 flex items-center justify-between my-1"
+            >
+              <span>Cook with ChefMate</span>
+              <span className="text-[10px] uppercase font-bold bg-terracotta text-cream px-2 py-0.5 rounded-pill">
+                Join
+              </span>
+            </Link>
 
             {isAuthenticated ? (
               <button

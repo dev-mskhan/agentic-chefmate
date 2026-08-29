@@ -418,6 +418,27 @@ export function DiscoverPage() {
             })}
             {(hasNext || currentPage > 1) && <Pagination page={currentPage} hasNext={hasNext} onPrevious={() => update({ page: String(Math.max(1, page - 1)) })} onNext={() => update({ page: String(page + 1) })} />}
             <p className="text-sm text-charcoal-70">{totalResults} results across the catalog</p>
+
+            {/* Chef Onboarding invitation banner */}
+            <div className="rounded-3xl bg-cream border border-charcoal/10 shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 bg-gradient-to-r from-cream via-cream to-terracotta-10/40">
+              <div className="space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-terracotta">
+                  For Home Chefs
+                </span>
+                <h3 className="font-display text-xl sm:text-2xl text-charcoal">
+                  Cook your authentic family recipes on ChefMate
+                </h3>
+                <p className="text-xs text-charcoal-70 max-w-xl">
+                  Reach local food lovers in your city, manage your own schedule, and earn weekly payouts.
+                </p>
+              </div>
+              <Link
+                to="/chef/onboarding"
+                className="inline-flex min-h-11 items-center justify-center rounded-pill bg-terracotta px-6 text-xs font-bold text-cream hover:bg-terracotta-dark transition-colors shrink-0 shadow-sm"
+              >
+                Apply as a Chef
+              </Link>
+            </div>
           </div>}
         </div>
         </div>

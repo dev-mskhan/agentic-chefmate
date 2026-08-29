@@ -1,0 +1,178 @@
+{
+  "threads": [
+    {
+      "id": "thread-1",
+      "orderId": "ORD-2026-881",
+      "orderNumber": "ORD-2026-881",
+      "orderStatus": "PREPARING",
+      "orderSummary": "Smoky Karahi (2 portions)",
+      "customerId": "user-1",
+      "customerName": "Zainab Ahmed",
+      "customerAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
+      "chefId": "chef-ayesha-khan",
+      "chefName": "Ayesha Khan",
+      "chefAvatar": "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=300&q=80",
+      "kitchenName": "Ayesha's Dastarkhwan",
+      "lastMessage": "I have just started simmering the karahi in the clay handi. Should be ready on schedule!",
+      "lastMessageAt": "2026-08-29T12:35:00.000Z",
+      "customerUnreadCount": 0,
+      "chefUnreadCount": 1,
+      "createdAt": "2026-08-29T11:00:00.000Z",
+      "updatedAt": "2026-08-29T12:35:00.000Z"
+    },
+    {
+      "id": "thread-2",
+      "orderId": "ORD-2026-882",
+      "orderNumber": "ORD-2026-882",
+      "orderStatus": "CONFIRMED",
+      "orderSummary": "Sea Salt Pulao + Shami Kabab",
+      "customerId": "user-1",
+      "customerName": "Zainab Ahmed",
+      "customerAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
+      "chefId": "chef-hamza-malik",
+      "chefName": "Hamza Malik",
+      "chefAvatar": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=300&q=80",
+      "kitchenName": "Coastal Spice Kitchen",
+      "lastMessage": "Could you please keep the spice level mild for the children?",
+      "lastMessageAt": "2026-08-29T11:45:00.000Z",
+      "customerUnreadCount": 1,
+      "chefUnreadCount": 0,
+      "createdAt": "2026-08-29T11:30:00.000Z",
+      "updatedAt": "2026-08-29T11:45:00.000Z"
+    },
+    {
+      "id": "thread-3",
+      "orderId": "ORD-2026-880",
+      "orderNumber": "ORD-2026-880",
+      "orderStatus": "DELIVERED",
+      "orderSummary": "Garden Daal with Brown Rice",
+      "customerId": "user-2",
+      "customerName": "Bilal Tariq",
+      "customerAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80",
+      "chefId": "chef-ayesha-khan",
+      "chefName": "Ayesha Khan",
+      "chefAvatar": "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=300&q=80",
+      "kitchenName": "Ayesha's Dastarkhwan",
+      "lastMessage": "Thank you for the delicious dinner! The tarka was fantastic.",
+      "lastMessageAt": "2026-08-28T20:15:00.000Z",
+      "customerUnreadCount": 0,
+      "chefUnreadCount": 0,
+      "createdAt": "2026-08-28T18:00:00.000Z",
+      "updatedAt": "2026-08-28T20:15:00.000Z"
+    }
+  ],
+  "messages": {
+    "thread-1": [
+      {
+        "id": "msg-101",
+        "threadId": "thread-1",
+        "orderId": "ORD-2026-881",
+        "senderId": "user-1",
+        "senderRole": "USER",
+        "senderName": "Zainab Ahmed",
+        "content": "Assalam-o-Alaikum Chef Ayesha! Looking forward to tonight's dinner.",
+        "messageType": "TEXT",
+        "readAt": "2026-08-29T11:05:00.000Z",
+        "createdAt": "2026-08-29T11:02:00.000Z"
+      },
+      {
+        "id": "msg-102",
+        "threadId": "thread-1",
+        "orderId": "ORD-2026-881",
+        "senderId": "chef-ayesha-khan",
+        "senderRole": "CHEF",
+        "senderName": "Ayesha Khan",
+        "content": "Walaikum Assalam Zainab! Thank you for ordering. I am using fresh desi chicken and organic tomatoes today.",
+        "messageType": "TEXT",
+        "readAt": "2026-08-29T11:10:00.000Z",
+        "createdAt": "2026-08-29T11:08:00.000Z"
+      },
+      {
+        "id": "msg-103",
+        "threadId": "thread-1",
+        "orderId": "ORD-2026-881",
+        "senderId": "user-1",
+        "senderRole": "USER",
+        "senderName": "Zainab Ahmed",
+        "content": "That sounds amazing! Could you please add extra fresh ginger julienne on top?",
+        "messageType": "TEXT",
+        "readAt": "2026-08-29T12:00:00.000Z",
+        "createdAt": "2026-08-29T11:55:00.000Z"
+      },
+      {
+        "id": "msg-104",
+        "threadId": "thread-1",
+        "orderId": "ORD-2026-881",
+        "senderId": "chef-ayesha-khan",
+        "senderRole": "CHEF",
+        "senderName": "Ayesha Khan",
+        "content": "Absolutely! Extra ginger and green chilies will be added just before sealing the pot.",
+        "messageType": "TEXT",
+        "readAt": "2026-08-29T12:30:00.000Z",
+        "createdAt": "2026-08-29T12:28:00.000Z"
+      },
+      {
+        "id": "msg-105",
+        "threadId": "thread-1",
+        "orderId": "ORD-2026-881",
+        "senderId": "chef-ayesha-khan",
+        "senderRole": "CHEF",
+        "senderName": "Ayesha Khan",
+        "content": "I have just started simmering the karahi in the clay handi. Should be ready on schedule!",
+        "messageType": "TEXT",
+        "createdAt": "2026-08-29T12:35:00.000Z"
+      }
+    ],
+    "thread-2": [
+      {
+        "id": "msg-201",
+        "threadId": "thread-2",
+        "orderId": "ORD-2026-882",
+        "senderId": "chef-hamza-malik",
+        "senderRole": "CHEF",
+        "senderName": "Hamza Malik",
+        "content": "Hello Zainab! Your order for Sea Salt Pulao has been confirmed. I will begin preparing it around 1:00 PM.",
+        "messageType": "TEXT",
+        "readAt": "2026-08-29T11:35:00.000Z",
+        "createdAt": "2026-08-29T11:30:00.000Z"
+      },
+      {
+        "id": "msg-202",
+        "threadId": "thread-2",
+        "orderId": "ORD-2026-882",
+        "senderId": "user-1",
+        "senderRole": "USER",
+        "senderName": "Zainab Ahmed",
+        "content": "Could you please keep the spice level mild for the children?",
+        "messageType": "TEXT",
+        "createdAt": "2026-08-29T11:45:00.000Z"
+      }
+    ],
+    "thread-3": [
+      {
+        "id": "msg-301",
+        "threadId": "thread-3",
+        "orderId": "ORD-2026-880",
+        "senderId": "chef-ayesha-khan",
+        "senderRole": "CHEF",
+        "senderName": "Ayesha Khan",
+        "content": "Your Garden Daal is on its way with the rider.",
+        "messageType": "TEXT",
+        "readAt": "2026-08-28T19:00:00.000Z",
+        "createdAt": "2026-08-28T18:45:00.000Z"
+      },
+      {
+        "id": "msg-302",
+        "threadId": "thread-3",
+        "orderId": "ORD-2026-880",
+        "senderId": "user-2",
+        "senderRole": "USER",
+        "senderName": "Bilal Tariq",
+        "content": "Thank you for the delicious dinner! The tarka was fantastic.",
+        "messageType": "TEXT",
+        "readAt": "2026-08-28T20:20:00.000Z",
+        "createdAt": "2026-08-28T20:15:00.000Z"
+      }
+    ]
+  }
+}

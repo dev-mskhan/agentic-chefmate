@@ -22,6 +22,41 @@ const CartPage = lazy(() =>
   import('./pages/CartPage').then(({ CartPage: page }) => ({ default: page })),
 )
 
+// Company, Help & Legal Pages (SEO & GA4 Compliance)
+const AboutPage = lazy(() =>
+  import('./pages/public/AboutPage').then(({ AboutPage: page }) => ({ default: page })),
+)
+const ContactPage = lazy(() =>
+  import('./pages/public/ContactPage').then(({ ContactPage: page }) => ({ default: page })),
+)
+const FaqPage = lazy(() =>
+  import('./pages/public/FaqPage').then(({ FaqPage: page }) => ({ default: page })),
+)
+const TermsPage = lazy(() =>
+  import('./pages/public/TermsPage').then(({ TermsPage: page }) => ({ default: page })),
+)
+const PrivacyPolicyPage = lazy(() =>
+  import('./pages/public/PrivacyPolicyPage').then(({ PrivacyPolicyPage: page }) => ({
+    default: page,
+  })),
+)
+const CookiePolicyPage = lazy(() =>
+  import('./pages/public/CookiePolicyPage').then(({ CookiePolicyPage: page }) => ({
+    default: page,
+  })),
+)
+const AccessibilityPage = lazy(() =>
+  import('./pages/public/AccessibilityPage').then(({ AccessibilityPage: page }) => ({
+    default: page,
+  })),
+)
+const SitemapPage = lazy(() =>
+  import('./pages/public/SitemapPage').then(({ SitemapPage: page }) => ({ default: page })),
+)
+const NotFoundPage = lazy(() =>
+  import('./pages/public/NotFoundPage').then(({ NotFoundPage: page }) => ({ default: page })),
+)
+
 // Auth Pages (AuthShell split-screen)
 const SignInPage = lazy(() =>
   import('./pages/auth/SignInPage').then(({ SignInPage: page }) => ({ default: page })),
@@ -59,6 +94,9 @@ const OrderDetailPage = lazy(() =>
     default: page,
   })),
 )
+const MessagesPage = lazy(() =>
+  import('./pages/customer/MessagesPage').then(({ MessagesPage: page }) => ({ default: page })),
+)
 const SubscriptionsPage = lazy(() =>
   import('./pages/customer/SubscriptionsPage').then(({ SubscriptionsPage: page }) => ({
     default: page,
@@ -82,6 +120,9 @@ const ChefOverviewPage = lazy(() =>
 )
 const ChefOrdersPage = lazy(() =>
   import('./pages/chef/ChefOrdersPage').then(({ ChefOrdersPage: page }) => ({ default: page })),
+)
+const ChefMessagesPage = lazy(() =>
+  import('./pages/chef/ChefMessagesPage').then(({ ChefMessagesPage: page }) => ({ default: page })),
 )
 const ChefDishesPage = lazy(() =>
   import('./pages/chef/ChefDishesPage').then(({ ChefDishesPage: page }) => ({ default: page })),
@@ -107,6 +148,7 @@ const ChefOnboardingPage = lazy(() =>
 const ChefSettingsPage = lazy(() =>
   import('./pages/chef/ChefSettingsPage').then(({ ChefSettingsPage: page }) => ({ default: page })),
 )
+
 // Phase 5: Admin Operations
 const AdminLoginPage = lazy(() =>
   import('./pages/admin/AdminLoginPage').then(({ AdminLoginPage: page }) => ({ default: page })),
@@ -164,6 +206,16 @@ function App() {
           <Route path="/plans/:planId" element={<MealPlanDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
 
+          {/* Company, Support & Legal (GA4 & SEO Compliance) */}
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/cookies" element={<CookiePolicyPage />} />
+          <Route path="/accessibility" element={<AccessibilityPage />} />
+          <Route path="/sitemap" element={<SitemapPage />} />
+
           {/* Auth */}
           <Route path="/signin" element={<SignInPage />} />
           <Route path="/auth/sign-in" element={<SignInPage />} />
@@ -180,6 +232,7 @@ function App() {
           {/* Customer Dashboard & Identity */}
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/orders/:orderId" element={<OrderDetailPage />} />
+          <Route path="/messages" element={<MessagesPage />} />
           <Route path="/subscriptions" element={<SubscriptionsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<ProfilePage />} />
@@ -190,6 +243,7 @@ function App() {
           <Route path="/chef" element={<ChefOverviewPage />} />
           <Route path="/chef/orders" element={<ChefOrdersPage />} />
           <Route path="/chef/orders/:orderId" element={<ChefOrdersPage />} />
+          <Route path="/chef/messages" element={<ChefMessagesPage />} />
           <Route path="/chef/dishes" element={<ChefDishesPage />} />
           <Route path="/chef/plans" element={<ChefPlansPage />} />
           <Route path="/chef/schedule" element={<ChefSchedulePage />} />
@@ -218,7 +272,8 @@ function App() {
           <Route path="/admin/settings" element={<AdminSettingsPage />} />
 
           {/* Fallback */}
-          <Route path="*" element={<LandingPage />} />
+          <Route path="/404" element={<NotFoundPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

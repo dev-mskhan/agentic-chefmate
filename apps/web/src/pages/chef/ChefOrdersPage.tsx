@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   Calendar,
+  MessageSquare,
   Phone,
 } from 'lucide-react'
 import { ChefShell } from '../../components/templates/ChefShell'
@@ -8,6 +9,7 @@ import { Badge } from '../../components/atoms/Badge'
 import { Button } from '../../components/atoms/Button'
 import { EmptyState } from '../../components/atoms/EmptyState'
 import { Skeleton } from '../../components/atoms/Skeleton'
+import { ChatDrawer } from '../../components/molecules/ChatDrawer'
 import {
   getChefOrders,
   updateChefOrderStatus,
@@ -19,6 +21,7 @@ export function ChefOrdersPage() {
   const [orders, setOrders] = useState<ChefIncomingOrder[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED'>('ALL')
+  const [activeChatOrderId, setActiveChatOrderId] = useState<string | null>(null)
 
   useEffect(() => {
     getChefOrders()
@@ -207,6 +210,13 @@ export function ChefOrdersPage() {
                             Mark Delivered
                           </Button>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => setActiveChatOrderId(order.id)}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-pill bg-cream text-charcoal border border-charcoal/15 text-xs font-semibold hover:border-terracotta hover:text-terracotta transition-colors shadow-xs"
+                        >
+                          <MessageSquare size={13} /> Chat with Customer
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -214,6 +224,16 @@ export function ChefOrdersPage() {
               )
             })}
           </div>
+        )}
+
+        {/* Direct Chef-Customer Chat Drawer */}
+        {activeChatOrderId && (
+          <ChatDrawer
+            orderId={activeChatOrderId}
+            currentUserRole="CHEF"
+            isOpen={!!activeChatOrderId}
+            onClose={() => setActiveChatOrderId(null)}
+          />
         )}
       </div>
     </ChefShell>

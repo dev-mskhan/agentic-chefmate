@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquare,
   Power,
   Settings,
   Star,
@@ -20,6 +21,7 @@ import {
   X,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { getUnreadCount } from '../../services/api/chatService'
 
 interface ChefShellProps {
   title: string
@@ -34,10 +36,23 @@ export function ChefShell({ title, subtitle, actions, children }: ChefShellProps
   const navigate = useNavigate()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [kitchenActive, setKitchenActive] = useState(true)
+  const [unreadMessages, setUnreadMessages] = useState(0)
+
+  useEffect(() => {
+    getUnreadCount('CHEF')
+      .then((res) => setUnreadMessages(res.unreadCount))
+      .catch(() => {})
+  }, [])
 
   const navItems = [
     { label: 'Overview', href: '/chef', icon: LayoutDashboard },
     { label: 'Order Queue', href: '/chef/orders', icon: ClipboardList, badge: '3' },
+    {
+      label: 'Messages',
+      href: '/chef/messages',
+      icon: MessageSquare,
+      badge: unreadMessages > 0 ? String(unreadMessages) : undefined,
+    },
     { label: 'Dishes', href: '/chef/dishes', icon: Utensils },
     { label: 'Meal Plans', href: '/chef/plans', icon: CalendarDays },
     { label: 'Schedule & Capacity', href: '/chef/schedule', icon: Clock },

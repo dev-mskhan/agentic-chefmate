@@ -7,6 +7,13 @@ import {
   Sliders,
 } from 'lucide-react'
 import { AdminShell } from '../../components/templates/AdminShell'
+import { Dropdown } from '../../components/atoms/Dropdown'
+
+const SETTLEMENT_DAY_OPTIONS = [
+  { value: 'Monday', label: 'Monday' },
+  { value: 'Wednesday', label: 'Wednesday' },
+  { value: 'Friday', label: 'Friday (Default)' },
+]
 
 export function AdminSettingsPage() {
   const [commissionRate, setCommissionRate] = useState('10')
@@ -104,15 +111,13 @@ export function AdminSettingsPage() {
               <label className="block text-xs font-semibold text-zinc-300">
                 Automated Payout Day
               </label>
-              <select
+              <Dropdown
                 value={settlementDay}
-                onChange={(e) => setSettlementDay(e.target.value)}
-                className="w-full rounded-pill border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs font-semibold text-white outline-none focus:border-terracotta"
-              >
-                <option value="Monday">Monday</option>
-                <option value="Wednesday">Wednesday</option>
-                <option value="Friday">Friday (Default)</option>
-              </select>
+                onChange={(val) => setSettlementDay(val)}
+                options={SETTLEMENT_DAY_OPTIONS}
+                variant="dark"
+                className="py-2"
+              />
             </div>
           </div>
         </div>

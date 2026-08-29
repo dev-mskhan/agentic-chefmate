@@ -8,6 +8,7 @@ interface SplitHeadlineProps {
   as?: 'h1' | 'h2' | 'h3' | 'h4' | 'div'
   delay?: number
   stagger?: number
+  gradient?: boolean
 }
 
 export function SplitHeadline({
@@ -16,6 +17,7 @@ export function SplitHeadline({
   as: Tag = 'h1',
   delay = 0.1,
   stagger = 0.06,
+  gradient = false,
 }: SplitHeadlineProps) {
   const containerRef = useRef<HTMLHeadingElement>(null)
 
@@ -27,11 +29,11 @@ export function SplitHeadline({
 
     gsap.fromTo(
       words,
-      { yPercent: 120, opacity: 0 },
+      { yPercent: 110, opacity: 0 },
       {
         yPercent: 0,
         opacity: 1,
-        duration: 0.9,
+        duration: 0.85,
         stagger,
         delay,
         ease: 'expo.out',
@@ -42,10 +44,19 @@ export function SplitHeadline({
   const words = text.split(' ')
 
   return (
-    <Tag ref={containerRef} className={`${className} overflow-hidden`}>
+    <Tag ref={containerRef} className={`${className} pb-2 sm:pb-3`}>
       {words.map((word, i) => (
-        <span key={`${word}-${i}`} className="inline-block overflow-hidden mr-[0.25em] align-bottom">
-          <span className="split-word-inner inline-block will-change-transform">
+        <span
+          key={`${word}-${i}`}
+          className="inline-block overflow-hidden mr-[0.22em] pb-1 pt-0.5 align-baseline"
+        >
+          <span
+            className={`split-word-inner inline-block will-change-transform ${
+              gradient
+                ? 'bg-gradient-to-r from-charcoal from-55% via-[#382c24] to-terracotta bg-clip-text text-transparent'
+                : ''
+            }`}
+          >
             {word}
           </span>
         </span>

@@ -5,43 +5,56 @@ export function SiteFooter() {
     <footer className="relative isolate overflow-hidden bg-espresso px-4 pb-8 pt-20 text-cream sm:px-8 lg:px-12 2xl:px-16">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 select-none whitespace-nowrap text-center font-display text-[clamp(7rem,4rem+16vw,22rem)] leading-[0.62] tracking-[-0.08em] text-cream/[0.055]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 select-none whitespace-nowrap text-center font-display text-[clamp(7rem,4rem+16vw,22rem)] leading-[0.62] tracking-[-0.08em] text-cream/[0.045]"
       >
         chefmate
       </div>
+
       <div className="relative mx-auto max-w-[1500px]">
-        <div className="grid gap-10 border-b border-cream/15 pb-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
-          <div>
-            <p className="font-display text-4xl tracking-[-0.04em]">
+        <div className="grid gap-10 border-b border-cream/15 pb-14 sm:grid-cols-2 lg:grid-cols-5">
+          {/* Col 1: Brand Wordmark */}
+          <div className="space-y-4">
+            <Link to="/" className="font-display text-4xl tracking-[-0.04em] text-cream block">
               chefmate<span className="text-saffron">.</span>
+            </Link>
+            <p className="max-w-xs text-xs sm:text-sm leading-6 text-cream/65">
+              Verified local home chefs, wholesome small-batch food, and flexible meal plans delivered fresh to neighborhood dining tables.
             </p>
-            <p className="mt-4 max-w-xs text-sm leading-6 text-cream/60">
-              Local home chefs and small-batch food, delivered fresh to your door.
-            </p>
+            <div className="pt-2 text-xs font-semibold text-saffron">
+              Lahore · Karachi · Islamabad · Rawalpindi
+            </div>
           </div>
 
+          {/* Col 2: Discover */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-saffron">
-              Discover
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-saffron">
+              Discovery Catalog
             </p>
-            <div className="mt-4 grid gap-3 text-sm text-cream/65">
+            <div className="mt-4 grid gap-2.5 text-xs sm:text-sm text-cream/70">
               <Link to="/discover?type=chefs" className="hover:text-cream transition-colors">
-                Find a chef
+                Certified Home Chefs
               </Link>
               <Link to="/discover?type=dishes" className="hover:text-cream transition-colors">
-                Browse dishes
+                Fresh Cooked Dishes
               </Link>
               <Link to="/discover?type=meal-plans" className="hover:text-cream transition-colors">
-                Meal plans
+                Recurring Meal Plans
+              </Link>
+              <Link to="/cart" className="hover:text-cream transition-colors">
+                Shopping Basket
+              </Link>
+              <Link to="/orders" className="hover:text-cream transition-colors">
+                Order Tracking
               </Link>
             </div>
           </div>
 
+          {/* Col 3: For Chefs */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-saffron">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-saffron">
               For Chefs
             </p>
-            <div className="mt-4 grid gap-3 text-sm text-cream/65">
+            <div className="mt-4 grid gap-2.5 text-xs sm:text-sm text-cream/70">
               <Link
                 to="/chef/onboarding"
                 className="font-bold text-saffron hover:underline flex items-center gap-1 transition-colors"
@@ -49,58 +62,75 @@ export function SiteFooter() {
                 Cook on ChefMate →
               </Link>
               <Link to="/chef/onboarding" className="hover:text-cream transition-colors">
-                Chef Onboarding
+                Kitchen Certification
               </Link>
               <Link to="/chef" className="hover:text-cream transition-colors">
                 Calm Kitchen Portal
               </Link>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-saffron">
-              ChefMate
-            </p>
-            <div className="mt-4 grid gap-3 text-sm text-cream/65">
-              <Link to="/discover" className="hover:text-cream transition-colors">
-                How it works
+              <Link to="/chef/orders" className="hover:text-cream transition-colors">
+                Kitchen Order Queue
               </Link>
-              <Link to="/discover?type=chefs" className="hover:text-cream transition-colors">
-                Meet the chefs
-              </Link>
-              <Link to="/cart" className="hover:text-cream transition-colors">
-                Your basket
+              <Link to="/chef/messages" className="hover:text-cream transition-colors">
+                Customer Message Center
               </Link>
             </div>
           </div>
 
+          {/* Col 4: Company & Support */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-saffron">
-              Updates
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-saffron">
+              Company & Help
             </p>
-            <p className="mt-4 text-sm leading-6 text-cream/65">
-              Get new menu updates by email.
+            <div className="mt-4 grid gap-2.5 text-xs sm:text-sm text-cream/70">
+              <Link to="/about" className="hover:text-cream transition-colors">
+                About Our Mission
+              </Link>
+              <Link to="/contact" className="hover:text-cream transition-colors">
+                Contact & Support Desk
+              </Link>
+              <Link to="/faq" className="hover:text-cream transition-colors">
+                Frequently Asked Questions
+              </Link>
+              <Link to="/sitemap" className="hover:text-cream transition-colors">
+                HTML Sitemap
+              </Link>
+            </div>
+          </div>
+
+          {/* Col 5: Legal & Trust */}
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-saffron">
+              Legal & Trust
             </p>
-            <div className="mt-4 flex gap-2">
-              <input
-                aria-label="Email address"
-                placeholder="Your email"
-                className="min-w-0 flex-1 rounded-xl bg-cream/10 px-3 py-2.5 text-xs text-cream outline-none placeholder:text-cream/40 focus:ring-1 focus:ring-saffron"
-              />
-              <button
-                type="button"
-                aria-label="Join email updates"
-                className="rounded-xl bg-saffron px-4 text-xs font-bold text-charcoal hover:bg-saffron/90 transition-colors shrink-0"
-              >
-                Join
-              </button>
+            <div className="mt-4 grid gap-2.5 text-xs sm:text-sm text-cream/70">
+              <Link to="/privacy" className="hover:text-cream transition-colors">
+                Privacy Policy
+              </Link>
+              <Link to="/terms" className="hover:text-cream transition-colors">
+                Terms of Service
+              </Link>
+              <Link to="/cookies" className="hover:text-cream transition-colors">
+                Cookie Policy
+              </Link>
+              <Link to="/accessibility" className="hover:text-cream transition-colors">
+                Accessibility Statement
+              </Link>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap justify-between gap-3 pt-6 text-xs text-cream/45">
-          <span>© 2026 ChefMate</span>
-          <span>Food prepared by local chefs.</span>
+        {/* Bottom Legal Copyright Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-6 text-xs text-cream/50">
+          <span>© 2026 ChefMate Technologies Ltd. All rights reserved.</span>
+          <div className="flex items-center gap-4 text-[11px]">
+            <Link to="/privacy" className="hover:text-cream transition-colors">Privacy</Link>
+            <span>·</span>
+            <Link to="/terms" className="hover:text-cream transition-colors">Terms</Link>
+            <span>·</span>
+            <Link to="/cookies" className="hover:text-cream transition-colors">Cookies</Link>
+            <span>·</span>
+            <Link to="/sitemap" className="hover:text-cream transition-colors">Sitemap</Link>
+          </div>
         </div>
       </div>
     </footer>

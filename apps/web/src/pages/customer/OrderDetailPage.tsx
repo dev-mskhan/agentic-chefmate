@@ -5,6 +5,7 @@ import {
   Calendar,
   CheckCircle2,
   MapPin,
+  MessageSquare,
   Utensils,
   XCircle,
 } from 'lucide-react'
@@ -14,6 +15,7 @@ import { Badge } from '../../components/atoms/Badge'
 import { Button } from '../../components/atoms/Button'
 import { EmptyState } from '../../components/atoms/EmptyState'
 import { Skeleton } from '../../components/atoms/Skeleton'
+import { ChatDrawer } from '../../components/molecules/ChatDrawer'
 import { cancelOrder, getOrderById, type OrderRecord } from '../../services/api/userService'
 import { addToCart } from '../../services/cart'
 
@@ -55,6 +57,7 @@ export function OrderDetailPage() {
   const [cancelling, setCancelling] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
   const [showCancelModal, setShowCancelModal] = useState(false)
+  const [isChatOpen, setIsChatOpen] = useState(false)
 
   useEffect(() => {
     getOrderById(orderId)
@@ -148,8 +151,15 @@ export function OrderDetailPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Button onClick={handleReorder} className="text-xs py-2.5 px-4 gap-1.5">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsChatOpen(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-pill bg-terracotta text-cream text-xs font-bold hover:bg-terracotta-dark shadow-sm transition-colors"
+              >
+                <MessageSquare size={14} /> Message Chef
+              </button>
+              <Button onClick={handleReorder} className="text-xs py-2.5 px-4 gap-1.5 bg-cream text-charcoal border border-charcoal/15 hover:bg-cream-dim">
                 <Utensils size={14} /> Order Again
               </Button>
               {canCancel && (
@@ -387,6 +397,14 @@ export function OrderDetailPage() {
             </div>
           </div>
         )}
+
+        {/* Direct Chat Drawer */}
+        <ChatDrawer
+          orderId={order.id}
+          currentUserRole="USER"
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+        />
       </PageContainer>
     </PublicShell>
   )

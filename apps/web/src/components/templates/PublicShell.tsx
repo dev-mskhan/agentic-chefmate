@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { StickyNav } from '../organisms/StickyNav'
 import { SiteFooter } from '../organisms/SiteFooter'
+import { CookieBanner } from '../molecules/CookieBanner'
 
 export interface PublicNavItem {
   label: string
@@ -22,6 +23,7 @@ export function PublicShell({
       <StickyNav navigation={navigation} />
       {children}
       {showFooter && <SiteFooter />}
+      <CookieBanner />
     </div>
   )
 }

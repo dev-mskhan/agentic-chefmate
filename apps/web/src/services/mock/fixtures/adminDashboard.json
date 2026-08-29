@@ -1,0 +1,494 @@
+{
+  "overview": {
+    "totalUsers": 1845,
+    "activeUsers": 1620,
+    "pendingChefs": 4,
+    "activeChefs": 28,
+    "suspendedChefs": 1,
+    "rejectedChefs": 2,
+    "totalOrders": 1420,
+    "completedOrders": 1310,
+    "cancelledOrders": 38,
+    "refundedOrders": 14,
+    "disputedOrders": 3,
+    "activeSubscriptions": 145,
+    "publishedReviews": 890,
+    "pendingReviews": 8,
+    "totalGrossMarketplaceVolume": 4850000,
+    "platformCommissionRevenue": 485000,
+    "pendingPayoutsAmount": 164000
+  },
+  "metricsTimeSeries": [
+    { "date": "Day 1", "gmv": 125000, "orders": 36, "revenue": 12500, "activeUsers": 210 },
+    { "date": "Day 5", "gmv": 148000, "orders": 42, "revenue": 14800, "activeUsers": 235 },
+    { "date": "Day 10", "gmv": 172000, "orders": 49, "revenue": 17200, "activeUsers": 280 },
+    { "date": "Day 15", "gmv": 160000, "orders": 45, "revenue": 16000, "activeUsers": 260 },
+    { "date": "Day 20", "gmv": 195000, "orders": 56, "revenue": 19500, "activeUsers": 310 },
+    { "date": "Day 25", "gmv": 220000, "orders": 62, "revenue": 22000, "activeUsers": 350 },
+    { "date": "Day 30", "gmv": 245000, "orders": 70, "revenue": 24500, "activeUsers": 395 }
+  ],
+  "pendingChefs": [
+    {
+      "id": "chef-app-101",
+      "userId": "user-201",
+      "displayName": "Farhana's Dum Pukht Kitchen",
+      "applicantName": "Farhana Begum",
+      "email": "farhana.dum@example.com",
+      "phone": "+92-300-4441234",
+      "city": "Lahore",
+      "serviceArea": {
+        "city": "Lahore",
+        "areas": ["Gulberg II", "Gulberg III", "Model Town"],
+        "postalCodes": ["54660", "54700"],
+        "radiusKm": 12
+      },
+      "cuisineSpecialties": ["PUNJABI", "BALOCHI", "PAKISTANI"],
+      "bio": "Specializing in traditional clay-sealed lamb and chicken dum pukht with slow embers cooking techniques.",
+      "hygieneCertificates": ["Punjab Food Authority Level-2 Certification (PFA-2025-8819)"],
+      "signatureDish": {
+        "name": "Earthenware Matka Dum Biryani",
+        "price": 2800,
+        "portion": "Serves 3-4",
+        "category": "Rice"
+      },
+      "appliedAt": "2026-08-28T09:30:00.000Z",
+      "verificationStatus": "PENDING"
+    },
+    {
+      "id": "chef-app-102",
+      "userId": "user-202",
+      "displayName": "Usman's BBQ & Chargha Corner",
+      "applicantName": "Usman Tariq",
+      "email": "usman.bbq@example.com",
+      "phone": "+92-321-7778899",
+      "city": "Karachi",
+      "serviceArea": {
+        "city": "Karachi",
+        "areas": ["Clifton", "DHA Phase 5", "DHA Phase 6"],
+        "postalCodes": ["75500", "75600"],
+        "radiusKm": 15
+      },
+      "cuisineSpecialties": ["BBQ", "KARAHI", "SINDHI"],
+      "bio": "Authentic coal-smoked seekh kebabs, Lahori chargha, and paratha rolls made with homemade butter.",
+      "hygieneCertificates": ["Sindh Food Authority Safe Food Handler Card (SFA-9912)"],
+      "signatureDish": {
+        "name": "Live Coal Chargha",
+        "price": 2200,
+        "portion": "Serves 2-3",
+        "category": "BBQ"
+      },
+      "appliedAt": "2026-08-28T14:15:00.000Z",
+      "verificationStatus": "PENDING"
+    },
+    {
+      "id": "chef-app-103",
+      "userId": "user-203",
+      "displayName": "Zainab's Healthy Diet Prep",
+      "applicantName": "Zainab Raza",
+      "email": "zainab.healthy@example.com",
+      "phone": "+92-333-8889900",
+      "city": "Islamabad",
+      "serviceArea": {
+        "city": "Islamabad",
+        "areas": ["F-7", "F-8", "F-10", "E-7"],
+        "postalCodes": ["44000", "44100"],
+        "radiusKm": 10
+      },
+      "cuisineSpecialties": ["CONTINENTAL", "PAKISTANI"],
+      "bio": "High-protein, low-oil meal subscriptions and keto desi favorites designed for working professionals.",
+      "hygieneCertificates": ["Islamabad Health Directorate Food Hygiene License (IHD-4410)"],
+      "signatureDish": {
+        "name": "Grilled Lemon Herb Chicken Bowl",
+        "price": 1850,
+        "portion": "Serves 1-2",
+        "category": "Curry"
+      },
+      "appliedAt": "2026-08-29T08:00:00.000Z",
+      "verificationStatus": "PENDING"
+    },
+    {
+      "id": "chef-app-104",
+      "userId": "user-204",
+      "displayName": "Amna's Traditional Halwa Puri & Nashta",
+      "applicantName": "Amna Siddiqui",
+      "email": "amna.nashta@example.com",
+      "phone": "+92-300-1122334",
+      "city": "Rawalpindi",
+      "serviceArea": {
+        "city": "Rawalpindi",
+        "areas": ["Saddar", "Bahria Town", "Chaklala"],
+        "postalCodes": ["46000"],
+        "radiusKm": 8
+      },
+      "cuisineSpecialties": ["PUNJABI", "PAKISTANI"],
+      "bio": "Fresh morning puri nashta, chanay, chana daal halwa, and homemade lassi.",
+      "hygieneCertificates": ["Punjab Food Authority Class-A Kitchen Audit"],
+      "signatureDish": {
+        "name": "Sunday Royal Nashta Platter",
+        "price": 1600,
+        "portion": "Serves 2-3",
+        "category": "Bread"
+      },
+      "appliedAt": "2026-08-29T10:45:00.000Z",
+      "verificationStatus": "PENDING"
+    }
+  ],
+  "allChefs": [
+    {
+      "id": "chef-ayesha-khan",
+      "userId": "user-101",
+      "displayName": "Ayesha's Lahore Dastarkhwan",
+      "phone": "+92-300-5550199",
+      "city": "Lahore",
+      "cuisineSpecialties": ["PUNJABI", "KARAHI", "PAKISTANI"],
+      "averageRating": 4.9,
+      "totalReviews": 128,
+      "verificationStatus": "ACTIVE",
+      "accountState": "ACTIVE",
+      "totalOrdersCompleted": 412,
+      "totalEarned": 1420000,
+      "joinedDate": "2026-01-15"
+    },
+    {
+      "id": "chef-tariq-jamil",
+      "userId": "user-102",
+      "displayName": "Ustad Tariq's Shinwari House",
+      "phone": "+92-301-5550200",
+      "city": "Peshawar",
+      "cuisineSpecialties": ["PASHTUN", "BBQ", "KARAHI"],
+      "averageRating": 4.8,
+      "totalReviews": 94,
+      "verificationStatus": "ACTIVE",
+      "accountState": "ACTIVE",
+      "totalOrdersCompleted": 298,
+      "totalEarned": 980000,
+      "joinedDate": "2026-02-10"
+    },
+    {
+      "id": "chef-rashida-begum",
+      "userId": "user-103",
+      "displayName": "Rashida's Karachi Biryani Mahal",
+      "phone": "+92-321-5550300",
+      "city": "Karachi",
+      "cuisineSpecialties": ["SINDHI", "KARAHI", "PAKISTANI"],
+      "averageRating": 4.7,
+      "totalReviews": 182,
+      "verificationStatus": "ACTIVE",
+      "accountState": "ACTIVE",
+      "totalOrdersCompleted": 520,
+      "totalEarned": 1850000,
+      "joinedDate": "2025-11-20"
+    },
+    {
+      "id": "chef-tariq-ali",
+      "userId": "user-104",
+      "displayName": "Ali's Mughlai Delights",
+      "phone": "+92-333-5550400",
+      "city": "Islamabad",
+      "cuisineSpecialties": ["NORTH_INDIAN", "PAKISTANI"],
+      "averageRating": 4.6,
+      "totalReviews": 64,
+      "verificationStatus": "ACTIVE",
+      "accountState": "ACTIVE",
+      "totalOrdersCompleted": 180,
+      "totalEarned": 620000,
+      "joinedDate": "2026-03-01"
+    },
+    {
+      "id": "chef-bad-actor",
+      "userId": "user-105",
+      "displayName": "Late Night Spice Co",
+      "phone": "+92-300-5550999",
+      "city": "Lahore",
+      "cuisineSpecialties": ["FAST_FOOD"],
+      "averageRating": 2.4,
+      "totalReviews": 18,
+      "verificationStatus": "SUSPENDED",
+      "accountState": "PAUSED",
+      "totalOrdersCompleted": 22,
+      "totalEarned": 45000,
+      "joinedDate": "2026-07-10",
+      "suspensionReason": "Multiple hygiene complaints and missing required food safety licenses."
+    }
+  ],
+  "users": [
+    {
+      "id": "user-001",
+      "displayName": "Hamza Abbasi",
+      "email": "hamza.abbasi@example.com",
+      "phone": "+92-300-1234567",
+      "city": "Lahore",
+      "role": "USER",
+      "status": "ACTIVE",
+      "totalOrders": 18,
+      "totalSpent": 48200,
+      "createdAt": "2026-01-10"
+    },
+    {
+      "id": "user-002",
+      "displayName": "Fatima Zahra",
+      "email": "fatima.zahra@example.com",
+      "phone": "+92-321-9876543",
+      "city": "Karachi",
+      "role": "USER",
+      "status": "ACTIVE",
+      "totalOrders": 24,
+      "totalSpent": 72400,
+      "createdAt": "2026-01-18"
+    },
+    {
+      "id": "user-003",
+      "displayName": "Bilal Sheikh",
+      "email": "bilal.sheikh@example.com",
+      "phone": "+92-333-4567890",
+      "city": "Islamabad",
+      "role": "USER",
+      "status": "ACTIVE",
+      "totalOrders": 12,
+      "totalSpent": 31500,
+      "createdAt": "2026-02-04"
+    },
+    {
+      "id": "user-004",
+      "displayName": "Ayesha Khan",
+      "email": "ayesha.khan@example.com",
+      "phone": "+92-300-5550199",
+      "city": "Lahore",
+      "role": "CHEF",
+      "status": "ACTIVE",
+      "totalOrders": 0,
+      "totalSpent": 0,
+      "createdAt": "2026-01-15"
+    },
+    {
+      "id": "user-005",
+      "displayName": "Platform Administrator",
+      "email": "admin@chefmate.pk",
+      "phone": "+92-300-0000001",
+      "city": "Lahore",
+      "role": "ADMIN",
+      "status": "ACTIVE",
+      "totalOrders": 0,
+      "totalSpent": 0,
+      "createdAt": "2025-10-01"
+    },
+    {
+      "id": "user-006",
+      "displayName": "Abusive Spammer",
+      "email": "spammer99@example.com",
+      "phone": "+92-300-9999999",
+      "city": "Rawalpindi",
+      "role": "USER",
+      "status": "SUSPENDED",
+      "totalOrders": 1,
+      "totalSpent": 1500,
+      "createdAt": "2026-08-01",
+      "suspensionReason": "Fraudulent payment chargeback attempts."
+    }
+  ],
+  "orders": [
+    {
+      "id": "ord-8819",
+      "customerName": "Hamza Abbasi",
+      "customerEmail": "hamza.abbasi@example.com",
+      "chefName": "Ayesha's Lahore Dastarkhwan",
+      "itemsSummary": "Smoky Chicken Karahi (x2), Roghani Naan (x4)",
+      "totalAmount": 5400,
+      "platformFee": 540,
+      "paymentMethod": "JAZZCASH",
+      "paymentStatus": "COMPLETED",
+      "orderStatus": "DELIVERED",
+      "deliveryAddress": "House 14-B, Sector G, DHA Phase 5, Lahore",
+      "createdAt": "2026-08-29T10:15:00.000Z",
+      "hasDispute": false
+    },
+    {
+      "id": "ord-8820",
+      "customerName": "Fatima Zahra",
+      "customerEmail": "fatima.zahra@example.com",
+      "chefName": "Rashida's Karachi Biryani Mahal",
+      "itemsSummary": "Sindhi Mutton Biryani (x3)",
+      "totalAmount": 7800,
+      "platformFee": 780,
+      "paymentMethod": "CARD",
+      "paymentStatus": "COMPLETED",
+      "orderStatus": "DELIVERED",
+      "deliveryAddress": "Apartment 402, Sea Breeze Heights, Clifton, Karachi",
+      "createdAt": "2026-08-29T11:00:00.000Z",
+      "hasDispute": false
+    },
+    {
+      "id": "ord-8821",
+      "customerName": "Bilal Sheikh",
+      "customerEmail": "bilal.sheikh@example.com",
+      "chefName": "Ustad Tariq's Shinwari House",
+      "itemsSummary": "Shinwari Lamb Karahi 1KG",
+      "totalAmount": 4200,
+      "platformFee": 420,
+      "paymentMethod": "CASH_ON_DELIVERY",
+      "paymentStatus": "PENDING",
+      "orderStatus": "CONFIRMED",
+      "deliveryAddress": "House 18, Street 42, F-8/2, Islamabad",
+      "createdAt": "2026-08-29T11:45:00.000Z",
+      "hasDispute": false
+    },
+    {
+      "id": "ord-8822",
+      "customerName": "Zain Malik",
+      "customerEmail": "zain.malik@example.com",
+      "chefName": "Ali's Mughlai Delights",
+      "itemsSummary": "Shahi Nihari (x2)",
+      "totalAmount": 3600,
+      "platformFee": 360,
+      "paymentMethod": "EASYPAISA",
+      "paymentStatus": "REFUNDED",
+      "orderStatus": "CANCELLED",
+      "deliveryAddress": "Sector I-8/1, Islamabad",
+      "createdAt": "2026-08-28T18:20:00.000Z",
+      "hasDispute": true,
+      "disputeReason": "Delivery rider delayed by 2 hours due to heavy rain. Customer requested full refund."
+    }
+  ],
+  "payouts": [
+    {
+      "id": "pay-901",
+      "chefId": "chef-ayesha-khan",
+      "chefName": "Ayesha Khan",
+      "kitchenName": "Ayesha's Lahore Dastarkhwan",
+      "amount": 54000,
+      "bankName": "Meezan Bank Ltd",
+      "accountNumber": "PK45MEZN0001234567890123",
+      "requestedDate": "2026-08-28",
+      "status": "PENDING",
+      "period": "Week 34 (Aug 21 - Aug 27)"
+    },
+    {
+      "id": "pay-902",
+      "chefId": "chef-rashida-begum",
+      "chefName": "Rashida Begum",
+      "kitchenName": "Rashida's Karachi Biryani Mahal",
+      "amount": 72000,
+      "bankName": "Habib Bank Limited (HBL)",
+      "accountNumber": "PK12HABB0098765432101234",
+      "requestedDate": "2026-08-28",
+      "status": "PENDING",
+      "period": "Week 34 (Aug 21 - Aug 27)"
+    },
+    {
+      "id": "pay-903",
+      "chefId": "chef-tariq-jamil",
+      "chefName": "Tariq Jamil",
+      "kitchenName": "Ustad Tariq's Shinwari House",
+      "amount": 38000,
+      "bankName": "Bank Alfalah Islamic",
+      "accountNumber": "PK90ALFH0055443322110099",
+      "requestedDate": "2026-08-28",
+      "status": "SETTLED",
+      "settledAt": "2026-08-29T06:00:00.000Z",
+      "period": "Week 34 (Aug 21 - Aug 27)"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "rev-301",
+      "authorName": "Sana Tariq",
+      "targetType": "chef",
+      "targetName": "Ayesha's Lahore Dastarkhwan",
+      "rating": 5,
+      "text": "The chicken karahi had wonderful aroma and fresh ginger julienne. Tasted genuinely like slow-cooked home food.",
+      "status": "PUBLISHED",
+      "createdAt": "2026-08-28T14:00:00.000Z"
+    },
+    {
+      "id": "rev-302",
+      "authorName": "Anonymous User",
+      "targetType": "chef",
+      "targetName": "Late Night Spice Co",
+      "rating": 1,
+      "text": "Food arrived cold and spilled inside the bag. Please look into container hygiene.",
+      "status": "PENDING",
+      "flags": ["Low rating", "Hygiene concern"],
+      "createdAt": "2026-08-29T02:30:00.000Z"
+    },
+    {
+      "id": "rev-303",
+      "authorName": "Bot Account 44",
+      "targetType": "dish",
+      "targetName": "Earthenware Matka Dum Biryani",
+      "rating": 5,
+      "text": "Visit my external discount telegram link t.me/cheappromo for free coupons!!",
+      "status": "REJECTED",
+      "flags": ["Spam link detected", "Automated trigger"],
+      "createdAt": "2026-08-28T11:00:00.000Z"
+    }
+  ],
+  "qualityFlags": [
+    {
+      "id": "qf-01",
+      "entityType": "chef",
+      "entityId": "chef-bad-actor",
+      "entityName": "Late Night Spice Co",
+      "flagType": "HIGH_REFUND_RATE",
+      "count": 6,
+      "threshold": 3,
+      "severity": "CRITICAL",
+      "recommendation": "Review hygiene reports and pause account."
+    },
+    {
+      "id": "qf-02",
+      "entityType": "user",
+      "entityId": "user-006",
+      "entityName": "Abusive Spammer",
+      "flagType": "HIGH_CANCELLATION_RATE",
+      "count": 7,
+      "threshold": 5,
+      "severity": "HIGH",
+      "recommendation": "Require card prepayment before allowing checkout."
+    },
+    {
+      "id": "qf-03",
+      "entityType": "chef",
+      "entityId": "chef-tariq-ali",
+      "entityName": "Ali's Mughlai Delights",
+      "flagType": "LOW_RATING_ALERT",
+      "count": 3,
+      "threshold": 3,
+      "severity": "MEDIUM",
+      "recommendation": "Reach out to chef regarding delivery packaging insulation."
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "aud-1001",
+      "adminEmail": "admin@chefmate.pk",
+      "action": "CHEF_APPROVED",
+      "targetEntity": "Farhana's Dum Pukht Kitchen (chef-app-101)",
+      "ipAddress": "192.168.1.100",
+      "timestamp": "2026-08-29T09:45:12.000Z"
+    },
+    {
+      "id": "aud-1002",
+      "adminEmail": "admin@chefmate.pk",
+      "action": "PAYOUT_PROCESSED",
+      "targetEntity": "Payout #pay-903 (PKR 38,000 to Tariq Jamil)",
+      "ipAddress": "192.168.1.100",
+      "timestamp": "2026-08-29T08:30:00.000Z"
+    },
+    {
+      "id": "aud-1003",
+      "adminEmail": "system-automated",
+      "action": "SECURITY_FLAG_RAISED",
+      "targetEntity": "Spam review rev-303 quarantined",
+      "ipAddress": "internal-event-worker",
+      "timestamp": "2026-08-28T11:01:05.000Z"
+    },
+    {
+      "id": "aud-1004",
+      "adminEmail": "admin@chefmate.pk",
+      "action": "USER_SUSPENDED",
+      "targetEntity": "User user-006 (Abusive Spammer)",
+      "ipAddress": "192.168.1.100",
+      "timestamp": "2026-08-28T10:15:30.000Z"
+    }
+  ]
+}

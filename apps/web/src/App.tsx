@@ -107,6 +107,49 @@ const ChefOnboardingPage = lazy(() =>
 const ChefSettingsPage = lazy(() =>
   import('./pages/chef/ChefSettingsPage').then(({ ChefSettingsPage: page }) => ({ default: page })),
 )
+// Phase 5: Admin Operations
+const AdminLoginPage = lazy(() =>
+  import('./pages/admin/AdminLoginPage').then(({ AdminLoginPage: page }) => ({ default: page })),
+)
+const AdminOverviewPage = lazy(() =>
+  import('./pages/admin/AdminOverviewPage').then(({ AdminOverviewPage: page }) => ({
+    default: page,
+  })),
+)
+const AdminChefsPage = lazy(() =>
+  import('./pages/admin/AdminChefsPage').then(({ AdminChefsPage: page }) => ({ default: page })),
+)
+const AdminUsersPage = lazy(() =>
+  import('./pages/admin/AdminUsersPage').then(({ AdminUsersPage: page }) => ({ default: page })),
+)
+const AdminOrdersPage = lazy(() =>
+  import('./pages/admin/AdminOrdersPage').then(({ AdminOrdersPage: page }) => ({ default: page })),
+)
+const AdminPayoutsPage = lazy(() =>
+  import('./pages/admin/AdminPayoutsPage').then(({ AdminPayoutsPage: page }) => ({
+    default: page,
+  })),
+)
+const AdminReviewsPage = lazy(() =>
+  import('./pages/admin/AdminReviewsPage').then(({ AdminReviewsPage: page }) => ({
+    default: page,
+  })),
+)
+const AdminQualityPage = lazy(() =>
+  import('./pages/admin/AdminQualityPage').then(({ AdminQualityPage: page }) => ({
+    default: page,
+  })),
+)
+const AdminAuditLogPage = lazy(() =>
+  import('./pages/admin/AdminAuditLogPage').then(({ AdminAuditLogPage: page }) => ({
+    default: page,
+  })),
+)
+const AdminSettingsPage = lazy(() =>
+  import('./pages/admin/AdminSettingsPage').then(({ AdminSettingsPage: page }) => ({
+    default: page,
+  })),
+)
 
 function App() {
   return (
@@ -156,6 +199,23 @@ function App() {
           <Route path="/chef/reviews" element={<ChefReviewsPage />} />
           <Route path="/chef/onboarding" element={<ChefOnboardingPage />} />
           <Route path="/chef/settings" element={<ChefSettingsPage />} />
+
+          {/* Phase 5: Admin Operations */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/admin" element={<AdminOverviewPage />} />
+          <Route path="/admin/overview" element={<AdminOverviewPage />} />
+          <Route path="/admin/chefs" element={<AdminChefsPage />} />
+          <Route path="/admin/chefs/pending" element={<AdminChefsPage />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
+          <Route path="/admin/users/:userId" element={<AdminUsersPage />} />
+          <Route path="/admin/orders" element={<AdminOrdersPage />} />
+          <Route path="/admin/orders/:orderId" element={<AdminOrdersPage />} />
+          <Route path="/admin/payouts" element={<AdminPayoutsPage />} />
+          <Route path="/admin/reviews" element={<AdminReviewsPage />} />
+          <Route path="/admin/quality" element={<AdminQualityPage />} />
+          <Route path="/admin/quality-flags" element={<AdminQualityPage />} />
+          <Route path="/admin/audit-log" element={<AdminAuditLogPage />} />
+          <Route path="/admin/settings" element={<AdminSettingsPage />} />
 
           {/* Fallback */}
           <Route path="*" element={<LandingPage />} />

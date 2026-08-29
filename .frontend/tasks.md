@@ -48,10 +48,10 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 
 | ID | Task | Status | Depends on |
 | --- | --- | --- | --- |
-| P5-T1 | Build AdminShell, navigation, breadcrumbs, search, and ADMIN-safe routing | pending | P3-T1 |
-| P5-T2 | Build admin overview, metrics, activity, health placeholders, and date filters | pending | P5-T1 |
-| P5-T3 | Build user and chef management, verification, moderation, detail views, and status actions | pending | P5-T2 |
-| P5-T4 | Build order, payout, coupon, review, notification, and DLQ operations | pending | P5-T3 |
+| P5-T1 | Build AdminShell, navigation, breadcrumbs, search, and ADMIN-safe routing | done | P3-T1 |
+| P5-T2 | Build admin overview, metrics, activity, health placeholders, and date filters | done | P5-T1 |
+| P5-T3 | Build user and chef management, verification, moderation, detail views, and status actions | done | P5-T2 |
+| P5-T4 | Build order, payout, coupon, review, notification, and DLQ operations | done | P5-T3 |
 
 ## Phase 6 - Motion, media, and performance hardening
 
@@ -73,9 +73,9 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 
 ## Current execution
 
-- Current phase: Phase 4 - Chef Calm Kitchen complete, ready for Phase 5 (Admin operations)
+- Current phase: Phase 5 - Admin Operations complete, ready for Phase 6 (Motion, media, and performance hardening)
 - Active task: none
 - Completed tasks: `P1-T1`, `P1-T2`, `P1-T3`, `P1-T4`, `P2-T1`, `P2-T2`,
   `P2-T3`, `P2-T4`, `P2-T5`, `P3-T1`, `P3-T2`, `P3-T3`, `P3-T4`, `P3-T5`,
-  `P4-T1`, `P4-T2`, `P4-T3`, `P4-T4`, `P4-T5`
-- Phase 4 complete: Chef Calm Kitchen is live with dark espresso `ChefShell`, 7-step onboarding wizard, full dish/plan CRUD, schedule & capacity limits, live order queue with status transitions, Recharts analytics, ledger transactions, bank payouts, and customer reviews.
+  `P4-T1`, `P4-T2`, `P4-T3`, `P4-T4`, `P4-T5`, `P5-T1`, `P5-T2`, `P5-T3`, `P5-T4`
+- Phase 5 complete: Admin Operations Console is live with dedicated login (`/admin/login`), role-guarded `AdminShell`, real-time platform metrics & Recharts GMV trajectory, pending chef verification queues, user suspension management, global order inspection & refunds, 1-Link bank disbursements, review moderation, automated quality flags, immutable security audit trails, and system maintenance controls.

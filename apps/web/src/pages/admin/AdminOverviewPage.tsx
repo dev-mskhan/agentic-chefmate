@@ -231,6 +231,10 @@ export function AdminOverviewPage() {
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#gmvGradient)"
+                    animationDuration={600}
+                    animationBegin={100}
+                    animationEasing="ease-out"
+                    isAnimationActive={true}
                   />
                 </AreaChart>
               </ResponsiveContainer>

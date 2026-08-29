@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { Link } from 'react-router-dom'
+import { SplitHeadline } from '../motion/SplitHeadline'
 
 function getPakistanTime() {
   const now = new Date()
@@ -57,21 +58,50 @@ export function HeroSection() {
     let rotationTimer: number | undefined
     let revertContext: (() => void) | undefined
     const clockTimer = window.setInterval(() => setPakistanTime(getPakistanTime()), 60000)
+
     document.fonts.ready.then(() => {
       if (cancelled) return
       const context = gsap.context(() => {
         if (reduceMotion) {
-          gsap.set('.hero-kicker, .hero-title, .hero-copy, .hero-actions, .hero-visual, .hero-search-hint', { opacity: 1, clearProps: 'transform,clipPath' })
+          gsap.set(
+            '.hero-kicker, .hero-copy, .hero-actions, .hero-visual, .hero-search-hint',
+            { opacity: 1, clearProps: 'transform,clipPath' },
+          )
           return
         }
 
-        gsap.timeline({ defaults: { ease: 'power3.out' } })
+        gsap
+          .timeline({ defaults: { ease: 'power3.out' } })
           .from('.hero-kicker', { opacity: 0, y: 18, duration: 0.45 })
-          .from('.hero-title', { opacity: 0, y: 46, clipPath: 'inset(0 0 100% 0)', duration: 0.8 }, '-=0.2')
-          .from('.hero-copy, .hero-actions, .hero-search-hint', { opacity: 0, y: 20, duration: 0.5, stagger: 0.08 }, '-=0.45')
-          .from('.hero-visual', { opacity: 0, scale: 0.92, rotate: 2, duration: 0.9, ease: 'expo.out' }, '-=0.65')
+          .from(
+            '.hero-copy, .hero-actions, .hero-search-hint',
+            { opacity: 0, y: 20, duration: 0.5, stagger: 0.08 },
+            '-=0.2',
+          )
+          .from(
+            '.hero-visual',
+            { opacity: 0, scale: 0.92, rotate: 2, duration: 0.9, ease: 'expo.out' },
+            '-=0.45',
+          )
 
-        gsap.to('.hero-float', { y: -10, duration: 2.8, ease: 'sine.inOut', repeat: -1, yoyo: true })
+        // Floating time badge
+        gsap.to('.hero-float', {
+          y: -8,
+          duration: 2.8,
+          ease: 'sine.inOut',
+          repeat: -1,
+          yoyo: true,
+        })
+
+        // Ambient Steam Wave Loop per DESIGN.md §3.1
+        gsap.to('.steam-wave', {
+          y: -12,
+          opacity: 0,
+          duration: 2.6,
+          ease: 'sine.inOut',
+          repeat: -1,
+          stagger: { each: 0.6, repeat: -1 },
+        })
       }, heroRef)
       revertContext = () => context.revert()
 
@@ -81,20 +111,35 @@ export function HeroSection() {
         const current = cardRefs.current[currentIndex]
         const next = cardRefs.current[nextIndex]
         if (!current || !next) return
-        gsap.timeline({ defaults: { overwrite: 'auto' } })
+        gsap
+          .timeline({ defaults: { overwrite: 'auto' } })
           .set(next, { zIndex: '3' })
           .set(current, { zIndex: '1' }, '<')
-          .to(current, { x: 36, y: 30, rotate: -4, scale: 0.88, opacity: 0.94, duration: 1.05, ease: 'power3.inOut' })
-          .to(next, { x: 0, y: 0, rotate: 0, scale: 1, opacity: 1, duration: 1.1, ease: 'expo.out' }, '<0.08')
+          .to(current, {
+            x: 36,
+            y: 30,
+            rotate: -4,
+            scale: 0.88,
+            opacity: 0.94,
+            duration: 1.05,
+            ease: 'power3.inOut',
+          })
+          .to(
+            next,
+            { x: 0, y: 0, rotate: 0, scale: 1, opacity: 1, duration: 1.1, ease: 'expo.out' },
+            '<0.08',
+          )
           .then(() => {
-            const remaining = cardRefs.current.find((card) => card && card !== current && card !== next)
+            const remaining = cardRefs.current.find(
+              (card) => card && card !== current && card !== next,
+            )
             if (remaining) remaining.style.zIndex = '2'
             activeCardRef.current = nextIndex
             setActiveCard(activeCardRef.current)
           })
       }, 4200)
-
     })
+
     return () => {
       cancelled = true
       revertContext?.()
@@ -104,33 +149,97 @@ export function HeroSection() {
   }, [])
 
   return (
-    <section ref={heroRef} className="relative mx-auto grid max-w-[1500px] gap-12 px-4 pb-20 pt-12 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-20 lg:px-12 lg:pb-24 lg:pt-20 2xl:px-16">
+    <section
+      ref={heroRef}
+      className="relative mx-auto grid max-w-[1500px] gap-12 px-4 pb-20 pt-12 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-20 lg:px-12 lg:pb-24 lg:pt-20 2xl:px-16"
+    >
       <div className="relative z-10 max-w-2xl">
-        <h1 className="hero-title max-w-[12ch] font-display text-[clamp(3.6rem,2.5rem+4.5vw,7.5rem)] leading-[0.88] tracking-[-0.045em]">Good food. <em className="text-terracotta">Made near you.</em></h1>
-        <p className="hero-copy mt-7 max-w-xl text-lg leading-8 text-charcoal-70">Meet independent chefs, discover fresh menus, and order home-cooked food for your next meal.</p>
+        <p className="hero-kicker text-xs font-semibold uppercase tracking-[0.2em] text-terracotta mb-4">
+          Fresh from neighborhood kitchens
+        </p>
+
+        <SplitHeadline
+          text="Good food. Made near you."
+          className="max-w-[12ch] font-display text-[clamp(3.6rem,2.5rem+4.5vw,7.5rem)] leading-[0.88] tracking-[-0.045em] text-charcoal"
+        />
+
+        <p className="hero-copy mt-7 max-w-xl text-lg leading-8 text-charcoal-70">
+          Meet independent chefs, discover fresh menus, and order home-cooked food for your next meal.
+        </p>
+
         <div className="hero-actions mt-8 flex flex-wrap gap-3">
-          <Link to="/discover" className="inline-flex min-h-11 items-center justify-center rounded-pill bg-terracotta px-5 text-sm font-semibold text-cream transition-colors hover:bg-terracotta-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta">Start exploring</Link>
-          <Link to="/discover?type=chefs" className="inline-flex min-h-11 items-center justify-center rounded-pill border border-charcoal/20 bg-transparent px-5 text-sm font-semibold text-charcoal transition-colors hover:border-terracotta hover:text-terracotta focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta">Find a chef</Link>
+          <Link
+            to="/discover"
+            className="inline-flex min-h-11 items-center justify-center rounded-pill bg-terracotta px-6 text-sm font-semibold text-cream transition-colors hover:bg-terracotta-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta shadow-md hover:shadow-lg"
+          >
+            Start exploring
+          </Link>
+          <Link
+            to="/discover?type=chefs"
+            className="inline-flex min-h-11 items-center justify-center rounded-pill border border-charcoal/20 bg-transparent px-6 text-sm font-semibold text-charcoal transition-colors hover:border-terracotta hover:text-terracotta focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+          >
+            Find a chef
+          </Link>
         </div>
-        <p className="hero-search-hint mt-8 text-sm text-charcoal-70"><span className="mr-2 inline-block h-2 w-2 rounded-full bg-sage" />Search chefs by city, then find the dish that brings the table together.</p>
+
+        <p className="hero-search-hint mt-8 text-sm text-charcoal-70 flex items-center gap-2">
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-sage animate-pulse shrink-0" />
+          Search chefs by city, then find the dish that brings the table together.
+        </p>
       </div>
+
       <div className="hero-visual relative min-h-[440px] lg:min-h-[580px] max-sm:min-h-[390px]">
         <div className="absolute right-0 top-0 h-[82%] w-[82%] max-w-[700px] max-sm:left-[4%] max-sm:right-[4%] max-sm:h-[92%] max-sm:w-auto max-sm:max-w-none">
           {heroCards.map((card, index) => (
-            <div ref={(element) => { cardRefs.current[index] = element }} key={card.title} className="hero-card absolute inset-0 overflow-hidden rounded-[2.5rem] bg-cream shadow-lg" style={{ zIndex: heroCards.length - index, transform: `translate(${index * 18}px, ${index * 16}px) rotate(${index === 0 ? 0 : index % 2 ? 4 : -4}deg) scale(${1 - index * 0.06})`, opacity: index === 0 ? 1 : 0.94 }}>
+            <div
+              ref={(element) => {
+                cardRefs.current[index] = element
+              }}
+              key={card.title}
+              className="hero-card absolute inset-0 overflow-hidden rounded-[2.5rem] bg-cream shadow-xl"
+              style={{
+                zIndex: heroCards.length - index,
+                transform: `translate(${index * 18}px, ${index * 16}px) rotate(${
+                  index === 0 ? 0 : index % 2 ? 4 : -4
+                }deg) scale(${1 - index * 0.06})`,
+                opacity: index === 0 ? 1 : 0.94,
+              }}
+            >
               <img className="h-full w-full object-cover" src={card.image} alt={card.alt} />
             </div>
           ))}
-          <div className="absolute right-3 top-3 z-10 w-32 rounded-xl bg-cream/92 px-3 py-2.5 shadow-md backdrop-blur-sm sm:right-4 sm:top-4 sm:w-40 sm:px-4 sm:py-3">
-            <p className="text-xs font-semibold uppercase leading-5 tracking-[0.14em] text-terracotta">{heroCards[activeCard].label}</p>
-            <p className="mt-1.5 max-w-[12ch] font-display text-[clamp(1.2rem,1rem+0.8vw,1.7rem)] leading-tight">{heroCards[activeCard].title}</p>
-            <span className="mt-2.5 block h-1 w-6 rounded-full bg-saffron" aria-hidden="true" />
+
+          {/* Active Dish Chip with Ambient Steam Indicator */}
+          <div className="absolute right-3 top-3 z-10 w-36 sm:w-44 rounded-2xl bg-cream/95 px-4 py-3 shadow-lg backdrop-blur-md border border-charcoal/5">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-terracotta">
+                {heroCards[activeCard].label}
+              </p>
+              {/* Subtle ambient steam wave SVG */}
+              <div className="flex items-center gap-0.5 text-terracotta/40">
+                <span className="steam-wave inline-block h-2 w-0.5 rounded-full bg-terracotta" />
+                <span className="steam-wave inline-block h-3 w-0.5 rounded-full bg-terracotta" />
+                <span className="steam-wave inline-block h-2 w-0.5 rounded-full bg-terracotta" />
+              </div>
+            </div>
+            <p className="mt-1 max-w-[12ch] font-display text-base sm:text-lg font-bold leading-tight text-charcoal">
+              {heroCards[activeCard].title}
+            </p>
+            <span className="mt-2 block h-1 w-6 rounded-full bg-saffron" aria-hidden="true" />
           </div>
         </div>
-        <div className="hero-float absolute bottom-1 left-0 z-10 w-56 rounded-2xl bg-saffron p-5 shadow-md sm:w-64">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em]">{pakistanTime.periodLabel}</span>
-          <p className="mt-3 font-display text-2xl leading-tight">{pakistanTime.note}</p>
-          <p className="mt-3 text-xs font-semibold uppercase tracking-[0.12em] text-charcoal/65">{pakistanTime.timeLabel} PKT</p>
+
+        {/* Floating Time Widget */}
+        <div className="hero-float absolute bottom-1 left-0 z-10 w-60 rounded-3xl bg-saffron p-5 shadow-xl border border-charcoal/5">
+          <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal/75">
+            {pakistanTime.periodLabel}
+          </span>
+          <p className="mt-2 font-display text-2xl font-bold leading-tight text-charcoal">
+            {pakistanTime.note}
+          </p>
+          <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/60">
+            {pakistanTime.timeLabel} PKT
+          </p>
         </div>
       </div>
     </section>

@@ -57,10 +57,10 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 
 | ID | Task | Status | Depends on |
 | --- | --- | --- | --- |
-| P6-T1 | Build shared motion primitives and landing ScrollTrigger lifecycle | pending | P2-T2 |
-| P6-T2 | Apply marketing choreography, parallax, pinned sections, stats, and reduced-motion fallbacks | pending | P6-T1 |
-| P6-T3 | Apply restrained chart draw-ins and stat tick-ups to dashboard surfaces | pending | P4-T5, P5-T2 |
-| P6-T4 | Optimize chunks, images, fonts, selectors, caches, long lists, and prefetching | pending | P6-T2, P6-T3 |
+| P6-T1 | Build shared motion primitives and landing ScrollTrigger lifecycle | done | P2-T2 |
+| P6-T2 | Apply marketing choreography, parallax, pinned sections, stats, and reduced-motion fallbacks | done | P6-T1 |
+| P6-T3 | Apply restrained chart draw-ins and stat tick-ups to dashboard surfaces | done | P4-T5, P5-T2 |
+| P6-T4 | Optimize chunks, images, fonts, selectors, caches, long lists, and prefetching | done | P6-T2, P6-T3 |
 
 ## Phase 7 - Gateway integration and release validation
 
@@ -73,9 +73,11 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 
 ## Current execution
 
-- Current phase: Phase 5 - Admin Operations complete, ready for Phase 6 (Motion, media, and performance hardening)
+- Current phase: Phase 6 - Motion, Media & Performance Hardening complete, ready for Phase 7
 - Active task: none
 - Completed tasks: `P1-T1`, `P1-T2`, `P1-T3`, `P1-T4`, `P2-T1`, `P2-T2`,
   `P2-T3`, `P2-T4`, `P2-T5`, `P3-T1`, `P3-T2`, `P3-T3`, `P3-T4`, `P3-T5`,
-  `P4-T1`, `P4-T2`, `P4-T3`, `P4-T4`, `P4-T5`, `P5-T1`, `P5-T2`, `P5-T3`, `P5-T4`
-- Phase 5 complete: Admin Operations Console is live with dedicated login (`/admin/login`), role-guarded `AdminShell`, real-time platform metrics & Recharts GMV trajectory, pending chef verification queues, user suspension management, global order inspection & refunds, 1-Link bank disbursements, review moderation, automated quality flags, immutable security audit trails, and system maintenance controls.
+  `P4-T1`, `P4-T2`, `P4-T3`, `P4-T4`, `P4-T5`, `P5-T1`, `P5-T2`, `P5-T3`, `P5-T4`,
+  `P6-T1`, `P6-T2`, `P6-T3`, `P6-T4`
+- Phase 6 complete: Shared GSAP motion primitives (SplitHeadline, SectionReveal, StatCounter) built with ScrollTrigger lifecycle management. Landing page Warm Hearth choreography applied (split-word hero, ambient steam loops, magnetic card hovers, staggered city/discovery reveals, live stat counters, frosted sticky nav transition). Dashboard chart draw-ins (600ms ease-out) and snappy 500ms stat tick-ups applied across Chef Analytics and Admin Overview. Image atom enforces aspect-ratio containers and lazy loading. All primitives respect prefers-reduced-motion. ScrollTriggers killed on route unmount via useScrollTriggerCleanup hook.
+

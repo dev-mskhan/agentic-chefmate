@@ -8,11 +8,16 @@ import {
   SlidersHorizontal,
   X,
 } from 'lucide-react'
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '../atoms/Button'
 import { UserMenuDropdown } from '../molecules/UserMenuDropdown'
 import { useAuth } from '../../hooks/useAuth'
+import { isReducedMotion } from '../../hooks/useScrollTriggerCleanup'
+
+gsap.registerPlugin(ScrollTrigger)
 
 export function StickyNav({
   navigation,
@@ -21,7 +26,42 @@ export function StickyNav({
 }) {
   const { user, isAuthenticated, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const headerRef = useRef<HTMLElement>(null)
+  const isLanding = location.pathname === '/'
+
+  // Frosted glass ScrollTrigger transition per DESIGN.md §3.6
+  useEffect(() => {
+    if (!headerRef.current || !isLanding || isReducedMotion()) return
+
+    const ctx = gsap.context(() => {
+      ScrollTrigger.create({
+        trigger: 'body',
+        start: '80px top',
+        onEnter: () =>
+          gsap.to(headerRef.current, {
+            backgroundColor: 'rgba(251,244,234,0.92)',
+            backdropFilter: 'blur(14px)',
+            boxShadow: '0 1px 3px rgba(33,28,23,0.08)',
+            borderBottomColor: 'rgba(33,28,23,0.08)',
+            duration: 0.3,
+            ease: 'power2.out',
+          }),
+        onLeaveBack: () =>
+          gsap.to(headerRef.current, {
+            backgroundColor: 'rgba(251,244,234,0)',
+            backdropFilter: 'blur(0px)',
+            boxShadow: 'none',
+            borderBottomColor: 'rgba(33,28,23,0)',
+            duration: 0.3,
+            ease: 'power2.out',
+          }),
+      })
+    }, headerRef)
+
+    return () => ctx.revert()
+  }, [isLanding])
 
   const defaultLinks = [
     { label: 'Discover', href: '/discover' },
@@ -39,7 +79,10 @@ export function StickyNav({
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-charcoal/10 bg-cream/90 backdrop-blur-md">
+    <header
+      ref={headerRef}
+      className={`sticky top-0 z-40 transition-colors ${isLanding ? 'bg-transparent border-b border-transparent' : 'border-b border-charcoal/10 bg-cream/90 backdrop-blur-md'}`}
+    >
       <nav
         className="mx-auto flex max-w-[1500px] items-center justify-between px-4 py-3.5 sm:px-8 lg:px-12 2xl:px-16"
         aria-label="Primary"

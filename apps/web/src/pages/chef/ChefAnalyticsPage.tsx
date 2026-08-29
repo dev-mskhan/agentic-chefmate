@@ -118,7 +118,15 @@ export function ChefAnalyticsPage() {
                     fontSize: '12px',
                   }}
                 />
-                <Bar dataKey="revenue" fill="#C85A32" radius={[8, 8, 0, 0]} />
+                <Bar
+                  dataKey="revenue"
+                  fill="#C85A32"
+                  radius={[8, 8, 0, 0]}
+                  animationDuration={600}
+                  animationBegin={100}
+                  animationEasing="ease-out"
+                  isAnimationActive={true}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -152,6 +160,10 @@ export function ChefAnalyticsPage() {
                   stroke="#3A6B4F"
                   strokeWidth={3}
                   dot={{ r: 5, fill: '#3A6B4F' }}
+                  animationDuration={600}
+                  animationBegin={150}
+                  animationEasing="ease-out"
+                  isAnimationActive={true}
                 />
               </LineChart>
             </ResponsiveContainer>

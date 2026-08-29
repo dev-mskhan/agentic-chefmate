@@ -91,6 +91,22 @@ export interface OrderRecord {
     cancelledBy: string
     cancelledAt: string
   }
+  review?: {
+    id: string
+    rating: number
+    tasteRating?: number
+    packagingRating?: number
+    deliveryRating?: number
+    comment: string
+    createdAt: string
+  }
+  dispute?: {
+    id: string
+    reason: string
+    notes: string
+    status: 'OPEN' | 'UNDER_REVIEW' | 'RESOLVED' | 'REJECTED'
+    requestedAt: string
+  }
   createdAt: string
   updatedAt: string
 }
@@ -231,6 +247,56 @@ export async function cancelOrder(orderId: string, reason: string): Promise<bool
       reason,
       cancelledBy: 'CUSTOMER',
       cancelledAt: new Date().toISOString(),
+    },
+    updatedAt: new Date().toISOString(),
+  }
+  saveToStorage(ORDERS_STORAGE_KEY, activeOrders)
+  return Promise.resolve(true)
+}
+
+export async function submitOrderReview(
+  orderId: string,
+  reviewData: {
+    rating: number
+    tasteRating?: number
+    packagingRating?: number
+    deliveryRating?: number
+    comment: string
+  },
+): Promise<boolean> {
+  const idx = activeOrders.findIndex((o) => o.id === orderId)
+  if (idx === -1) return Promise.resolve(false)
+
+  activeOrders[idx] = {
+    ...activeOrders[idx],
+    review: {
+      id: `rev-${Date.now()}`,
+      ...reviewData,
+      createdAt: new Date().toISOString(),
+    },
+    updatedAt: new Date().toISOString(),
+  }
+  saveToStorage(ORDERS_STORAGE_KEY, activeOrders)
+  return Promise.resolve(true)
+}
+
+export async function submitOrderDispute(
+  orderId: string,
+  disputeData: {
+    reason: string
+    notes: string
+  },
+): Promise<boolean> {
+  const idx = activeOrders.findIndex((o) => o.id === orderId)
+  if (idx === -1) return Promise.resolve(false)
+
+  activeOrders[idx] = {
+    ...activeOrders[idx],
+    dispute: {
+      id: `disp-${Date.now()}`,
+      ...disputeData,
+      status: 'OPEN',
+      requestedAt: new Date().toISOString(),
     },
     updatedAt: new Date().toISOString(),
   }

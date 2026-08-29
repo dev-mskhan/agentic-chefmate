@@ -1,0 +1,56 @@
+[
+  {
+    "id": "notif-301",
+    "userId": "user-tariq-mahmood",
+    "type": "ORDER_STATUS_CHANGED",
+    "category": "orderUpdates",
+    "title": "Your Karahi order is being prepared!",
+    "message": "Chef Ayesha Khan has begun freshly cooking your Smoky Chicken Karahi for today's dinner delivery.",
+    "data": {
+      "orderId": "order-1001",
+      "status": "PREPARING"
+    },
+    "readAt": null,
+    "createdAt": "2026-08-29T10:00:00.000Z"
+  },
+  {
+    "id": "notif-302",
+    "userId": "user-tariq-mahmood",
+    "type": "ORDER_STATUS_CHANGED",
+    "category": "orderUpdates",
+    "title": "Order Out for Delivery",
+    "message": "Mariam's Home Kitchen order #order-1004 is out for delivery with our courier.",
+    "data": {
+      "orderId": "order-1004",
+      "status": "OUT_FOR_DELIVERY"
+    },
+    "readAt": null,
+    "createdAt": "2026-08-29T08:30:00.000Z"
+  },
+  {
+    "id": "notif-303",
+    "userId": "user-tariq-mahmood",
+    "type": "SUBSCRIPTION_RENEWAL",
+    "category": "orderUpdates",
+    "title": "Weekly Dastarkhwan Scheduled",
+    "message": "Your upcoming delivery from Ayesha's Lahore Dastarkhwan is confirmed for Tuesday, Sep 1.",
+    "data": {
+      "subscriptionId": "sub-2001"
+    },
+    "readAt": "2026-08-28T18:00:00.000Z",
+    "createdAt": "2026-08-28T15:00:00.000Z"
+  },
+  {
+    "id": "notif-304",
+    "userId": "user-tariq-mahmood",
+    "type": "PROMOTION",
+    "category": "promotions",
+    "title": "Welcome Discount Active",
+    "message": "Enjoy 10% off your next homemade specialty order with coupon code WELCOME10.",
+    "data": {
+      "couponCode": "WELCOME10"
+    },
+    "readAt": "2026-08-27T10:00:00.000Z",
+    "createdAt": "2026-08-27T09:00:00.000Z"
+  }
+]

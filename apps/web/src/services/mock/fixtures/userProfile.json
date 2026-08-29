@@ -1,0 +1,56 @@
+{
+  "userId": "user-tariq-mahmood",
+  "firstName": "Tariq",
+  "lastName": "Mahmood",
+  "displayName": "Tariq Mahmood",
+  "phone": "+92-300-5550199",
+  "profileImage": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&q=80",
+  "dateOfBirth": "1992-06-15T00:00:00.000Z",
+  "addresses": [
+    {
+      "id": "addr-home",
+      "userId": "user-tariq-mahmood",
+      "label": "Home (Gulberg III)",
+      "line1": "House 42, Street 8, Block J",
+      "area": "Gulberg III",
+      "city": "Lahore",
+      "postalCode": "54660",
+      "isDefault": true
+    },
+    {
+      "id": "addr-office",
+      "userId": "user-tariq-mahmood",
+      "label": "Office (DHA Phase 5)",
+      "line1": "Plaza 14, Commercial Area, Sector CCA",
+      "area": "DHA Phase 5",
+      "city": "Lahore",
+      "postalCode": "54792",
+      "isDefault": false
+    }
+  ],
+  "dietaryPreferences": ["Halal"],
+  "allergies": ["Shellfish"],
+  "dislikedIngredients": ["Bitter gourd"],
+  "spiceLevel": "MEDIUM",
+  "favoriteCuisines": ["Punjabi", "Karachi", "Home cooking"],
+  "notificationPreferences": {
+    "channels": {
+      "inApp": true,
+      "email": true,
+      "push": true
+    },
+    "categories": {
+      "orderUpdates": true,
+      "promotions": false,
+      "chefMessages": true,
+      "systemAlerts": true
+    }
+  },
+  "favorites": {
+    "chefIds": ["chef-ayesha-khan", "chef-sana-javed"],
+    "dishIds": ["dish-smoky-karahi", "dish-daal-chawal"],
+    "planIds": ["plan-punjabi-comfort"]
+  },
+  "createdAt": "2026-01-15T10:00:00.000Z",
+  "updatedAt": "2026-08-28T14:30:00.000Z"
+}

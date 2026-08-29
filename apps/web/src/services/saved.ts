@@ -40,6 +40,10 @@ export function writeSaved(value: SavedItems) {
   }
 }
 
+export function getSavedIds(kind: SavedKind): string[] {
+  return readSaved()[kind]
+}
+
 export function isSaved(kind: SavedKind, id: string) {
   return readSaved()[kind].includes(id)
 }

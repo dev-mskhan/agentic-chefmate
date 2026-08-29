@@ -1,0 +1,115 @@
+[
+  {
+    "id": "sub-2001",
+    "customerId": "user-tariq-mahmood",
+    "chefId": "chef-ayesha-khan",
+    "chefName": "Ayesha's Lahore Dastarkhwan",
+    "planId": "plan-punjabi-comfort",
+    "planName": "Weekly Family Punjabi Dastarkhwan",
+    "tierName": "Family Feast Tier",
+    "status": "ACTIVE",
+    "frequency": "WEEKLY",
+    "basePrice": 8500,
+    "currency": "PKR",
+    "selectedDishes": [
+      {
+        "dishId": "dish-smoky-karahi",
+        "name": "Smoky chicken karahi",
+        "quantity": 1
+      },
+      {
+        "dishId": "dish-lahori-mutton-kunna",
+        "name": "Slow-claypot mutton kunna",
+        "quantity": 1
+      }
+    ],
+    "deliveryAddress": {
+      "id": "addr-home",
+      "userId": "user-tariq-mahmood",
+      "label": "Home (Gulberg III)",
+      "line1": "House 42, Street 8, Block J",
+      "area": "Gulberg III",
+      "city": "Lahore",
+      "postalCode": "54660",
+      "isDefault": true
+    },
+    "schedule": {
+      "deliveryDays": ["Tuesday", "Friday"],
+      "nextDeliveryDate": "2026-09-01",
+      "nextBillingDate": "2026-08-31"
+    },
+    "currentPeriod": {
+      "start": "2026-08-25",
+      "end": "2026-09-01"
+    },
+    "pauseRules": {
+      "allowPause": true,
+      "maxPauseDays": 30
+    },
+    "skipRules": {
+      "allowSkip": true,
+      "minNoticeHours": 48
+    },
+    "swapRules": {
+      "allowSwap": true,
+      "swapWindowHours": 24
+    },
+    "createdAt": "2026-08-01T10:00:00.000Z",
+    "updatedAt": "2026-08-25T10:00:00.000Z"
+  },
+  {
+    "id": "sub-2002",
+    "customerId": "user-tariq-mahmood",
+    "chefId": "chef-sana-javed",
+    "chefName": "Sana's Punjabi Rasoi",
+    "planId": "plan-healthy-lunch",
+    "planName": "Clean Weekday Lunch Box",
+    "tierName": "Single Portion Tier",
+    "status": "PAUSED",
+    "frequency": "WEEKLY",
+    "basePrice": 4200,
+    "currency": "PKR",
+    "selectedDishes": [
+      {
+        "dishId": "dish-daal-chawal",
+        "name": "Slow-cooked daal mash & zeera rice",
+        "quantity": 3
+      }
+    ],
+    "deliveryAddress": {
+      "id": "addr-office",
+      "userId": "user-tariq-mahmood",
+      "label": "Office (DHA Phase 5)",
+      "line1": "Plaza 14, Commercial Area, Sector CCA",
+      "area": "DHA Phase 5",
+      "city": "Lahore",
+      "postalCode": "54792",
+      "isDefault": false
+    },
+    "schedule": {
+      "deliveryDays": ["Monday", "Wednesday", "Friday"],
+      "nextDeliveryDate": "2026-09-08",
+      "nextBillingDate": "2026-09-07"
+    },
+    "currentPeriod": {
+      "start": "2026-08-18",
+      "end": "2026-08-25"
+    },
+    "pausedAt": "2026-08-24T12:00:00.000Z",
+    "pauseExpiresAt": "2026-09-07T00:00:00.000Z",
+    "pauseRules": {
+      "allowPause": true,
+      "maxPauseDays": 30
+    },
+    "skipRules": {
+      "allowSkip": true,
+      "minNoticeHours": 48
+    },
+    "swapRules": {
+      "allowSwap": true,
+      "swapWindowHours": 24
+    },
+    "createdAt": "2026-07-15T12:00:00.000Z",
+    "updatedAt": "2026-08-24T12:00:00.000Z"
+  }
+]

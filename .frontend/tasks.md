@@ -28,11 +28,11 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 
 | ID | Task | Status | Depends on |
 | --- | --- | --- | --- |
-| P3-T1 | Build auth pages with AuthShell, fixture-backed identity, guards, forbidden, and not-found pages | pending | P2-T5 |
-| P3-T2 | Build orders and order timelines with backend-shaped snapshots and every order status | pending | P3-T1 |
-| P3-T3 | Build subscriptions, favorites, profile, addresses, dietary preferences, and settings | pending | P3-T2 |
-| P3-T4 | Build notification center, read states, category preferences, empty, and offline states | pending | P3-T3 |
-| P3-T5 | Wire RTK Query to services/mock and Zustand stores for cart, favorites, and auth/session state | pending | P3-T4 |
+| P3-T1 | Build auth pages with AuthShell, fixture-backed identity, guards, forbidden, and not-found pages | done | P2-T5 |
+| P3-T2 | Build orders and order timelines with backend-shaped snapshots and every order status | done | P3-T1 |
+| P3-T3 | Build subscriptions, favorites, profile, addresses, dietary preferences, and settings | done | P3-T2 |
+| P3-T4 | Build notification center, read states, category preferences, empty, and offline states | done | P3-T3 |
+| P3-T5 | Wire RTK Query to services/mock and Zustand stores for cart, favorites, and auth/session state | in_progress | P3-T4 |
 
 ## Phase 4 - Chef Calm Kitchen
 
@@ -73,9 +73,8 @@ Status values: `pending`, `in_progress`, `done`, `blocked`
 
 ## Current execution
 
-- Current phase: Phase 2 - Auth-free public product experience
-- Active task: none (Phase 2 complete)
+- Current phase: Phase 3 - Customer identity and user-service experience
+- Active task: P3-T5 (Wiring stores & RTK query caching)
 - Completed tasks: `P1-T1`, `P1-T2`, `P1-T3`, `P1-T4`, `P2-T1`, `P2-T2`,
-  `P2-T3`, `P2-T4`, `P2-T5`
-- Phase 2 complete: public landing, discovery, detail, cart, checkout, and
-  confirmation routes are wired with fixture-backed service seams.
+  `P2-T3`, `P2-T4`, `P2-T5`, `P3-T1`, `P3-T2`, `P3-T3`, `P3-T4`
+- Phase 3 foundation complete: Auth pages (AuthShell split-screen), User Profile dropdown in StickyNav, Orders timeline & tracking, Subscriptions management, Profile & Food Preferences, Notifications Center, and Saved Favorites are fully wired with exact backend-compatible fixture models.

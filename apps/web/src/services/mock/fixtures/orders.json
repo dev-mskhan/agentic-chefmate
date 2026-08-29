@@ -1,0 +1,224 @@
+[
+  {
+    "id": "order-1001",
+    "customerId": "user-tariq-mahmood",
+    "chefId": "chef-ayesha-khan",
+    "chefName": "Ayesha's Lahore Dastarkhwan",
+    "status": "PREPARING",
+    "orderType": "ONE_OFF",
+    "deliveryDate": "2026-08-30",
+    "deliveryAddress": {
+      "id": "addr-home",
+      "userId": "user-tariq-mahmood",
+      "label": "Home (Gulberg III)",
+      "line1": "House 42, Street 8, Block J",
+      "area": "Gulberg III",
+      "city": "Lahore",
+      "postalCode": "54660",
+      "isDefault": true
+    },
+    "items": [
+      {
+        "dishId": "dish-smoky-karahi",
+        "name": "Smoky chicken karahi",
+        "price": 2400,
+        "quantity": 2,
+        "portionInfo": "Serves 3-4",
+        "cuisine": "Punjabi",
+        "dietaryTags": ["Halal"],
+        "allergens": [],
+        "image": "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80"
+      }
+    ],
+    "pricing": {
+      "subtotal": 4800,
+      "deliveryFee": 200,
+      "discountAmount": 480,
+      "total": 4520,
+      "currency": "PKR",
+      "couponCode": "WELCOME10"
+    },
+    "paymentMethod": "STRIPE",
+    "paymentStatus": "PAID",
+    "customerNote": "Please keep spices medium and send fresh coriander garnish.",
+    "createdAt": "2026-08-29T09:15:00.000Z",
+    "updatedAt": "2026-08-29T10:00:00.000Z"
+  },
+  {
+    "id": "order-1002",
+    "customerId": "user-tariq-mahmood",
+    "chefId": "chef-sana-javed",
+    "chefName": "Sana's Punjabi Rasoi",
+    "status": "DELIVERED",
+    "orderType": "ONE_OFF",
+    "deliveryDate": "2026-08-26",
+    "deliveryAddress": {
+      "id": "addr-office",
+      "userId": "user-tariq-mahmood",
+      "label": "Office (DHA Phase 5)",
+      "line1": "Plaza 14, Commercial Area, Sector CCA",
+      "area": "DHA Phase 5",
+      "city": "Lahore",
+      "postalCode": "54792",
+      "isDefault": false
+    },
+    "items": [
+      {
+        "dishId": "dish-daal-chawal",
+        "name": "Slow-cooked daal mash & zeera rice",
+        "price": 1450,
+        "quantity": 1,
+        "portionInfo": "Serves 1-2",
+        "cuisine": "Punjabi",
+        "dietaryTags": ["Halal", "Vegetarian"],
+        "allergens": [],
+        "image": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80"
+      }
+    ],
+    "pricing": {
+      "subtotal": 1450,
+      "deliveryFee": 150,
+      "discountAmount": 0,
+      "total": 1600,
+      "currency": "PKR"
+    },
+    "paymentMethod": "COD",
+    "paymentStatus": "PAID",
+    "createdAt": "2026-08-26T11:20:00.000Z",
+    "updatedAt": "2026-08-26T13:45:00.000Z"
+  },
+  {
+    "id": "order-1003",
+    "customerId": "user-tariq-mahmood",
+    "chefId": "chef-ayesha-khan",
+    "chefName": "Ayesha's Lahore Dastarkhwan",
+    "status": "CONFIRMED",
+    "orderType": "ONE_OFF",
+    "deliveryDate": "2026-09-02",
+    "deliveryAddress": {
+      "id": "addr-home",
+      "userId": "user-tariq-mahmood",
+      "label": "Home (Gulberg III)",
+      "line1": "House 42, Street 8, Block J",
+      "area": "Gulberg III",
+      "city": "Lahore",
+      "postalCode": "54660",
+      "isDefault": true
+    },
+    "items": [
+      {
+        "dishId": "dish-lahori-mutton-kunna",
+        "name": "Slow-claypot mutton kunna",
+        "price": 3600,
+        "quantity": 1,
+        "portionInfo": "Serves 2-3",
+        "cuisine": "Punjabi",
+        "dietaryTags": ["Halal"],
+        "allergens": [],
+        "image": "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80"
+      }
+    ],
+    "pricing": {
+      "subtotal": 3600,
+      "deliveryFee": 200,
+      "discountAmount": 0,
+      "total": 3800,
+      "currency": "PKR"
+    },
+    "paymentMethod": "STRIPE",
+    "paymentStatus": "PAID",
+    "createdAt": "2026-08-28T16:00:00.000Z",
+    "updatedAt": "2026-08-28T16:05:00.000Z"
+  },
+  {
+    "id": "order-1004",
+    "customerId": "user-tariq-mahmood",
+    "chefId": "chef-mariam-raza",
+    "chefName": "Mariam's Home Kitchen",
+    "status": "OUT_FOR_DELIVERY",
+    "orderType": "ONE_OFF",
+    "deliveryDate": "2026-08-29",
+    "deliveryAddress": {
+      "id": "addr-home",
+      "userId": "user-tariq-mahmood",
+      "label": "Home (Gulberg III)",
+      "line1": "House 42, Street 8, Block J",
+      "area": "Gulberg III",
+      "city": "Lahore",
+      "postalCode": "54660",
+      "isDefault": true
+    },
+    "items": [
+      {
+        "dishId": "dish-bhindi-masala",
+        "name": "Pan-tossed bhindi masala & phulkas",
+        "price": 1200,
+        "quantity": 2,
+        "portionInfo": "Serves 2",
+        "cuisine": "Home cooking",
+        "dietaryTags": ["Halal", "Vegetarian"],
+        "allergens": [],
+        "image": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80"
+      }
+    ],
+    "pricing": {
+      "subtotal": 2400,
+      "deliveryFee": 150,
+      "discountAmount": 0,
+      "total": 2550,
+      "currency": "PKR"
+    },
+    "paymentMethod": "COD",
+    "paymentStatus": "COD_PENDING",
+    "createdAt": "2026-08-29T08:00:00.000Z",
+    "updatedAt": "2026-08-29T10:45:00.000Z"
+  },
+  {
+    "id": "order-1005",
+    "customerId": "user-tariq-mahmood",
+    "chefId": "chef-hamza-malik",
+    "chefName": "Hamza's Coastal Hearth",
+    "status": "CANCELLED",
+    "orderType": "ONE_OFF",
+    "deliveryDate": "2026-08-20",
+    "deliveryAddress": {
+      "id": "addr-home",
+      "userId": "user-tariq-mahmood",
+      "label": "Home (Gulberg III)",
+      "line1": "House 42, Street 8, Block J",
+      "area": "Gulberg III",
+      "city": "Lahore",
+      "postalCode": "54660",
+      "isDefault": true
+    },
+    "items": [
+      {
+        "dishId": "dish-karachi-biryani",
+        "name": "Dum pukht beef biryani",
+        "price": 2200,
+        "quantity": 1,
+        "portionInfo": "Serves 2-3",
+        "cuisine": "Karachi",
+        "dietaryTags": ["Halal"],
+        "allergens": [],
+        "image": "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80"
+      }
+    ],
+    "pricing": {
+      "subtotal": 2200,
+      "deliveryFee": 200,
+      "discountAmount": 0,
+      "total": 2400,
+      "currency": "PKR"
+    },
+    "paymentMethod": "STRIPE",
+    "paymentStatus": "AWAITING_CONFIRMATION",
+    "cancellation": {
+      "reason": "Requested delivery date reschedule by customer",
+      "cancelledBy": "CUSTOMER",
+      "cancelledAt": "2026-08-19T14:00:00.000Z"
+    },
+    "createdAt": "2026-08-19T12:00:00.000Z",
+    "updatedAt": "2026-08-19T14:00:00.000Z"
+  }
+]

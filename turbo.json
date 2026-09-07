@@ -11,8 +11,7 @@
     },
     "dev": {
       "cache": false,
-      "persistent": true,
-      "filter": ["!@chefmate/packages"]
+      "persistent": true
     },
     "lint": {
       "dependsOn": ["^lint"]

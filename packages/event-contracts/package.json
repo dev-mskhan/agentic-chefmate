@@ -1,0 +1,19 @@
+{
+  "name": "@chefmate/event-contracts",
+  "version": "0.0.1",
+  "type": "commonjs",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "ioredis": "^5.4.1",
+    "kafkajs": "^2.2.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3",
+    "@types/node": "^20.14.12"
+  }
+}

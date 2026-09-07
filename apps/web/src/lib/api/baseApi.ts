@@ -17,6 +17,8 @@ import {
   getUserSubscriptions,
   getUserProfile,
   getUserNotifications,
+  getUnreadNotificationCount,
+  markNotificationRead,
   type OrderRecord,
   type SubscriptionRecord,
   type UserProfileRecord,
@@ -28,6 +30,10 @@ export const baseApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: '/api/v1',
     credentials: 'include',
+    prepareHeaders: (headers) => {
+      headers.set('x-request-id', crypto.randomUUID())
+      return headers
+    },
   }),
   tagTypes: ['Chefs', 'Dishes', 'MealPlans', 'Orders', 'Subscriptions', 'Profile', 'Notifications'],
   endpoints: (builder) => ({
@@ -152,6 +158,28 @@ export const baseApi = createApi({
       },
       providesTags: ['Notifications'],
     }),
+    getUnreadNotificationCount: builder.query<number, void>({
+      queryFn: async () => {
+        try {
+          const count = await getUnreadNotificationCount()
+          return { data: count }
+        } catch (error) {
+          return { error: { status: 500, data: error } }
+        }
+      },
+      providesTags: ['Notifications'],
+    }),
+    markNotificationAsRead: builder.mutation<boolean, string>({
+      queryFn: async (id) => {
+        try {
+          const success = await markNotificationRead(id)
+          return { data: success }
+        } catch (error) {
+          return { error: { status: 500, data: error } }
+        }
+      },
+      invalidatesTags: ['Notifications'],
+    }),
   }),
 })
 
@@ -167,4 +195,6 @@ export const {
   useGetCustomerSubscriptionsQuery,
   useGetUserProfileQuery,
   useGetUserNotificationsQuery,
+  useGetUnreadNotificationCountQuery,
+  useMarkNotificationAsReadMutation,
 } = baseApi

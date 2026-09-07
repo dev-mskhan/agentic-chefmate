@@ -22,6 +22,7 @@ const checkoutInput = z.object({
     dishId:   z.string().min(1),
     quantity: z.number().int().min(1).max(99),
   })).min(1).max(50),
+  paymentMethod:  z.enum(['STRIPE', 'COD']).default('STRIPE'),
   couponCode:     z.string().optional(),
   customerNote:   z.string().max(500).optional(),
   idempotencyKey: z.string().max(128).optional(),
@@ -31,6 +32,7 @@ export const checkoutProcedure = protectedProcedure
   .input(checkoutInput)
   .mutation(async ({ ctx, input }) => {
     const { userId: customerId, email: customerEmail } = ctx.principal
+    const paymentMethod = input.paymentMethod ?? 'STRIPE'
 
     // ── Idempotency: return existing order+payment if already processed ───────
     if (input.idempotencyKey) {
@@ -90,34 +92,51 @@ export const checkoutProcedure = protectedProcedure
     })
 
     // ── 9. Create order ────────────────────────────────────────────────────────
+    const initialPaymentStatus = paymentMethod === 'COD' ? 'COD_PENDING' : 'PENDING'
+
     const order = await Order.create({
       customerId, chefId: input.chefId, deliveryDate: input.deliveryDate,
       items: itemSnapshots, deliveryAddress: addressSnapshot,
       pricing, customerNote: input.customerNote,
-      status: 'PENDING', idempotencyKey: input.idempotencyKey,
+      status: 'PENDING',
+      paymentMethod,
+      paymentStatus: initialPaymentStatus,
+      idempotencyKey: input.idempotencyKey,
     })
     const orderId = order._id.toString()
 
     // ── 10. Increment capacity counter ────────────────────────────────────────
     await incrementChefOrderCount(ctx.redis, input.chefId, input.deliveryDate)
 
-    // ── 11. Create payment (call payment-service) ─────────────────────────────
-    // Amount in smallest currency unit (cents / paisa)
-    const amountCents = Math.round(pricing.total * 100)
-    let paymentResult: { paymentId: string; clientSecret: string }
-    try {
-      paymentResult = await createPaymentForOrder(
-        orderId, customerId, amountCents, pricing.currency, input.idempotencyKey,
-      )
-    } catch (err) {
-      // Roll back coupon usage if payment creation fails
-      if (couponValidation) {
-        await rollbackCouponUsage(couponValidation.couponId, customerId, orderId).catch(() => {})
+    // ── 11. Create payment (call payment-service or handle COD) ───────────────
+    let paymentResult: { paymentId: string; clientSecret: string | null }
+    if (paymentMethod === 'STRIPE') {
+      // Amount in smallest currency unit (cents / paisa)
+      const amountCents = Math.round(pricing.total * 100)
+      try {
+        const stripeRes = await createPaymentForOrder(
+          orderId, customerId, amountCents, pricing.currency, input.idempotencyKey,
+        )
+        paymentResult = {
+          paymentId: stripeRes.paymentId,
+          clientSecret: stripeRes.clientSecret,
+        }
+      } catch (err) {
+        // Roll back coupon usage if payment creation fails
+        if (couponValidation) {
+          await rollbackCouponUsage(couponValidation.couponId, customerId, orderId).catch(() => {})
+        }
+        throw err
       }
-      throw err
+    } else {
+      // Cash on Delivery (COD)
+      paymentResult = {
+        paymentId: `cod-${orderId}`,
+        clientSecret: null,
+      }
     }
 
-    // ── 12. Commit coupon usage (only after payment created) ──────────────────
+    // ── 12. Commit coupon usage (only after payment created / confirmed) ──────
     if (couponValidation) {
       await commitCouponUsage(couponValidation.couponId, customerId, orderId)
     }
@@ -130,7 +149,7 @@ export const checkoutProcedure = protectedProcedure
       createdAt: new Date().toISOString(), version: '1',
     })
 
-    logger.info({ orderId, customerId, chefId: input.chefId, paymentId: paymentResult.paymentId }, 'Checkout complete')
+    logger.info({ orderId, customerId, chefId: input.chefId, paymentMethod, paymentId: paymentResult.paymentId }, 'Checkout complete')
 
     return {
       order:        order.toObject(),

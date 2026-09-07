@@ -334,6 +334,40 @@ export async function checkoutPreview(input: CheckoutPreviewInput): Promise<Chec
 }
 
 export async function checkoutSubmit(input: CheckoutSubmitInput): Promise<CheckoutSubmitResult> {
+  if (import.meta.env.VITE_USE_MOCK === 'false') {
+    const res = await fetch('/api/v1/orders/checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'idempotency-key': input.idempotencyKey,
+        'x-request-id': crypto.randomUUID(),
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        chefId: input.chefId,
+        items: input.items,
+        deliveryDate: input.deliveryDate,
+        addressId: input.addressId,
+        couponCode: input.couponCode,
+        paymentMethod: input.paymentMethod || 'STRIPE',
+        idempotencyKey: input.idempotencyKey,
+      }),
+    })
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({ message: 'Checkout request failed' }))
+      throw new Error(errorData.message || errorData.error || 'Checkout request failed')
+    }
+
+    const data = await res.json()
+    return {
+      orderId: data.order._id || data.order.id,
+      clientSecret: data.clientSecret,
+      status: data.order.status || 'PENDING',
+      paymentStatus: data.order.paymentStatus || (input.paymentMethod === 'COD' ? 'COD_PENDING' : 'PENDING'),
+    }
+  }
+
   await delay(400)
 
   if (IDEMPOTENCY_MAP.has(input.idempotencyKey)) {

@@ -78,6 +78,7 @@ export interface CheckoutResult {
   clientSecret: string
 }
 
+const isLive = () => import.meta.env.VITE_USE_MOCK === 'false'
 const wait = (milliseconds = 180) => new Promise((resolve) => window.setTimeout(resolve, milliseconds))
 
 function paginate<T>(records: readonly T[], filters: PublicSearchFilters): ListResponse<T> {
@@ -128,6 +129,24 @@ function matchesChef(chefId: string, filters: PublicSearchFilters) {
 }
 
 export async function discoverChefs(filters: PublicSearchFilters = {}): Promise<ListResponse<ChefRecord>> {
+  if (isLive()) {
+    const params = new URLSearchParams()
+    if (filters.city) params.set('city', filters.city)
+    if (filters.cuisine) params.set('cuisine', filters.cuisine)
+    if (filters.page) params.set('page', String(filters.page))
+    if (filters.pageSize) params.set('pageSize', String(filters.pageSize))
+
+    try {
+      const res = await fetch(`/api/v1/chefs?${params.toString()}`, { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return data
+      }
+    } catch {
+      // fallback to mock on network error
+    }
+  }
+
   await wait()
   if (filters.query === '__error') throw new Error('Catalog unavailable')
   const records = search(chefs, filters).filter((chef) => matchesChef(chef.id, filters))
@@ -135,6 +154,25 @@ export async function discoverChefs(filters: PublicSearchFilters = {}): Promise<
 }
 
 export async function discoverDishes(filters: PublicSearchFilters = {}): Promise<ListResponse<DishRecord>> {
+  if (isLive()) {
+    const params = new URLSearchParams()
+    if (filters.chefId) params.set('chefId', filters.chefId)
+    if (filters.category) params.set('category', filters.category)
+    if (filters.cuisine) params.set('cuisine', filters.cuisine)
+    if (filters.page) params.set('page', String(filters.page))
+    if (filters.pageSize) params.set('pageSize', String(filters.pageSize))
+
+    try {
+      const res = await fetch(`/api/v1/chefs/dishes?${params.toString()}`, { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return data
+      }
+    } catch {
+      // fallback to mock on network error
+    }
+  }
+
   await wait()
   if (filters.query === '__error') throw new Error('Catalog unavailable')
   const records = search(dishes, filters).filter((dish) => {
@@ -154,6 +192,23 @@ export async function discoverDishes(filters: PublicSearchFilters = {}): Promise
 }
 
 export async function discoverMealPlans(filters: PublicSearchFilters = {}): Promise<ListResponse<MealPlanRecord>> {
+  if (isLive()) {
+    const params = new URLSearchParams()
+    if (filters.chefId) params.set('chefId', filters.chefId)
+    if (filters.page) params.set('page', String(filters.page))
+    if (filters.pageSize) params.set('pageSize', String(filters.pageSize))
+
+    try {
+      const res = await fetch(`/api/v1/chefs/meal-plans?${params.toString()}`, { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return data
+      }
+    } catch {
+      // fallback to mock on network error
+    }
+  }
+
   await wait()
   if (filters.query === '__error') throw new Error('Catalog unavailable')
   const records = search(mealPlans, filters).filter((plan) => {
@@ -171,37 +226,51 @@ export async function discoverMealPlans(filters: PublicSearchFilters = {}): Prom
 }
 
 export async function getChefById(id: string): Promise<ChefRecord | null> {
+  if (isLive()) {
+    try {
+      const res = await fetch(`/api/v1/chefs/${id}`, { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return data.chef || data
+      }
+    } catch {
+      // fallback
+    }
+  }
   await wait(120)
   return chefs.find((chef) => chef.id === id) ?? null
 }
 
 export async function getDishById(id: string): Promise<DishRecord | null> {
+  if (isLive()) {
+    try {
+      const res = await fetch(`/api/v1/chefs/dishes/${id}`, { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return data.dish || data
+      }
+    } catch {
+      // fallback
+    }
+  }
   await wait(120)
   return dishes.find((dish) => dish.id === id) ?? null
 }
 
 export async function getMealPlanById(id: string): Promise<MealPlanRecord | null> {
+  if (isLive()) {
+    try {
+      const res = await fetch(`/api/v1/chefs/meal-plans/${id}`, { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return data.mealPlan || data
+      }
+    } catch {
+      // fallback
+    }
+  }
   await wait(120)
   return mealPlans.find((plan) => plan.id === id) ?? null
-}
-
-export async function listReviewsByTargetId(targetId: string, target: 'chef' | 'dish' | 'plan' = 'chef'): Promise<ReviewRecord[]> {
-  await wait(120)
-  return reviews.filter((review) => {
-    if (review.status !== 'PUBLISHED') return false
-    if (target === 'dish') return review.dishId === targetId
-    if (target === 'plan') return (review as { planId?: string }).planId === targetId
-    return review.chefId === targetId
-  })
-}
-
-export async function listReviewsByChefId(chefId: string): Promise<ReviewRecord[]> {
-  return listReviewsByTargetId(chefId, 'chef')
-}
-
-export async function listAddresses(): Promise<AddressRecord[]> {
-  await wait(120)
-  return [...addresses]
 }
 
 export async function getMediaByIds(ids: readonly string[]): Promise<MediaRecord[]> {
@@ -209,52 +278,103 @@ export async function getMediaByIds(ids: readonly string[]): Promise<MediaRecord
   return media.filter((item) => ids.includes(item.id))
 }
 
-export async function validateCoupon(code: string, subtotal: number, chefId: string): Promise<{ couponCode: string; discountAmount: number }> {
-  await wait(160)
-  const coupon = coupons.find((item) => item.code === code.trim().toUpperCase() && item.isActive && (!item.chefId || item.chefId === chefId))
-  if (!coupon) throw new Error('Enter a valid coupon code for this chef.')
-  if (subtotal < coupon.minOrderAmount) throw new Error(`This coupon needs an order of at least ${coupon.minOrderAmount.toLocaleString()} PKR.`)
-  const discountAmount = coupon.discountType === 'PERCENTAGE'
-    ? Math.min(Math.round(subtotal * coupon.discountValue) / 100, coupon.maxDiscountAmount ?? subtotal)
-    : Math.min(coupon.discountValue, subtotal)
-  return { couponCode: coupon.code, discountAmount }
+export async function validateCoupon(code: string, subtotal: number): Promise<CouponRecord | null> {
+  await wait(150)
+  const coupon = coupons.find((item) => item.code.toLowerCase() === code.trim().toLowerCase())
+  if (!coupon) return null
+  if (subtotal < coupon.minOrderValue) return null
+  return coupon
 }
 
 export async function checkoutPreview(input: CartInput): Promise<CheckoutPreview> {
   await wait(220)
   const chef = chefs.find((item) => item.id === input.chefId)
-  if (!chef || chef.accountState !== 'ACTIVE') throw new Error('This chef is not available for orders.')
-  const selected = input.items.map((item) => dishes.find((dish) => dish.id === item.dishId && dish.chefId === input.chefId && dish.status === 'ACTIVE'))
-  if (selected.some((dish) => !dish)) throw new Error('One dish is no longer available. Return to the menu and choose another dish.')
-  const weekdayCodes = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
-  const deliveryDay = weekdayCodes[new Date(`${input.deliveryDate}T12:00:00`).getDay()]
-  if (selected.some((dish) => dish && !dish.availability.availableDays.includes(deliveryDay))) throw new Error('The chef is not available on the selected date. Choose another date.')
-  const subtotal = input.items.reduce((sum, item, index) => sum + (selected[index]?.price ?? 0) * item.quantity, 0)
-  const coupon = input.couponCode ? await validateCoupon(input.couponCode, subtotal, input.chefId) : undefined
+  if (!chef || chef.accountState !== 'ACTIVE') {
+    throw new Error('Chef is not currently accepting orders.')
+  }
+
+  const selected = input.items.map((item) => {
+    const dish = dishes.find((entry) => entry.id === item.dishId)
+    if (!dish || dish.chefId !== input.chefId || dish.status !== 'ACTIVE') {
+      throw new Error('One or more dishes are no longer available.')
+    }
+
+    const weekdayCodes = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const
+    const deliveryDay = weekdayCodes[new Date(input.deliveryDate).getDay()]
+    if (!dish.availability.availableDays.includes(deliveryDay)) {
+      throw new Error(`"${dish.name}" is not prepared on the selected delivery day.`)
+    }
+
+    return { dish, quantity: item.quantity }
+  })
+
+  const subtotal = selected.reduce((sum, item) => sum + item.dish.price * item.quantity, 0)
+  const coupon = input.couponCode ? await validateCoupon(input.couponCode, subtotal) : null
   const deliveryFee = 250
+  const discountAmount = coupon ? Math.min(coupon.maxDiscount ?? 0, Math.round((subtotal * coupon.discountValue) / 100)) : 0
+  const total = Math.max(0, subtotal + deliveryFee - discountAmount)
+
   return {
     subtotal,
     deliveryFee,
-    discountAmount: coupon?.discountAmount ?? 0,
-    total: subtotal + deliveryFee - (coupon?.discountAmount ?? 0),
+    discountAmount,
+    total,
     currency: 'PKR',
-    couponCode: coupon?.couponCode,
+    couponCode: coupon?.code,
   }
 }
 
 export async function submitCheckout(input: CartInput, idempotencyKey: string): Promise<CheckoutResult> {
-  await wait(260)
+  if (isLive()) {
+    const res = await fetch('/api/v1/orders/checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'idempotency-key': idempotencyKey,
+        'x-request-id': crypto.randomUUID(),
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        chefId: input.chefId,
+        items: input.items,
+        deliveryDate: input.deliveryDate,
+        addressId: input.addressId,
+        couponCode: input.couponCode,
+        idempotencyKey,
+      }),
+    })
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: 'Checkout failed' }))
+      throw new Error(err.message || 'Checkout failed')
+    }
+
+    const data = await res.json()
+    return {
+      order: {
+        id: data.order._id || data.order.id,
+        chefId: data.order.chefId,
+        deliveryDate: data.order.deliveryDate,
+        addressId: data.order.deliveryAddress?.addressId || input.addressId,
+        total: data.order.pricing?.total || 0,
+        currency: data.order.pricing?.currency || 'PKR',
+      },
+      paymentId: data.paymentId,
+      clientSecret: data.clientSecret,
+    }
+  }
+
   const preview = await checkoutPreview(input)
   return {
     order: {
-      id: `order-${idempotencyKey.slice(-8)}`,
+      id: `ord-${idempotencyKey.slice(0, 8)}`,
       chefId: input.chefId,
       deliveryDate: input.deliveryDate,
       addressId: input.addressId,
       total: preview.total,
       currency: preview.currency,
     },
-    paymentId: `payment-${idempotencyKey.slice(-8)}`,
-    clientSecret: `client_secret_${idempotencyKey}`,
+    paymentId: `pay-${idempotencyKey.slice(0, 8)}`,
+    clientSecret: `pi_mock_${idempotencyKey.slice(0, 16)}_secret`,
   }
 }

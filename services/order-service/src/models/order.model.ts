@@ -56,10 +56,17 @@ export interface ICancellation {
   cancelledBy: 'CUSTOMER' | 'CHEF' | 'ADMIN'; cancelledAt: Date
 }
 
+export const PaymentMethodValues = ['STRIPE', 'COD'] as const
+export type PaymentMethod = typeof PaymentMethodValues[number]
+
+export const PaymentStatusValues = ['PAID', 'PENDING', 'COD_PENDING', 'FAILED', 'REFUNDED'] as const
+export type PaymentStatus = typeof PaymentStatusValues[number]
+
 export interface IOrder extends Document {
   customerId: string; chefId: string; deliveryDate: string
   items: IOrderItemSnapshot[]; deliveryAddress: IAddressSnapshot
   pricing: IPricing; customerNote?: string; status: OrderStatus
+  paymentMethod: PaymentMethod; paymentStatus: PaymentStatus
   cancellation?: ICancellation; idempotencyKey?: string
   orderType:       OrderType
   subscriptionId?: string
@@ -137,6 +144,8 @@ const orderSchema = new Schema<IOrder>(
     pricing: { type: pricingSchema, required: true },
     customerNote: { type: String, maxlength: 500 },
     status: { type: String, enum: OrderStatusValues, default: 'PENDING' },
+    paymentMethod: { type: String, enum: PaymentMethodValues, default: 'STRIPE' },
+    paymentStatus: { type: String, enum: PaymentStatusValues, default: 'PENDING' },
     cancellation: { type: cancellationSchema },
     idempotencyKey: { type: String, sparse: true, unique: true },
     orderType:      { type: String, enum: OrderTypeValues, default: 'ONE_OFF', required: true },

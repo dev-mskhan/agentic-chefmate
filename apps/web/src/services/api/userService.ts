@@ -54,41 +54,43 @@ export interface UserProfileRecord {
 export interface OrderItemSnapshot {
   dishId: string
   name: string
-  price: number
   quantity: number
-  portionInfo?: string
-  cuisine?: string
-  dietaryTags?: string[]
-  allergens?: string[]
+  price: number
   image?: string
-}
-
-export interface OrderPricing {
-  subtotal: number
-  deliveryFee: number
-  discountAmount: number
-  total: number
-  currency: string
-  couponCode?: string
+  cuisine?: string
+  portionInfo?: string
 }
 
 export interface OrderRecord {
   id: string
-  customerId: string
   chefId: string
   chefName: string
+  customerId: string
+  customerName: string
   status: OrderStatus
-  orderType: 'ONE_OFF' | 'SUBSCRIPTION'
   deliveryDate: string
-  deliveryAddress: UserAddress
+  deliveryAddress: {
+    label: string
+    line1: string
+    area: string
+    city: string
+    postalCode: string
+  }
   items: OrderItemSnapshot[]
-  pricing: OrderPricing
+  pricing: {
+    subtotal: number
+    deliveryFee: number
+    discountAmount: number
+    total: number
+    currency: string
+    couponCode?: string
+  }
   paymentMethod: 'STRIPE' | 'COD'
-  paymentStatus: 'PAID' | 'AWAITING_CONFIRMATION' | 'COD_PENDING' | 'FAILED'
+  paymentStatus: 'PAID' | 'PENDING' | 'COD_PENDING' | 'FAILED' | 'REFUNDED'
   customerNote?: string
   cancellation?: {
     reason: string
-    cancelledBy: string
+    cancelledBy: 'CUSTOMER' | 'CHEF' | 'ADMIN'
     cancelledAt: string
   }
   review?: {
@@ -104,7 +106,7 @@ export interface OrderRecord {
     id: string
     reason: string
     notes: string
-    status: 'OPEN' | 'UNDER_REVIEW' | 'RESOLVED' | 'REJECTED'
+    status: string
     requestedAt: string
   }
   createdAt: string
@@ -113,30 +115,32 @@ export interface OrderRecord {
 
 export interface SubscriptionRecord {
   id: string
-  customerId: string
+  planId: string
+  planTitle: string
   chefId: string
   chefName: string
-  planId: string
-  planName: string
-  tierName: string
-  status: 'PENDING' | 'ACTIVE' | 'PAUSED' | 'CANCELLED' | 'PAST_DUE' | 'COMPLETED'
-  frequency: 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY'
-  basePrice: number
-  currency: string
-  selectedDishes: Array<{
-    dishId: string
-    name: string
-    quantity: number
-  }>
-  deliveryAddress: UserAddress
-  schedule: {
-    deliveryDays: string[]
-    nextDeliveryDate: string
-    nextBillingDate: string
+  status: 'ACTIVE' | 'PAUSED' | 'CANCELLED'
+  frequency: 'DAILY' | 'WEEKDAYS' | 'WEEKLY' | 'CUSTOM'
+  deliveryDays: string[]
+  portionCount: number
+  tier: 'STANDARD' | 'PREMIUM' | 'FAMILY'
+  currentCycle: {
+    startDate: string
+    endDate: string
+    deliveryDates: string[]
   }
-  currentPeriod: {
-    start: string
-    end: string
+  nextDeliveryDate: string
+  paymentMethod: {
+    type: 'CARD' | 'COD'
+    last4?: string
+    brand?: string
+  }
+  pricing: {
+    basePrice: number
+    discountAmount: number
+    deliveryFee: number
+    totalPerCycle: number
+    currency: string
   }
   pauseRules: {
     allowPause: boolean
@@ -168,6 +172,8 @@ export interface NotificationRecord {
   createdAt: string
 }
 
+const isLive = () => import.meta.env.VITE_USE_MOCK === 'false'
+
 // In-memory state initialized from fixtures with local storage persistence
 const PROFILE_STORAGE_KEY = 'chefmate-user-profile'
 const ORDERS_STORAGE_KEY = 'chefmate-user-orders'
@@ -187,7 +193,7 @@ function saveToStorage<T>(key: string, data: T): void {
   try {
     localStorage.setItem(key, JSON.stringify(data))
   } catch {
-    // Ignore storage quota errors in test environments
+    // Ignore storage quota errors
   }
 }
 
@@ -212,12 +218,37 @@ let activeNotifications: NotificationRecord[] = loadFromStorage(
 )
 
 export async function getUserProfile(): Promise<UserProfileRecord> {
+  if (isLive()) {
+    try {
+      const res = await fetch('/api/v1/user-dashboard/profile', { credentials: 'include' })
+      if (res.ok) {
+        return await res.json()
+      }
+    } catch {
+      // fallback
+    }
+  }
   return Promise.resolve({ ...activeProfile })
 }
 
 export async function updateUserProfile(
   updates: Partial<UserProfileRecord>,
 ): Promise<UserProfileRecord> {
+  if (isLive()) {
+    try {
+      const res = await fetch('/api/v1/user-dashboard/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(updates),
+      })
+      if (res.ok) {
+        return await res.json()
+      }
+    } catch {
+      // fallback
+    }
+  }
   activeProfile = {
     ...activeProfile,
     ...updates,
@@ -228,15 +259,50 @@ export async function updateUserProfile(
 }
 
 export async function getUserOrders(): Promise<OrderRecord[]> {
+  if (isLive()) {
+    try {
+      const res = await fetch('/api/v1/user-dashboard/orders', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return data.orders || data
+      }
+    } catch {
+      // fallback
+    }
+  }
   return Promise.resolve([...activeOrders])
 }
 
 export async function getOrderById(orderId: string): Promise<OrderRecord | null> {
+  if (isLive()) {
+    try {
+      const res = await fetch(`/api/v1/user-dashboard/orders/${orderId}`, { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return data.order || data
+      }
+    } catch {
+      // fallback
+    }
+  }
   const match = activeOrders.find((o) => o.id === orderId)
   return Promise.resolve(match ? { ...match } : null)
 }
 
 export async function cancelOrder(orderId: string, reason: string): Promise<boolean> {
+  if (isLive()) {
+    try {
+      const res = await fetch(`/api/v1/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ reason }),
+      })
+      return res.ok
+    } catch {
+      // fallback
+    }
+  }
   const idx = activeOrders.findIndex((o) => o.id === orderId)
   if (idx === -1) return Promise.resolve(false)
 
@@ -264,6 +330,19 @@ export async function submitOrderReview(
     comment: string
   },
 ): Promise<boolean> {
+  if (isLive()) {
+    try {
+      const res = await fetch('/api/v1/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ orderId, ...reviewData }),
+      })
+      return res.ok
+    } catch {
+      // fallback
+    }
+  }
   const idx = activeOrders.findIndex((o) => o.id === orderId)
   if (idx === -1) return Promise.resolve(false)
 
@@ -287,6 +366,19 @@ export async function submitOrderDispute(
     notes: string
   },
 ): Promise<boolean> {
+  if (isLive()) {
+    try {
+      const res = await fetch('/api/v1/admin/disputes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ orderId, ...disputeData }),
+      })
+      return res.ok
+    } catch {
+      // fallback
+    }
+  }
   const idx = activeOrders.findIndex((o) => o.id === orderId)
   if (idx === -1) return Promise.resolve(false)
 
@@ -305,6 +397,17 @@ export async function submitOrderDispute(
 }
 
 export async function getUserSubscriptions(): Promise<SubscriptionRecord[]> {
+  if (isLive()) {
+    try {
+      const res = await fetch('/api/v1/user-dashboard/subscriptions', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return data.subscriptions || data
+      }
+    } catch {
+      // fallback
+    }
+  }
   return Promise.resolve([...activeSubscriptions])
 }
 
@@ -312,6 +415,19 @@ export async function updateSubscriptionStatus(
   id: string,
   status: 'ACTIVE' | 'PAUSED' | 'CANCELLED',
 ): Promise<boolean> {
+  if (isLive()) {
+    try {
+      const res = await fetch(`/api/v1/subscriptions/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status }),
+      })
+      return res.ok
+    } catch {
+      // fallback
+    }
+  }
   const idx = activeSubscriptions.findIndex((s) => s.id === id)
   if (idx === -1) return Promise.resolve(false)
 
@@ -325,10 +441,48 @@ export async function updateSubscriptionStatus(
 }
 
 export async function getUserNotifications(): Promise<NotificationRecord[]> {
+  if (isLive()) {
+    try {
+      const res = await fetch('/api/v1/notifications', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return data.notifications || data
+      }
+    } catch {
+      // fallback
+    }
+  }
   return Promise.resolve([...activeNotifications])
 }
 
+export async function getUnreadNotificationCount(): Promise<number> {
+  if (isLive()) {
+    try {
+      const res = await fetch('/api/v1/notifications/unread-count', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return data.count ?? 0
+      }
+    } catch {
+      // fallback
+    }
+  }
+  const count = activeNotifications.filter((n) => !n.readAt).length
+  return Promise.resolve(count)
+}
+
 export async function markNotificationRead(id: string): Promise<boolean> {
+  if (isLive()) {
+    try {
+      const res = await fetch(`/api/v1/notifications/${id}/read`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      return res.ok
+    } catch {
+      // fallback
+    }
+  }
   const notif = activeNotifications.find((n) => n.id === id)
   if (!notif) return Promise.resolve(false)
   notif.readAt = new Date().toISOString()

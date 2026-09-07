@@ -35,11 +35,24 @@ export interface ChatMessageItem {
   createdAt: string
 }
 
+const isLive = () => import.meta.env.VITE_USE_MOCK === 'false'
+
 // In-memory reactive state for mock mode
 let localThreads: ChatThreadItem[] = [...(chatData.threads as ChatThreadItem[])]
 let localMessages: Record<string, ChatMessageItem[]> = JSON.parse(JSON.stringify(chatData.messages))
 
 export async function getMyThreads(role: 'USER' | 'CHEF' = 'USER', userId?: string): Promise<ChatThreadItem[]> {
+  if (isLive()) {
+    try {
+      const res = await fetch('/api/v1/chat/threads', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return data.threads || data
+      }
+    } catch {
+      // fallback
+    }
+  }
   await new Promise((r) => setTimeout(r, 60))
   if (role === 'CHEF') {
     return localThreads.filter((t) => !userId || t.chefId === userId || t.chefId === 'chef-ayesha-khan')
@@ -48,11 +61,33 @@ export async function getMyThreads(role: 'USER' | 'CHEF' = 'USER', userId?: stri
 }
 
 export async function getThread(threadId: string): Promise<ChatThreadItem | null> {
+  if (isLive()) {
+    try {
+      const res = await fetch(`/api/v1/chat/threads/${threadId}`, { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return data.thread || data
+      }
+    } catch {
+      // fallback
+    }
+  }
   await new Promise((r) => setTimeout(r, 40))
   return localThreads.find((t) => t.id === threadId) ?? null
 }
 
 export async function getThreadByOrderId(orderId: string): Promise<ChatThreadItem | null> {
+  if (isLive()) {
+    try {
+      const res = await fetch(`/api/v1/chat/threads/by-order/${orderId}`, { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return data.thread || data
+      }
+    } catch {
+      // fallback
+    }
+  }
   await new Promise((r) => setTimeout(r, 40))
   let thread = localThreads.find((t) => t.orderId === orderId)
   if (!thread) {
@@ -88,6 +123,17 @@ export async function listMessages(
   _limit = 50,
   _cursor?: string,
 ): Promise<{ items: ChatMessageItem[]; nextCursor?: string }> {
+  if (isLive()) {
+    try {
+      const res = await fetch(`/api/v1/chat/threads/${threadId}/messages`, { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return { items: data.messages || data.items || [] }
+      }
+    } catch {
+      // fallback
+    }
+  }
   await new Promise((r) => setTimeout(r, 50))
   const items = localMessages[threadId] || []
   return { items }
@@ -100,6 +146,23 @@ export async function sendMessage(
   senderId = 'user-1',
   senderName = 'Zainab Ahmed',
 ): Promise<ChatMessageItem> {
+  if (isLive()) {
+    try {
+      const res = await fetch(`/api/v1/chat/threads/${threadId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ content }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        return data.message || data
+      }
+    } catch {
+      // fallback
+    }
+  }
+
   await new Promise((r) => setTimeout(r, 60))
   const thread = localThreads.find((t) => t.id === threadId)
   const orderId = thread?.orderId ?? 'ORD-GENERIC'
@@ -135,6 +198,17 @@ export async function sendMessage(
 }
 
 export async function markMessagesRead(threadId: string, role: 'USER' | 'CHEF' = 'USER'): Promise<{ success: boolean }> {
+  if (isLive()) {
+    try {
+      const res = await fetch(`/api/v1/chat/threads/${threadId}/read`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      return { success: res.ok }
+    } catch {
+      // fallback
+    }
+  }
   await new Promise((r) => setTimeout(r, 30))
   const thread = localThreads.find((t) => t.id === threadId)
   if (thread) {
@@ -157,6 +231,17 @@ export async function markMessagesRead(threadId: string, role: 'USER' | 'CHEF' =
 }
 
 export async function getUnreadCount(role: 'USER' | 'CHEF' = 'USER'): Promise<{ unreadCount: number }> {
+  if (isLive()) {
+    try {
+      const res = await fetch('/api/v1/chat/unread-count', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        return { unreadCount: data.unreadCount || 0 }
+      }
+    } catch {
+      // fallback
+    }
+  }
   await new Promise((r) => setTimeout(r, 20))
   const count = localThreads.reduce((sum, t) => {
     return sum + (role === 'CHEF' ? t.chefUnreadCount : t.customerUnreadCount)

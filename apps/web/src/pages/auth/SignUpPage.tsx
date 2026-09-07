@@ -64,6 +64,10 @@ export function SignUpPage() {
 
   const handleGoogleSignUp = () => {
     setLoading(true)
+    if (import.meta.env.VITE_USE_MOCK === 'false') {
+      window.location.href = '/api/v1/auth/google'
+      return
+    }
     setTimeout(() => {
       loginFixtureUser('USER')
       setLoading(false)

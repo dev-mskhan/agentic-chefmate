@@ -320,19 +320,12 @@ importers:
       '@chefmate/errors':
         specifier: workspace:*
         version: link:../errors
+      fastify:
+        specifier: ^4.x
+        version: 4.29.1
       jose:
         specifier: ^5.6.3
         version: 5.10.0
-    devDependencies:
-      '@types/node':
-        specifier: ^20.14.12
-        version: 20.19.43
-      fastify:
-        specifier: ^4.28.1
-        version: 4.29.1
-      typescript:
-        specifier: ^5.5.3
-        version: 5.9.3
 
   packages/config:
     dependencies:
@@ -342,10 +335,6 @@ importers:
       zod:
         specifier: ^3.23.8
         version: 3.25.76
-    devDependencies:
-      typescript:
-        specifier: ^5.5.3
-        version: 5.9.3
 
   packages/db:
     dependencies:
@@ -358,19 +347,8 @@ importers:
       mongoose:
         specifier: ^8.5.3
         version: 8.24.2
-    devDependencies:
-      '@types/node':
-        specifier: ^20.14.12
-        version: 20.19.43
-      typescript:
-        specifier: ^5.5.3
-        version: 5.9.3
 
-  packages/errors:
-    devDependencies:
-      typescript:
-        specifier: ^5.5.3
-        version: 5.9.3
+  packages/errors: {}
 
   packages/event-contracts:
     dependencies:
@@ -380,13 +358,6 @@ importers:
       kafkajs:
         specifier: ^2.2.4
         version: 2.2.4
-    devDependencies:
-      '@types/node':
-        specifier: ^20.14.12
-        version: 20.19.43
-      typescript:
-        specifier: ^5.5.3
-        version: 5.9.3
 
   packages/logger:
     dependencies:
@@ -397,15 +368,9 @@ importers:
         specifier: ^9.3.2
         version: 9.14.0
     devDependencies:
-      '@types/node':
-        specifier: ^20.14.12
-        version: 20.19.43
       pino-pretty:
         specifier: ^11.2.2
         version: 11.3.0
-      typescript:
-        specifier: ^5.5.3
-        version: 5.9.3
 
   packages/trpc:
     dependencies:
@@ -416,15 +381,6 @@ importers:
         specifier: ^4.5.1
         version: 4.5.1
     devDependencies:
-      '@types/node':
-        specifier: ^20.14.12
-        version: 20.19.43
-      fastify:
-        specifier: ^4.28.1
-        version: 4.29.1
-      typescript:
-        specifier: ^5.5.3
-        version: 5.9.3
       vitest:
         specifier: ^1.6.0
         version: 1.6.1(@types/node@20.19.43)(lightningcss@1.33.0)
@@ -3139,6 +3095,7 @@ packages:
   cron-parser@4.9.0:
     resolution: {integrity: sha512-p0SaNjrHOnQeR8/VnfGbmg9te2kfyYSQ7Sc/j/6DtPL3JQvKxmjO9TSjNFpujqV3vEYYBvNNvXSxzyksBWAx1Q==}
     engines: {node: '>=12.0.0'}
+    deprecated: v4 is no longer maintained, upgrade to v5
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}

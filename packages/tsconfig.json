@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "lib": ["ES2022"],
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@chefmate/errors":          ["./src/errors/index.ts"],
+      "@chefmate/config":          ["./src/config/index.ts"],
+      "@chefmate/db":              ["./src/db/index.ts"],
+      "@chefmate/logger":          ["./src/logger/index.ts"],
+      "@chefmate/trpc":            ["./src/trpc/index.ts"],
+      "@chefmate/auth-clients":    ["./src/auth-clients/index.ts"],
+      "@chefmate/event-contracts": ["./src/event-contracts/index.ts"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
